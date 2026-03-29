@@ -1,0 +1,8 @@
+node_modules
+dist
+.DS_Store
+*.log
+*.pdf
+*.zip
+*.jfif
+paintsbydani_publicaciones*.txt

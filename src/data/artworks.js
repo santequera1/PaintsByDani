@@ -1,0 +1,276 @@
+export const ARTIST = {
+  name: 'Dani',
+  handle: '@paintsbydani',
+  instagramUrl: 'https://www.instagram.com/paintsbydani/',
+  profileImage: '/profile.jpg',
+}
+
+export const ROOMS = [
+  { id: 'foyer', name: 'Bienvenida', width: 16, length: 16 },
+  { id: 'sala1', name: 'Sala I', width: 20, length: 24 },
+  { id: 'sala2', name: 'Sala II', width: 20, length: 24 },
+]
+
+export const ARTWORKS = [
+  // === FOYER (room 0): Highlights ===
+  {
+    id: 'pre-morte',
+    filename: 'PRE MORTE - Óleo sobre lienzo - Septiembre_2025.jpg',
+    title: 'PRE MORTE',
+    medium: 'Óleo sobre lienzo · Septiembre 2025',
+    instagramUrl: 'https://www.instagram.com/paintsbydani/p/DPxT9mfDLHe/',
+    room: 0,
+  },
+  {
+    id: 'dismorfia',
+    filename: 'DISMORFIA - Óleo sobre lienzo - Septiembre_2025.jpg',
+    title: 'DISMORFIA',
+    medium: 'Óleo sobre lienzo · Septiembre 2025',
+    instagramUrl: 'https://www.instagram.com/paintsbydani/p/DPxUP1tjFhR/',
+    room: 0,
+  },
+  {
+    id: 'muerte-rojo',
+    filename: 'Muerte en rojo.jpg',
+    title: 'Muerte en rojo',
+    medium: '',
+    instagramUrl: 'https://www.instagram.com/paintsbydani/p/DR5QsUlAQbk/',
+    room: 0,
+  },
+  {
+    id: 'el-sexo',
+    filename: 'EL SEXO - Acrílico sobre papel - Agosto_2025.jpg',
+    title: 'EL SEXO',
+    medium: 'Acrílico sobre papel · Agosto 2025',
+    instagramUrl: 'https://www.instagram.com/paintsbydani/p/DPxW_e8DLkk/',
+    room: 0,
+  },
+  {
+    id: 'strange-fruit',
+    filename: 'Strange Fruit - Óleo sobre lienzo.jpg',
+    title: 'Strange Fruit',
+    medium: 'Óleo sobre lienzo',
+    instagramUrl: 'https://www.instagram.com/paintsbydani/',
+    room: 0,
+  },
+  {
+    id: 'ojos-tristes',
+    filename: 'OJOS TRISTES - Acuerela sobre papel - Agosto_2025.jpg',
+    title: 'OJOS TRISTES',
+    medium: 'Acuarela sobre papel · Agosto 2025',
+    instagramUrl: 'https://www.instagram.com/paintsbydani/p/DPxTSU_DEX5/',
+    room: 0,
+  },
+  {
+    id: 'corazon',
+    filename: 'CORAZÓN - Oleo sobre canva.jpg',
+    title: 'CORAZÓN',
+    medium: 'Óleo sobre canva',
+    instagramUrl: 'https://www.instagram.com/paintsbydani/p/DS31glalRrs/',
+    room: 0,
+  },
+
+  // === SALA 1 ===
+  {
+    id: 'encerrados',
+    filename: 'ENCERRADOS EN UN CUADRO - Óleo sobre lienzo - Agosto_2025.jpg',
+    title: 'ENCERRADOS EN UN CUADRO',
+    medium: 'Óleo sobre lienzo · Agosto 2025',
+    instagramUrl: 'https://www.instagram.com/paintsbydani/p/DPxWJlPjP2n/',
+    room: 1,
+  },
+  {
+    id: 'abstraccion',
+    filename: 'ABSTRACCIÓN - Óleo sobre Canva - Agosto_2025.jpg',
+    title: 'ABSTRACCIÓN',
+    medium: 'Óleo sobre canva · Agosto 2025',
+    instagramUrl: 'https://www.instagram.com/paintsbydani/p/DPxWk9OjH2O/',
+    room: 1,
+  },
+  {
+    id: 'ave',
+    filename: 'AVE - Oleo sobre lienzo - Septiembre_25.jpg',
+    title: 'AVE',
+    medium: 'Óleo sobre lienzo · Septiembre 2025',
+    instagramUrl: 'https://www.instagram.com/paintsbydani/p/DQ8MyBWjKzN/',
+    room: 1,
+  },
+  {
+    id: 'arbol',
+    filename: 'ÁRBOL EN LA CIUDAD - Óleo sobre lienzo - Agosto_2025.jpg',
+    title: 'ÁRBOL EN LA CIUDAD',
+    medium: 'Óleo sobre lienzo · Agosto 2025',
+    instagramUrl: 'https://www.instagram.com/paintsbydani/',
+    room: 1,
+  },
+  {
+    id: 'no-es-arte',
+    filename: 'No es arte - Óleo sobre papel.jpg',
+    title: 'No es arte?',
+    medium: 'Óleo sobre papel',
+    instagramUrl: 'https://www.instagram.com/paintsbydani/p/DPx-XtSDVbO/',
+    room: 1,
+  },
+  {
+    id: 'baile-amazonas',
+    filename: 'El baile de las amazonas - Oleo sobre papel, agosto 2025.jpg',
+    title: 'El baile de las amazonas',
+    medium: 'Óleo sobre papel · Agosto 2025',
+    instagramUrl: 'https://www.instagram.com/paintsbydani/p/DS31L_XlQmK/',
+    room: 1,
+  },
+  {
+    id: 'vacio',
+    filename: 'Vacio - Óleo sobre canva.jpg',
+    title: 'Vacío',
+    medium: 'Óleo sobre canva',
+    instagramUrl: 'https://www.instagram.com/paintsbydani/',
+    room: 1,
+  },
+
+  // === SALA 1 (cont) ===
+  {
+    id: 'te-ame',
+    filename: 'Te amé.jpg',
+    title: 'Te amé',
+    medium: '',
+    instagramUrl: 'https://www.instagram.com/paintsbydani/p/DS31206lUS2/',
+    room: 1,
+  },
+  {
+    id: 'senor-d1',
+    filename: 'Señor del d1.jpg',
+    title: 'Señor del d1',
+    medium: '',
+    instagramUrl: 'https://www.instagram.com/paintsbydani/p/DROi_kuDX26/',
+    room: 1,
+  },
+  {
+    id: 'me',
+    filename: 'Me.jpg',
+    title: 'Me',
+    medium: '',
+    instagramUrl: 'https://www.instagram.com/paintsbydani/p/DRNZA7BAUfW/',
+    room: 1,
+  },
+  {
+    id: 'my-lady',
+    filename: 'My lady.jpg',
+    title: 'My lady',
+    medium: '',
+    instagramUrl: 'https://www.instagram.com/paintsbydani/p/DRNYc3VAc-5/',
+    room: 1,
+  },
+
+  // === SALA 2 ===
+  {
+    id: 'little-dan',
+    filename: 'Little Dan.jpg',
+    title: 'Little Dan',
+    medium: '',
+    instagramUrl: 'https://www.instagram.com/paintsbydani/p/DQ8N7_ejOD5/',
+    room: 2,
+  },
+  {
+    id: 'retrato',
+    filename: 'Retrato.jpg',
+    title: 'Retrato',
+    medium: '',
+    instagramUrl: 'https://www.instagram.com/paintsbydani/p/DQ8LoKRDMP0/',
+    room: 2,
+  },
+  {
+    id: 'portiu',
+    filename: 'PORTIU - 2025.jpg',
+    title: 'PORTIU',
+    medium: '2025',  // Only year available
+    instagramUrl: 'https://www.instagram.com/paintsbydani/p/DQP6Y-1gdDG/',
+    room: 2,
+  },
+  {
+    id: 'expulsion',
+    filename: 'Expulsión hacia la vida.jpg',
+    title: 'Expulsión hacia la vida',
+    medium: '',
+    instagramUrl: 'https://www.instagram.com/paintsbydani/',
+    room: 2,
+  },
+  {
+    id: 'look-at-her',
+    filename: 'Look at heR Dic_25.jpg',
+    title: 'Look at heR',
+    medium: 'Diciembre 2025',
+    instagramUrl: 'https://www.instagram.com/paintsbydani/',
+    room: 2,
+  },
+
+  // === SALA 2 (cont) ===
+  {
+    id: 'aborto',
+    filename: 'ABORTO - Agosto_25.jpg',
+    title: 'ABORTO',
+    medium: 'Agosto 2025',
+    instagramUrl: 'https://www.instagram.com/paintsbydani/p/DQ8L-ryDN8R/',
+    room: 2,
+  },
+  {
+    id: 'libertad',
+    filename: 'LIBERTAD - Agosto_25.jpg',
+    title: 'LIBERTAD',
+    medium: 'Agosto 2025',
+    instagramUrl: 'https://www.instagram.com/paintsbydani/p/DQ8MQtyDPpI/',
+    room: 2,
+  },
+  {
+    id: 'vida',
+    filename: 'VIDA - Agosto_2025.jpg',
+    title: 'VIDA',
+    medium: 'Agosto 2025',
+    instagramUrl: 'https://www.instagram.com/paintsbydani/p/DPx-JLjDaup/',
+    room: 2,
+  },
+  {
+    id: 'sol-lloroso',
+    filename: 'SOL LLOROSO - Oleo sobre papel - Agosto_25.jpg',
+    title: 'SOL LLOROSO',
+    medium: 'Óleo sobre papel · Agosto 2025',
+    instagramUrl: 'https://www.instagram.com/paintsbydani/p/DQ8NP2fDO6U/',
+    room: 2,
+  },
+  {
+    id: 'zorro',
+    filename: 'ZORRO VESTIDO DE HOMBRE - Revisitas - Octobre_2025.jpg',
+    title: 'ZORRO VESTIDO DE HOMBRE',
+    medium: 'Revisitas · Octubre 2025',
+    instagramUrl: 'https://www.instagram.com/paintsbydani/p/DPx9JshjezC/',
+    room: 2,
+  },
+  {
+    id: 'sucio',
+    filename: 'sucio - Oleo-papel Dic_25.jpg',
+    title: 'sucio',
+    medium: 'Óleo sobre papel · Diciembre 2025',
+    instagramUrl: 'https://www.instagram.com/paintsbydani/p/DS32zFTlQ9u/',
+    room: 2,
+  },
+  {
+    id: 'corazon-blanco',
+    filename: '🤍.jpg',
+    title: '\u{1F90D}',  // White heart emoji
+    medium: '',
+    instagramUrl: 'https://www.instagram.com/paintsbydani/p/DPx84b3jbP3/',
+    room: 2,
+  },
+  {
+    id: 'pre-morte-2',
+    filename: 'PRE_MORTE.jpg',
+    title: 'PRE MORTE (II)',
+    medium: '',
+    instagramUrl: 'https://www.instagram.com/paintsbydani/p/DPxT9mfDLHe/',
+    room: 2,
+  },
+]
+
+export function getArtworksByRoom(roomIndex) {
+  return ARTWORKS.filter(a => a.room === roomIndex)
+}
