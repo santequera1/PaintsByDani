@@ -372,7 +372,14 @@ if (isMobile) {
 
   document.addEventListener('touchmove', (e) => {
     if (!joystickActive) return
-    const touch = e.touches[0]
+    // Find the correct touch by proximity to start position
+    let touch = null
+    for (const t of e.touches) {
+      const tdx = t.clientX - joystickStartX
+      const tdy = t.clientY - joystickStartY
+      if (Math.sqrt(tdx * tdx + tdy * tdy) < 120) { touch = t; break }
+    }
+    if (!touch) touch = e.touches[0]
     let dx = touch.clientX - joystickStartX
     let dy = touch.clientY - joystickStartY
     const dist = Math.sqrt(dx * dx + dy * dy)
@@ -424,8 +431,8 @@ if (isMobile) {
         lookStartX = touch.clientX
         lookStartY = touch.clientY
         document.dispatchEvent(new MouseEvent('mousemove', {
-          movementX: dx,
-          movementY: dy,
+          movementX: dx * 2.2,
+          movementY: dy * 2.2,
         }))
         break
       }
