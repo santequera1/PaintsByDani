@@ -14,15 +14,25 @@ import './playground.css'
 const REDUCE = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v)
 
-// Fallback de codificación para nombres con caracteres conflictivos.
-const candidates = (filename) => [
-  `/posts/${encodeURIComponent(filename)}`,
-  `/posts/${encodeURI(filename)}`,
-  `/posts/${filename}`,
-]
-function setImgWithFallback(img, filename) {
-  const list = candidates(filename)
+// Rutas de imagen: WebP (miniatura para tarjetas, grande para el modal) con
+// fallback a los JPG originales (varias codificaciones por nombres raros).
+const baseName = (f) => f.replace(/\.[^.]+$/, '')
+function candidates(filename, kind) {
+  const b = encodeURIComponent(baseName(filename))
+  const list = []
+  if (kind === 'thumb') list.push(`/posts/thumb/${b}.webp`)
+  else if (kind === 'full') list.push(`/posts/full/${b}.webp`)
+  list.push(
+    `/posts/${encodeURIComponent(filename)}`,
+    `/posts/${encodeURI(filename)}`,
+    `/posts/${filename}`,
+  )
+  return list
+}
+function setImgWithFallback(img, filename, kind) {
+  const list = candidates(filename, kind)
   let idx = 0
+  img.classList.remove('loaded') // re-fade al cambiar de imagen (reciclado)
   img.onerror = () => {
     idx += 1
     if (idx < list.length) img.src = list[idx]
@@ -117,7 +127,7 @@ function createNode() {
   img.className = 'pg-card-img'
   img.decoding = 'async'
   img.draggable = false
-  img.addEventListener('load', hideLoader, { once: true })
+  img.addEventListener('load', () => { img.classList.add('loaded'); hideLoader() })
   const cap = document.createElement('div')
   cap.className = 'pg-card-cap'
   inner.appendChild(img)
@@ -168,7 +178,7 @@ function placeCard(node, card, i, j) {
     node.el.dataset.id = card.art.id
     node.cap.textContent = card.art.title
     node.img.alt = card.art.title
-    setImgWithFallback(node.img, card.art.filename)
+    setImgWithFallback(node.img, card.art.filename, 'thumb')
     node.artId = card.art.id
   }
 }
@@ -220,7 +230,7 @@ function kick() {
 }
 
 function virtualize() {
-  const m = 320
+  const m = 620 // margen amplio: las tarjetas existen antes de entrar en pantalla
   const S = curScale
   const wMinX = (-m - curX) / S, wMaxX = (vw + m - curX) / S
   const wMinY = (-m - curY) / S, wMaxY = (vh + m - curY) / S
@@ -467,7 +477,7 @@ if (gyroBtn) gyroBtn.addEventListener('click', toggleGyro)
 function openModal(id) {
   const art = ARTWORKS.find((a) => a.id === id)
   if (!art) return
-  setImgWithFallback(modalImg, art.filename)
+  setImgWithFallback(modalImg, art.filename, 'full')
   modalImg.alt = art.title
   modalTitle.textContent = art.title
   modalMedium.textContent = art.medium || ''
