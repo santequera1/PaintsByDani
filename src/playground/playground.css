@@ -92,7 +92,6 @@ html, body {
   top: 0;
   left: 0;
   cursor: pointer;
-  perspective: 900px; /* para el "pop" 3D en hover */
 }
 .pg-card-inner {
   position: relative;
@@ -149,9 +148,8 @@ html, body {
   .pg-card:hover {
     z-index: 5; /* que el cuadro levantado quede por encima de los vecinos */
   }
+  /* El transform 3D lo maneja vanilla-tilt; aquí solo las sombras */
   .pg-card:hover .pg-card-inner {
-    /* "levantarse" en 3D: pop hacia el espectador + ligera inclinación */
-    transform: translateY(-5px) translateZ(34px) rotateX(3deg) scale(1.015);
     box-shadow:
       0 3px 6px rgba(30, 40, 55, 0.10),
       0 18px 30px -10px rgba(30, 40, 55, 0.30),
@@ -159,9 +157,13 @@ html, body {
   }
   .pg-card:hover .pg-card-cap { opacity: 1; transform: translateY(0); }
 }
+/* Glare de vanilla-tilt recortado a las esquinas del marco */
+.pg-card-inner .js-tilt-glare { border-radius: 3px; z-index: 3; }
 /* Entrada escalonada (solo primera pintada) */
 .pg-card-inner.pg-enter {
-  animation: pgIn 0.6s cubic-bezier(.2,.8,.2,1) both;
+  /* 'backwards' (no 'both') para no fijar transform tras la animación y
+     dejar que vanilla-tilt controle el transform en hover */
+  animation: pgIn 0.6s cubic-bezier(.2,.8,.2,1) backwards;
 }
 @keyframes pgIn {
   from { opacity: 0; transform: scale(0.92) translateY(12px); }

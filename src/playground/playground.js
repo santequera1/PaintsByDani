@@ -1,4 +1,5 @@
 import { ARTWORKS, ARTIST } from '../data/artworks.js'
+import VanillaTilt from 'vanilla-tilt'
 import './playground.css'
 
 /* ============================================================
@@ -123,6 +124,20 @@ function createNode() {
   inner.appendChild(cap)
   el.appendChild(inner)
   world.appendChild(el)
+  // Tilt 3D al pasar el cursor (vanilla-tilt). El nodo se recicla, así que
+  // la instancia persiste; desactivamos su giroscopio porque ya manejamos
+  // el del dispositivo a nivel de página.
+  if (!REDUCE) {
+    VanillaTilt.init(inner, {
+      max: 12,
+      speed: 600,
+      scale: 1.05,
+      perspective: 900,
+      glare: true,
+      'max-glare': 0.22,
+      gyroscope: false,
+    })
+  }
   return { el, inner, img, cap, artId: null }
 }
 
@@ -172,7 +187,7 @@ let pinch = false
 let pinchStartDist = 0, pinchStartScale = 1, pinchWx = 0, pinchWy = 0
 
 // Giroscopio (parallax al inclinar el móvil)
-const GYRO_MAX = 48          // desplazamiento máximo en px
+const GYRO_MAX = 66          // desplazamiento máximo en px
 let gyroX = 0, gyroY = 0     // offset mostrado (suavizado)
 let gyroTX = 0, gyroTY = 0   // offset objetivo
 let gyroBaseG = null, gyroBaseB = null
@@ -390,8 +405,8 @@ function onOrient(e) {
   // la base persigue lentamente la inclinación actual → re-centra
   gyroBaseG += (g - gyroBaseG) * 0.02
   gyroBaseB += (b - gyroBaseB) * 0.02
-  gyroTX = clamp(-(g - gyroBaseG) * 2.3, -GYRO_MAX, GYRO_MAX)
-  gyroTY = clamp(-(b - gyroBaseB) * 2.3, -GYRO_MAX, GYRO_MAX)
+  gyroTX = clamp(-(g - gyroBaseG) * 3.0, -GYRO_MAX, GYRO_MAX)
+  gyroTY = clamp(-(b - gyroBaseB) * 3.0, -GYRO_MAX, GYRO_MAX)
   kick()
 }
 
