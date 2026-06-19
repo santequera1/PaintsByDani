@@ -124,14 +124,15 @@ function createNode() {
   inner.appendChild(cap)
   el.appendChild(inner)
   world.appendChild(el)
-  // Tilt 3D al pasar el cursor (vanilla-tilt). El nodo se recicla, así que
-  // la instancia persiste; desactivamos su giroscopio porque ya manejamos
-  // el del dispositivo a nivel de página.
+  // Tilt 3D al pasar el cursor (vanilla-tilt). Se aplica al nodo EXTERNO
+  // (no al interno) para que el área de hover siga a la caja transformada
+  // y no parpadee. El nodo se recicla, así que la instancia persiste;
+  // desactivamos su giroscopio porque ya manejamos el del dispositivo.
   if (!REDUCE) {
-    VanillaTilt.init(inner, {
-      max: 12,
-      speed: 600,
-      scale: 1.05,
+    VanillaTilt.init(el, {
+      max: 11,
+      speed: 500,
+      scale: 1.04,
       perspective: 900,
       glare: true,
       'max-glare': 0.22,
@@ -156,7 +157,11 @@ function release(node) {
 function placeCard(node, card, i, j) {
   const cx = card.x + i * tileW
   const cy = card.y + j * tileH
-  node.el.style.transform = `translate3d(${cx}px, ${cy}px, 0)`
+  // Posición con left/top (no transform) para dejar el transform libre a
+  // vanilla-tilt. Se asigna una sola vez por instancia, así que no afecta
+  // al rendimiento del desplazamiento (eso lo hace el transform del mundo).
+  node.el.style.left = cx + 'px'
+  node.el.style.top = cy + 'px'
   if (node.artId !== card.art.id) {
     node.el.style.width = card.w + 'px'
     node.el.style.height = card.h + 'px'
