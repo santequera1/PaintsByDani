@@ -385,6 +385,22 @@ html, body {
 #pg-center:hover { background: #fff; transform: scale(1.06); }
 #pg-center:active { transform: scale(0.94); }
 
+/* --- Botón activar giroscopio (iOS) --- */
+#pg-gyro {
+  position: fixed;
+  left: 50%;
+  bottom: 74px;
+  transform: translateX(-50%);
+  z-index: 11;
+  box-shadow: 0 6px 18px -10px rgba(40, 30, 20, 0.45);
+  animation: pgGyroPulse 2.4s ease-in-out infinite;
+}
+#pg-gyro[hidden] { display: none; }
+@keyframes pgGyroPulse {
+  0%, 100% { box-shadow: 0 6px 18px -10px rgba(40, 30, 20, 0.45); }
+  50% { box-shadow: 0 6px 22px -6px rgba(180, 69, 47, 0.5); }
+}
+
 /* --- Loader --- */
 #pg-loader {
   position: fixed;

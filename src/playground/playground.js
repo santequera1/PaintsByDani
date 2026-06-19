@@ -38,6 +38,8 @@ const dots = document.getElementById('pg-dots')
 const hint = document.getElementById('pg-hint')
 const loader = document.getElementById('pg-loader')
 const centerBtn = document.getElementById('pg-center')
+const gyroBtn = document.getElementById('pg-gyro')
+const gyroLabel = gyroBtn ? gyroBtn.querySelector('.pg-gyro-label') : null
 
 const modal = document.getElementById('pg-modal')
 const modalCard = document.getElementById('pg-modal-card')
@@ -303,7 +305,6 @@ function onDown(e) {
   pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
   try { stage.setPointerCapture(e.pointerId) } catch {}
   stage.classList.add('moving')
-  enableGyro() // iOS necesita el gesto del usuario para pedir permiso
   if (pointers.size === 1) {
     dragging = true; moved = false; inertia = false; velX = velY = 0
     lastX = downX = e.clientX; lastY = downY = e.clientY
@@ -392,20 +393,41 @@ function onOrient(e) {
   kick()
 }
 
-function enableGyro() {
-  if (gyroSetup || REDUCE || !window.DeviceOrientationEvent) return
-  const req = window.DeviceOrientationEvent.requestPermission
-  if (typeof req === 'function') {
-    // iOS 13+: requiere gesto del usuario (lo llamamos desde pointerdown)
-    req().then((state) => {
+function startGyro() {
+  if (gyroSetup) return
+  window.addEventListener('deviceorientation', onOrient)
+  gyroSetup = true
+}
+
+// ¿El navegador exige permiso explícito? (iOS 13+)
+const NEEDS_GYRO_PERM =
+  typeof DeviceOrientationEvent !== 'undefined' &&
+  typeof DeviceOrientationEvent.requestPermission === 'function'
+
+if (gyroBtn) {
+  gyroBtn.addEventListener('click', async () => {
+    try {
+      const state = await DeviceOrientationEvent.requestPermission()
       if (state === 'granted') {
-        window.addEventListener('deviceorientation', onOrient)
-        gyroSetup = true
+        startGyro()
+        gyroBtn.hidden = true
+      } else {
+        // denegado: casi siempre Ajustes › Safari › Movimiento y orientación
+        gyroLabel.textContent = 'Actívalo en Ajustes › Safari'
+        setTimeout(() => { gyroBtn.hidden = true }, 4500)
       }
-    }).catch(() => {})
+    } catch {
+      gyroBtn.hidden = true
+    }
+  })
+}
+
+function setupGyro() {
+  if (REDUCE || !window.DeviceOrientationEvent) return
+  if (NEEDS_GYRO_PERM) {
+    if (gyroBtn) gyroBtn.hidden = false // iOS: mostrar el botón
   } else {
-    window.addEventListener('deviceorientation', onOrient)
-    gyroSetup = true
+    startGyro() // Android: directo
   }
 }
 
@@ -470,5 +492,5 @@ window.addEventListener('resize', () => {
 // init
 computeLayout()
 centerStart()
-enableGyro() // Android: se activa directo; iOS se reintenta al primer toque
+setupGyro()
 kick()
