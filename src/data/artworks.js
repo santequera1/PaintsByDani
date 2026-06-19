@@ -113,7 +113,7 @@ export const ARTWORKS = [
   },
   {
     id: 'baile-amazonas',
-    filename: 'El baile de las amazonas - Oleo sobre papel, agosto 2025.jpg',
+    filename: 'El baile de las amazonas - Oleo sobre papel - agosto 2025.jpg',
     title: 'El baile de las amazonas',
     medium: 'Óleo sobre papel · Agosto 2025',
     instagramUrl: 'https://www.instagram.com/paintsbydani/p/DS31L_XlQmK/',

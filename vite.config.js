@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite'
+import { resolve } from 'path'
 
 export default defineConfig({
   base: './',
@@ -6,5 +7,11 @@ export default defineConfig({
     minify: 'esbuild',
     chunkSizeWarningLimit: 1500,
     assetsInlineLimit: 0,
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, 'index.html'),
+        playground: resolve(__dirname, 'playground.html'),
+      },
+    },
   },
 })
