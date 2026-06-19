@@ -172,7 +172,7 @@ let pinch = false
 let pinchStartDist = 0, pinchStartScale = 1, pinchWx = 0, pinchWy = 0
 
 // Giroscopio (parallax al inclinar el móvil)
-const GYRO_MAX = 34          // desplazamiento máximo en px (sutil)
+const GYRO_MAX = 48          // desplazamiento máximo en px
 let gyroX = 0, gyroY = 0     // offset mostrado (suavizado)
 let gyroTX = 0, gyroTY = 0   // offset objetivo
 let gyroBaseG = null, gyroBaseB = null
@@ -245,17 +245,19 @@ function step() {
     tY = clamp((panX - curX) * 0.035, -5, 5)
     tX = clamp(-(panY - curY) * 0.035, -5, 5)
   }
-  // giroscopio: suavizado lento para que no maree
+  // giroscopio: suavizado para que no maree pero responda
   if (!REDUCE) {
-    gyroX += (gyroTX - gyroX) * 0.06
-    gyroY += (gyroTY - gyroY) * 0.06
+    gyroX += (gyroTX - gyroX) * 0.09
+    gyroY += (gyroTY - gyroY) * 0.09
   }
 
   tiltEl.style.transform = `perspective(1300px) rotateX(${tX}deg) rotateY(${tY}deg)`
   world.style.transform = `translate3d(${curX + gyroX}px, ${curY + gyroY}px, 0) scale(${curScale})`
 
-  const pf = REDUCE ? 1 : 0.62 // parallax: los puntos van más lentos
-  dots.style.backgroundPosition = `${curX * pf}px ${curY * pf}px`
+  // parallax: los puntos van más lentos que las obras (también con el giro)
+  const pf = REDUCE ? 1 : 0.62
+  dots.style.backgroundPosition =
+    `${curX * pf + gyroX * 0.5}px ${curY * pf + gyroY * 0.5}px`
 
   virtualize()
 
@@ -388,8 +390,8 @@ function onOrient(e) {
   // la base persigue lentamente la inclinación actual → re-centra
   gyroBaseG += (g - gyroBaseG) * 0.02
   gyroBaseB += (b - gyroBaseB) * 0.02
-  gyroTX = clamp(-(g - gyroBaseG) * 1.6, -GYRO_MAX, GYRO_MAX)
-  gyroTY = clamp(-(b - gyroBaseB) * 1.6, -GYRO_MAX, GYRO_MAX)
+  gyroTX = clamp(-(g - gyroBaseG) * 2.3, -GYRO_MAX, GYRO_MAX)
+  gyroTY = clamp(-(b - gyroBaseB) * 2.3, -GYRO_MAX, GYRO_MAX)
   kick()
 }
 
