@@ -14,9 +14,14 @@
   <div id="pg-paper"></div>
   <div id="pg-dots"></div>
 
+  <!-- Cargando -->
+  <div id="pg-loader"><div class="pg-spinner"></div></div>
+
   <!-- Lienzo infinito arrastrable -->
   <main id="pg-stage">
-    <div id="pg-world"></div>
+    <div id="pg-tilt">
+      <div id="pg-world"></div>
+    </div>
   </main>
 
   <!-- Cabecera fija -->
@@ -36,6 +41,11 @@
       </a>
     </nav>
   </header>
+
+  <!-- Botón de centrar -->
+  <button id="pg-center" title="Centrar la galería" aria-label="Centrar la galería">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+  </button>
 
   <!-- Pista de arrastre -->
   <div id="pg-hint">

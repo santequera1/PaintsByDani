@@ -3,18 +3,22 @@ import './playground.css'
 
 /* ============================================================
    Galería de lienzo infinito arrastrable (estilo kree8)
-   Reutiliza los datos del museo 3D (ARTWORKS) y al tocar una
-   obra abre un modal con el caption + botón a Instagram.
+   - Virtualización con reciclado de nodos (solo renderiza las
+     obras visibles + un margen; reposiciona por tiling modular)
+   - Smooth-follow (lerp), inercia, tilt al arrastrar, parallax,
+     zoom (rueda + pinch) y entrada escalonada
+   - Respeta prefers-reduced-motion
    ============================================================ */
 
-// Algunos nombres (p. ej. el que lleva coma) fallan con %2C en ciertos
-// servidores, así que probamos varias codificaciones como el museo 3D.
+const REDUCE = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+const clamp = (v, a, b) => (v < a ? a : v > b ? b : v)
+
+// Fallback de codificación para nombres con caracteres conflictivos.
 const candidates = (filename) => [
   `/posts/${encodeURIComponent(filename)}`,
   `/posts/${encodeURI(filename)}`,
   `/posts/${filename}`,
 ]
-
 function setImgWithFallback(img, filename) {
   const list = candidates(filename)
   let idx = 0
@@ -28,11 +32,13 @@ function setImgWithFallback(img, filename) {
 
 // --- DOM ---
 const stage = document.getElementById('pg-stage')
+const tiltEl = document.getElementById('pg-tilt')
 const world = document.getElementById('pg-world')
 const dots = document.getElementById('pg-dots')
 const hint = document.getElementById('pg-hint')
+const loader = document.getElementById('pg-loader')
+const centerBtn = document.getElementById('pg-center')
 
-// Modal
 const modal = document.getElementById('pg-modal')
 const modalCard = document.getElementById('pg-modal-card')
 const modalImg = document.getElementById('pg-modal-img')
@@ -42,26 +48,22 @@ const modalIg = document.getElementById('pg-modal-ig')
 const modalClose = document.getElementById('pg-modal-close')
 const modalBackdrop = document.getElementById('pg-modal-backdrop')
 
-const mod = (n, m) => ((n % m) + m) % m
+let vw = window.innerWidth
+let vh = window.innerHeight
 
-// Relaciones de aspecto (alto/ancho) deterministas para un masonry
-// orgánico sin depender de la carga de cada imagen.
+// ------------------------------------------------------------
+// 1) Layout del tile base (masonry) que se repite al infinito
+// ------------------------------------------------------------
 const RATIOS = [1.18, 0.82, 1.34, 0.95, 1.0, 1.46, 0.78, 1.12, 1.28, 0.88]
-
-// ------------------------------------------------------------
-// 1) Construir el "tile" base (masonry) que se repetirá infinito
-// ------------------------------------------------------------
-let COL_W, GAP, NUM_COLS, cellW, cellH, cards
+let COL_W, GAP, NUM_COLS, tileW, tileH, cards
 
 function computeLayout() {
-  const vw = window.innerWidth
   if (vw < 560) { NUM_COLS = 2; COL_W = Math.min(220, (vw - 56) / 2) }
   else if (vw < 920) { NUM_COLS = 3; COL_W = 220 }
   else if (vw < 1300) { NUM_COLS = 4; COL_W = 240 }
   else { NUM_COLS = 5; COL_W = 256 }
-  GAP = Math.round(COL_W * 0.18) // más aire entre cuadros
+  GAP = Math.round(COL_W * 0.18)
 
-  // 1) repartir obras en columnas (la más corta primero)
   const cols = Array.from({ length: NUM_COLS }, () => ({ items: [], sumH: 0 }))
   ARTWORKS.forEach((art, i) => {
     let c = 0
@@ -71,178 +73,293 @@ function computeLayout() {
     cols[c].sumH += h
   })
 
-  // 2) altura del tile = la que necesita la columna más cargada
-  cellH = Math.max(...cols.map((col) => col.sumH + col.items.length * GAP))
+  tileH = Math.max(...cols.map((col) => col.sumH + col.items.length * GAP))
 
-  // 3) cada columna reparte su holgura uniformemente para llenar cellH.
-  //    Así el tiling vertical queda sin huecos ni franjas vacías.
   cards = []
   cols.forEach((col, c) => {
     const x = c * (COL_W + GAP)
-    const s = col.items.length ? (cellH - col.sumH) / col.items.length : GAP
-    let y = s / 2 // medio espacio arriba → al repetir, abajo+arriba = s
+    const s = col.items.length ? (tileH - col.sumH) / col.items.length : GAP
+    let y = s / 2
     col.items.forEach(({ art, h }) => {
       cards.push({ art, x, y, w: COL_W, h })
       y += h + s
     })
   })
 
-  cellW = NUM_COLS * (COL_W + GAP)
+  tileW = NUM_COLS * (COL_W + GAP)
 }
 
-function buildCellTemplate() {
-  const frag = document.createDocumentFragment()
-  for (const card of cards) {
-    const el = document.createElement('div')
-    el.className = 'pg-card'
-    el.style.left = card.x + 'px'
-    el.style.top = card.y + 'px'
-    el.style.width = card.w + 'px'
-    el.style.height = card.h + 'px'
-    el.dataset.id = card.art.id
+// ------------------------------------------------------------
+// 2) Pool de nodos reciclables
+// ------------------------------------------------------------
+const active = new Map() // key "k|i|j" -> node
+const pool = []
+let firstPaint = true
+let staggerIdx = 0
+let loaderHidden = false
 
-    const img = document.createElement('img')
-    img.className = 'pg-card-img'
-    img.alt = card.art.title
-    img.loading = 'lazy'
-    img.decoding = 'async'
-    img.draggable = false
-    setImgWithFallback(img, card.art.filename)
-    el.appendChild(img)
+function hideLoader() {
+  if (loaderHidden) return
+  loaderHidden = true
+  loader.classList.add('gone')
+}
+setTimeout(hideLoader, 2600)
 
-    const cap = document.createElement('div')
-    cap.className = 'pg-card-cap'
-    cap.textContent = card.art.title
-    el.appendChild(cap)
+function createNode() {
+  const el = document.createElement('div')
+  el.className = 'pg-card'
+  const inner = document.createElement('div')
+  inner.className = 'pg-card-inner'
+  const img = document.createElement('img')
+  img.className = 'pg-card-img'
+  img.decoding = 'async'
+  img.draggable = false
+  img.addEventListener('load', hideLoader, { once: true })
+  const cap = document.createElement('div')
+  cap.className = 'pg-card-cap'
+  inner.appendChild(img)
+  inner.appendChild(cap)
+  el.appendChild(inner)
+  world.appendChild(el)
+  return { el, inner, img, cap, artId: null }
+}
 
-    frag.appendChild(el)
+function acquire() {
+  const node = pool.pop()
+  if (node) { node.el.style.display = ''; return node }
+  return createNode()
+}
+
+function release(node) {
+  node.el.style.display = 'none'
+  node.inner.classList.remove('pg-enter')
+  pool.push(node)
+}
+
+function placeCard(node, card, i, j) {
+  const cx = card.x + i * tileW
+  const cy = card.y + j * tileH
+  node.el.style.transform = `translate3d(${cx}px, ${cy}px, 0)`
+  if (node.artId !== card.art.id) {
+    node.el.style.width = card.w + 'px'
+    node.el.style.height = card.h + 'px'
+    node.el.dataset.id = card.art.id
+    node.cap.textContent = card.art.title
+    node.img.alt = card.art.title
+    setImgWithFallback(node.img, card.art.filename)
+    node.artId = card.art.id
   }
-  return frag
 }
 
 // ------------------------------------------------------------
-// 2) Rejilla de copias del tile para cubrir el viewport
+// 3) Estado del lienzo (pan + zoom) con smooth-follow
 // ------------------------------------------------------------
-function buildGrid() {
-  world.innerHTML = ''
+let panX = 0, panY = 0           // objetivo
+let curX = 0, curY = 0           // mostrado (lerp)
+let targetScale = 1, curScale = 1
+let velX = 0, velY = 0
+let startX = 0, startY = 0
 
-  const gridCols = Math.ceil(window.innerWidth / cellW) + 2
-  const gridRows = Math.ceil(window.innerHeight / cellH) + 2
+let dragging = false
+let moved = false
+let inertia = false
+let lastX = 0, lastY = 0, downX = 0, downY = 0
 
-  for (let r = 0; r < gridRows; r++) {
-    for (let c = 0; c < gridCols; c++) {
-      const cell = document.createElement('div')
-      cell.style.position = 'absolute'
-      cell.style.left = c * cellW + 'px'
-      cell.style.top = r * cellH + 'px'
-      cell.style.width = cellW + 'px'
-      cell.style.height = cellH + 'px'
-      // Construimos cada celda desde cero (no clonamos) para que cada
-      // <img> conserve su handler onerror y el fallback siga funcionando.
-      cell.appendChild(buildCellTemplate())
-      world.appendChild(cell)
+const pointers = new Map()
+let pinch = false
+let pinchStartDist = 0, pinchStartScale = 1, pinchWx = 0, pinchWy = 0
+
+let rafId = null
+let running = false
+
+function centerStart() {
+  startX = panX = curX = -tileW * 0.5 + vw * 0.5
+  startY = panY = curY = -tileH * 0.4 + vh * 0.3
+}
+
+function kick() {
+  if (!running) { running = true; rafId = requestAnimationFrame(step) }
+}
+
+function virtualize() {
+  const m = 320
+  const S = curScale
+  const wMinX = (-m - curX) / S, wMaxX = (vw + m - curX) / S
+  const wMinY = (-m - curY) / S, wMaxY = (vh + m - curY) / S
+
+  const needed = new Set()
+  for (let k = 0; k < cards.length; k++) {
+    const c = cards[k]
+    const iMin = Math.ceil((wMinX - (c.x + c.w)) / tileW)
+    const iMax = Math.floor((wMaxX - c.x) / tileW)
+    const jMin = Math.ceil((wMinY - (c.y + c.h)) / tileH)
+    const jMax = Math.floor((wMaxY - c.y) / tileH)
+    for (let i = iMin; i <= iMax; i++) {
+      for (let j = jMin; j <= jMax; j++) {
+        const key = k + '|' + i + '|' + j
+        needed.add(key)
+        if (!active.has(key)) {
+          const node = acquire()
+          placeCard(node, c, i, j)
+          active.set(key, node)
+          if (firstPaint && !REDUCE) {
+            node.inner.style.animationDelay = (staggerIdx++ % 24) * 28 + 'ms'
+            node.inner.classList.add('pg-enter')
+          }
+        }
+      }
+    }
+  }
+  for (const [key, node] of active) {
+    if (!needed.has(key)) { active.delete(key); release(node) }
+  }
+}
+
+function step() {
+  if (REDUCE) {
+    curX = panX; curY = panY; curScale = targetScale
+  } else {
+    curX += (panX - curX) * 0.16
+    curY += (panY - curY) * 0.16
+    curScale += (targetScale - curScale) * 0.16
+  }
+
+  if (inertia && !dragging) {
+    panX += velX; panY += velY
+    velX *= 0.94; velY *= 0.94
+    if (Math.hypot(velX, velY) < 0.08) { inertia = false; velX = velY = 0 }
+  }
+
+  // tilt proporcional al "retraso" del seguimiento (sensación de peso)
+  let tY = 0, tX = 0
+  if (!REDUCE) {
+    tY = clamp((panX - curX) * 0.035, -5, 5)
+    tX = clamp(-(panY - curY) * 0.035, -5, 5)
+  }
+  tiltEl.style.transform = `perspective(1300px) rotateX(${tX}deg) rotateY(${tY}deg)`
+  world.style.transform = `translate3d(${curX}px, ${curY}px, 0) scale(${curScale})`
+
+  const pf = REDUCE ? 1 : 0.62 // parallax: los puntos van más lentos
+  dots.style.backgroundPosition = `${curX * pf}px ${curY * pf}px`
+
+  virtualize()
+
+  const settled =
+    Math.abs(panX - curX) < 0.15 &&
+    Math.abs(panY - curY) < 0.15 &&
+    Math.abs(targetScale - curScale) < 0.002 &&
+    !inertia && !dragging
+  if (settled) {
+    running = false
+    firstPaint = false
+    stage.classList.remove('moving')
+  } else {
+    rafId = requestAnimationFrame(step)
+  }
+}
+
+// ------------------------------------------------------------
+// 4) Interacción: arrastre, inercia, zoom (rueda + pinch)
+// ------------------------------------------------------------
+function beginPinch() {
+  const pts = [...pointers.values()]
+  const dx = pts[0].x - pts[1].x, dy = pts[0].y - pts[1].y
+  pinchStartDist = Math.hypot(dx, dy) || 1
+  pinchStartScale = targetScale
+  const mx = (pts[0].x + pts[1].x) / 2, my = (pts[0].y + pts[1].y) / 2
+  pinchWx = (mx - panX) / targetScale
+  pinchWy = (my - panY) / targetScale
+  pinch = true
+  dismissHint()
+}
+
+function handlePinch() {
+  const pts = [...pointers.values()]
+  const dx = pts[0].x - pts[1].x, dy = pts[0].y - pts[1].y
+  const dist = Math.hypot(dx, dy) || 1
+  const mx = (pts[0].x + pts[1].x) / 2, my = (pts[0].y + pts[1].y) / 2
+  targetScale = clamp(pinchStartScale * (dist / pinchStartDist), 0.6, 2.4)
+  panX = mx - pinchWx * targetScale
+  panY = my - pinchWy * targetScale
+  kick()
+}
+
+function onDown(e) {
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+  try { stage.setPointerCapture(e.pointerId) } catch {}
+  stage.classList.add('moving')
+  if (pointers.size === 1) {
+    dragging = true; moved = false; inertia = false; velX = velY = 0
+    lastX = downX = e.clientX; lastY = downY = e.clientY
+    stage.classList.add('dragging')
+  } else if (pointers.size === 2) {
+    dragging = false
+    beginPinch()
+  }
+  kick()
+}
+
+function onMove(e) {
+  const p = pointers.get(e.pointerId)
+  if (p) { p.x = e.clientX; p.y = e.clientY }
+  if (pinch && pointers.size >= 2) { handlePinch(); return }
+  if (!dragging) return
+  const dx = e.clientX - lastX, dy = e.clientY - lastY
+  lastX = e.clientX; lastY = e.clientY
+  panX += dx; panY += dy
+  velX = dx; velY = dy
+  if (Math.abs(e.clientX - downX) + Math.abs(e.clientY - downY) > 6) {
+    moved = true; dismissHint()
+  }
+  kick()
+}
+
+function onUp(e) {
+  pointers.delete(e.pointerId)
+  try { stage.releasePointerCapture(e.pointerId) } catch {}
+  if (pinch && pointers.size < 2) pinch = false
+
+  if (pointers.size === 1) {
+    // queda un dedo → seguir arrastrando
+    const rem = [...pointers.values()][0]
+    dragging = true; moved = true; lastX = rem.x; lastY = rem.y; velX = velY = 0
+    return
+  }
+  if (pointers.size === 0 && dragging) {
+    dragging = false
+    stage.classList.remove('dragging')
+    if (!moved) {
+      const under = document.elementFromPoint(e.clientX, e.clientY)
+      const card = under && under.closest('.pg-card')
+      if (card) openModal(card.dataset.id)
+    } else if (!REDUCE && Math.hypot(velX, velY) > 0.5) {
+      inertia = true; kick()
     }
   }
 }
 
-// ------------------------------------------------------------
-// 3) Estado de arrastre + inercia
-// ------------------------------------------------------------
-let offsetX = 0, offsetY = 0
-let velX = 0, velY = 0
-let dragging = false
-let moved = false
-let pointerId = null
-let lastX = 0, lastY = 0
-let downX = 0, downY = 0
-let rafId = null
-
-// arranque centrado y desplazado para una composición agradable
-function centerStart() {
-  offsetX = -cellW * 0.5 + window.innerWidth * 0.5
-  offsetY = -cellH * 0.4 + window.innerHeight * 0.3
-}
-
-function render() {
-  const wx = mod(offsetX, cellW) - cellW
-  const wy = mod(offsetY, cellH) - cellH
-  world.style.transform = `translate3d(${wx}px, ${wy}px, 0)`
-  dots.style.backgroundPosition = `${offsetX}px ${offsetY}px`
-}
-
-function inertia() {
-  if (dragging) return
-  velX *= 0.93
-  velY *= 0.93
-  offsetX += velX
-  offsetY += velY
-  render()
-  if (Math.abs(velX) > 0.05 || Math.abs(velY) > 0.05) {
-    rafId = requestAnimationFrame(inertia)
-  } else {
-    rafId = null
-  }
-}
-
-function onDown(e) {
-  if (e.button !== undefined && e.button !== 0) return
-  dragging = true
-  moved = false
-  pointerId = e.pointerId
-  lastX = downX = e.clientX
-  lastY = downY = e.clientY
-  velX = velY = 0
-  if (rafId) { cancelAnimationFrame(rafId); rafId = null }
-  stage.classList.add('dragging')
-  try { stage.setPointerCapture(pointerId) } catch {}
-}
-
-function onMove(e) {
-  if (!dragging) return
-  const dx = e.clientX - lastX
-  const dy = e.clientY - lastY
-  lastX = e.clientX
-  lastY = e.clientY
-  offsetX += dx
-  offsetY += dy
-  velX = dx
-  velY = dy
-  if (Math.abs(e.clientX - downX) + Math.abs(e.clientY - downY) > 6) {
-    moved = true
-    dismissHint()
-  }
-  render()
-}
-
-function onUp(e) {
-  if (!dragging) return
-  dragging = false
-  stage.classList.remove('dragging')
-  try { stage.releasePointerCapture(pointerId) } catch {}
-
-  if (!moved) {
-    // click "limpio" → abrir obra bajo el cursor.
-    // Con setPointerCapture e.target es el stage, así que resolvemos
-    // el elemento real bajo el puntero.
-    const under = document.elementFromPoint(e.clientX, e.clientY)
-    const target = under && under.closest('.pg-card')
-    if (target) openModal(target.dataset.id)
-    return
-  }
-  if (Math.abs(velX) > 0.5 || Math.abs(velY) > 0.5) {
-    rafId = requestAnimationFrame(inertia)
-  }
+function onWheel(e) {
+  e.preventDefault()
+  const factor = 1 + (-Math.sign(e.deltaY)) * 0.12
+  const ns = clamp(targetScale * factor, 0.6, 2.4)
+  const wx = (e.clientX - panX) / targetScale
+  const wy = (e.clientY - panY) / targetScale
+  targetScale = ns
+  panX = e.clientX - wx * ns
+  panY = e.clientY - wy * ns
+  dismissHint()
+  kick()
 }
 
 stage.addEventListener('pointerdown', onDown)
 stage.addEventListener('pointermove', onMove)
 stage.addEventListener('pointerup', onUp)
 stage.addEventListener('pointercancel', onUp)
-// evitar arrastre nativo de imágenes
 stage.addEventListener('dragstart', (e) => e.preventDefault())
+stage.addEventListener('wheel', onWheel, { passive: false })
 
 // ------------------------------------------------------------
-// 4) Modal de obra
+// 5) Modal de obra
 // ------------------------------------------------------------
 function openModal(id) {
   const art = ARTWORKS.find((a) => a.id === id)
@@ -263,10 +380,7 @@ function closeModal() {
   modal.classList.remove('open')
   modal.setAttribute('aria-hidden', 'true')
   document.removeEventListener('keydown', onKey)
-  setTimeout(() => {
-    modal.classList.add('hidden')
-    modalImg.src = ''
-  }, 320)
+  setTimeout(() => { modal.classList.add('hidden'); modalImg.src = '' }, 320)
 }
 
 function onKey(e) { if (e.key === 'Escape') closeModal() }
@@ -276,28 +390,33 @@ modalBackdrop.addEventListener('click', closeModal)
 modalCard.addEventListener('click', (e) => e.stopPropagation())
 
 // ------------------------------------------------------------
-// 5) Hint + resize + init
+// 6) Centrar, hint, resize, init
 // ------------------------------------------------------------
-let hintTimer = null
-function dismissHint() {
-  if (!hint || hint.classList.contains('gone')) return
-  hint.classList.add('gone')
+function recenter() {
+  panX = startX; panY = startY; targetScale = 1; inertia = false; velX = velY = 0
+  if (REDUCE) { curX = panX; curY = panY; curScale = 1 }
+  kick()
 }
-hintTimer = setTimeout(dismissHint, 6000)
+centerBtn.addEventListener('click', recenter)
+
+function dismissHint() {
+  if (hint && !hint.classList.contains('gone')) hint.classList.add('gone')
+}
+setTimeout(dismissHint, 6500)
 
 let resizeTimer = null
-function rebuild() {
-  computeLayout()
-  buildGrid()
-  render()
-}
 window.addEventListener('resize', () => {
   clearTimeout(resizeTimer)
-  resizeTimer = setTimeout(rebuild, 200)
+  resizeTimer = setTimeout(() => {
+    vw = window.innerWidth; vh = window.innerHeight
+    computeLayout()
+    world.innerHTML = ''
+    active.clear(); pool.length = 0; firstPaint = false
+    kick()
+  }, 180)
 })
 
 // init
 computeLayout()
 centerStart()
-buildGrid()
-render()
+kick()
