@@ -92,6 +92,7 @@ html, body {
   top: 0;
   left: 0;
   cursor: pointer;
+  perspective: 900px; /* para el "pop" 3D en hover */
 }
 .pg-card-inner {
   position: relative;
@@ -145,11 +146,16 @@ html, body {
   text-overflow: ellipsis;
 }
 @media (hover: hover) {
+  .pg-card:hover {
+    z-index: 5; /* que el cuadro levantado quede por encima de los vecinos */
+  }
   .pg-card:hover .pg-card-inner {
-    transform: translateY(-6px) scale(1.03) rotate(-0.4deg);
+    /* "levantarse" en 3D: pop hacia el espectador + ligera inclinación */
+    transform: translateY(-5px) translateZ(34px) rotateX(3deg) scale(1.015);
     box-shadow:
-      0 2px 2px rgba(0, 0, 0, 0.05),
-      0 26px 46px -14px rgba(40, 30, 20, 0.52);
+      0 3px 6px rgba(30, 40, 55, 0.10),
+      0 18px 30px -10px rgba(30, 40, 55, 0.30),
+      0 42px 64px -22px rgba(30, 40, 55, 0.44);
   }
   .pg-card:hover .pg-card-cap { opacity: 1; transform: translateY(0); }
 }

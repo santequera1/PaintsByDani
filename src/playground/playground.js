@@ -169,6 +169,13 @@ const pointers = new Map()
 let pinch = false
 let pinchStartDist = 0, pinchStartScale = 1, pinchWx = 0, pinchWy = 0
 
+// Giroscopio (parallax al inclinar el móvil)
+const GYRO_MAX = 34          // desplazamiento máximo en px (sutil)
+let gyroX = 0, gyroY = 0     // offset mostrado (suavizado)
+let gyroTX = 0, gyroTY = 0   // offset objetivo
+let gyroBaseG = null, gyroBaseB = null
+let gyroSetup = false
+
 let rafId = null
 let running = false
 
@@ -236,8 +243,14 @@ function step() {
     tY = clamp((panX - curX) * 0.035, -5, 5)
     tX = clamp(-(panY - curY) * 0.035, -5, 5)
   }
+  // giroscopio: suavizado lento para que no maree
+  if (!REDUCE) {
+    gyroX += (gyroTX - gyroX) * 0.06
+    gyroY += (gyroTY - gyroY) * 0.06
+  }
+
   tiltEl.style.transform = `perspective(1300px) rotateX(${tX}deg) rotateY(${tY}deg)`
-  world.style.transform = `translate3d(${curX}px, ${curY}px, 0) scale(${curScale})`
+  world.style.transform = `translate3d(${curX + gyroX}px, ${curY + gyroY}px, 0) scale(${curScale})`
 
   const pf = REDUCE ? 1 : 0.62 // parallax: los puntos van más lentos
   dots.style.backgroundPosition = `${curX * pf}px ${curY * pf}px`
@@ -248,6 +261,8 @@ function step() {
     Math.abs(panX - curX) < 0.15 &&
     Math.abs(panY - curY) < 0.15 &&
     Math.abs(targetScale - curScale) < 0.002 &&
+    Math.abs(gyroTX - gyroX) < 0.1 &&
+    Math.abs(gyroTY - gyroY) < 0.1 &&
     !inertia && !dragging
   if (settled) {
     running = false
@@ -288,6 +303,7 @@ function onDown(e) {
   pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
   try { stage.setPointerCapture(e.pointerId) } catch {}
   stage.classList.add('moving')
+  enableGyro() // iOS necesita el gesto del usuario para pedir permiso
   if (pointers.size === 1) {
     dragging = true; moved = false; inertia = false; velX = velY = 0
     lastX = downX = e.clientX; lastY = downY = e.clientY
@@ -359,6 +375,41 @@ stage.addEventListener('dragstart', (e) => e.preventDefault())
 stage.addEventListener('wheel', onWheel, { passive: false })
 
 // ------------------------------------------------------------
+//  Giroscopio: al inclinar el móvil, el lienzo se mueve un poco.
+//  Reacciona al MOVIMIENTO y se auto-recentra (no a la posición
+//  absoluta) para que no maree si lo dejas inclinado.
+// ------------------------------------------------------------
+function onOrient(e) {
+  if (e.gamma == null || e.beta == null) return
+  const g = e.gamma // izq/der  (-90..90)
+  const b = e.beta  // ade/atrás (-180..180)
+  if (gyroBaseG === null) { gyroBaseG = g; gyroBaseB = b }
+  // la base persigue lentamente la inclinación actual → re-centra
+  gyroBaseG += (g - gyroBaseG) * 0.02
+  gyroBaseB += (b - gyroBaseB) * 0.02
+  gyroTX = clamp(-(g - gyroBaseG) * 1.6, -GYRO_MAX, GYRO_MAX)
+  gyroTY = clamp(-(b - gyroBaseB) * 1.6, -GYRO_MAX, GYRO_MAX)
+  kick()
+}
+
+function enableGyro() {
+  if (gyroSetup || REDUCE || !window.DeviceOrientationEvent) return
+  const req = window.DeviceOrientationEvent.requestPermission
+  if (typeof req === 'function') {
+    // iOS 13+: requiere gesto del usuario (lo llamamos desde pointerdown)
+    req().then((state) => {
+      if (state === 'granted') {
+        window.addEventListener('deviceorientation', onOrient)
+        gyroSetup = true
+      }
+    }).catch(() => {})
+  } else {
+    window.addEventListener('deviceorientation', onOrient)
+    gyroSetup = true
+  }
+}
+
+// ------------------------------------------------------------
 // 5) Modal de obra
 // ------------------------------------------------------------
 function openModal(id) {
@@ -419,4 +470,5 @@ window.addEventListener('resize', () => {
 // init
 computeLayout()
 centerStart()
+enableGyro() // Android: se activa directo; iOS se reintenta al primer toque
 kick()
