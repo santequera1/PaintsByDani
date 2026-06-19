@@ -395,9 +395,15 @@ html, body {
   transform: translateX(-50%);
   z-index: 11;
   box-shadow: 0 6px 18px -10px rgba(40, 30, 20, 0.45);
-  animation: pgGyroPulse 2.4s ease-in-out infinite;
 }
 #pg-gyro[hidden] { display: none; }
+#pg-gyro:not(.on) { animation: pgGyroPulse 2.4s ease-in-out infinite; }
+#pg-gyro.on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  box-shadow: 0 8px 22px -8px rgba(180, 69, 47, 0.6);
+}
 @keyframes pgGyroPulse {
   0%, 100% { box-shadow: 0 6px 18px -10px rgba(40, 30, 20, 0.45); }
   50% { box-shadow: 0 6px 22px -6px rgba(180, 69, 47, 0.5); }

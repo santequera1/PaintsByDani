@@ -186,12 +186,21 @@ const pointers = new Map()
 let pinch = false
 let pinchStartDist = 0, pinchStartScale = 1, pinchWx = 0, pinchWy = 0
 
-// Giroscopio (parallax al inclinar el móvil)
-const GYRO_MAX = 66          // desplazamiento máximo en px
-let gyroX = 0, gyroY = 0     // offset mostrado (suavizado)
-let gyroTX = 0, gyroTY = 0   // offset objetivo
-let gyroBaseG = null, gyroBaseB = null
+// Giroscopio: la inclinación controla la VELOCIDAD de desplazamiento
+const GYRO_SENS = 0.55   // px/frame por grado de inclinación
+const GYRO_DEAD = 5      // zona muerta en grados (evita deriva)
+const GYRO_VMAX = 30     // velocidad máxima en px/frame
+let gDX = 0, gDY = 0     // inclinación actual respecto a la base calibrada
+let baseG = null, baseB = null
+let gyroOn = false
 let gyroSetup = false
+let gyroPermitted = false
+
+function tiltToVel(deg) {
+  if (Math.abs(deg) < GYRO_DEAD) return 0
+  const d = deg - Math.sign(deg) * GYRO_DEAD
+  return clamp(d * GYRO_SENS, -GYRO_VMAX, GYRO_VMAX)
+}
 
 let rafId = null
 let running = false
@@ -240,6 +249,14 @@ function virtualize() {
 }
 
 function step() {
+  // giroscopio: la inclinación se traduce en velocidad de desplazamiento
+  // (mantener inclinado = sigue scrolleando). Mueve el pan real → el fondo
+  // y todo se desplazan de forma natural.
+  if (gyroOn && !REDUCE) {
+    panX += -tiltToVel(gDX)
+    panY += -tiltToVel(gDY)
+  }
+
   if (REDUCE) {
     curX = panX; curY = panY; curScale = targetScale
   } else {
@@ -260,19 +277,12 @@ function step() {
     tY = clamp((panX - curX) * 0.035, -5, 5)
     tX = clamp(-(panY - curY) * 0.035, -5, 5)
   }
-  // giroscopio: suavizado para que no maree pero responda
-  if (!REDUCE) {
-    gyroX += (gyroTX - gyroX) * 0.09
-    gyroY += (gyroTY - gyroY) * 0.09
-  }
-
   tiltEl.style.transform = `perspective(1300px) rotateX(${tX}deg) rotateY(${tY}deg)`
-  world.style.transform = `translate3d(${curX + gyroX}px, ${curY + gyroY}px, 0) scale(${curScale})`
+  world.style.transform = `translate3d(${curX}px, ${curY}px, 0) scale(${curScale})`
 
-  // parallax: los puntos van más lentos que las obras (también con el giro)
+  // parallax: los puntos van más lentos que las obras
   const pf = REDUCE ? 1 : 0.62
-  dots.style.backgroundPosition =
-    `${curX * pf + gyroX * 0.5}px ${curY * pf + gyroY * 0.5}px`
+  dots.style.backgroundPosition = `${curX * pf}px ${curY * pf}px`
 
   virtualize()
 
@@ -280,9 +290,7 @@ function step() {
     Math.abs(panX - curX) < 0.15 &&
     Math.abs(panY - curY) < 0.15 &&
     Math.abs(targetScale - curScale) < 0.002 &&
-    Math.abs(gyroTX - gyroX) < 0.1 &&
-    Math.abs(gyroTY - gyroY) < 0.1 &&
-    !inertia && !dragging
+    !inertia && !dragging && !gyroOn
   if (settled) {
     running = false
     firstPaint = false
@@ -399,21 +407,10 @@ stage.addEventListener('wheel', onWheel, { passive: false })
 // ------------------------------------------------------------
 function onOrient(e) {
   if (e.gamma == null || e.beta == null) return
-  const g = e.gamma // izq/der  (-90..90)
-  const b = e.beta  // ade/atrás (-180..180)
-  if (gyroBaseG === null) { gyroBaseG = g; gyroBaseB = b }
-  // la base persigue lentamente la inclinación actual → re-centra
-  gyroBaseG += (g - gyroBaseG) * 0.02
-  gyroBaseB += (b - gyroBaseB) * 0.02
-  gyroTX = clamp(-(g - gyroBaseG) * 3.0, -GYRO_MAX, GYRO_MAX)
-  gyroTY = clamp(-(b - gyroBaseB) * 3.0, -GYRO_MAX, GYRO_MAX)
-  kick()
-}
-
-function startGyro() {
-  if (gyroSetup) return
-  window.addEventListener('deviceorientation', onOrient)
-  gyroSetup = true
+  if (baseG === null) { baseG = e.gamma; baseB = e.beta } // calibra la pose actual
+  gDX = e.gamma - baseG // izq/der
+  gDY = e.beta - baseB  // ade/atrás
+  if (gyroOn) kick()
 }
 
 // ¿El navegador exige permiso explícito? (iOS 13+)
@@ -421,32 +418,43 @@ const NEEDS_GYRO_PERM =
   typeof DeviceOrientationEvent !== 'undefined' &&
   typeof DeviceOrientationEvent.requestPermission === 'function'
 
-if (gyroBtn) {
-  gyroBtn.addEventListener('click', async () => {
+function updateGyroBtn() {
+  if (!gyroBtn) return
+  gyroBtn.classList.toggle('on', gyroOn)
+  if (gyroLabel) gyroLabel.textContent = gyroOn ? 'Detener giroscopio' : 'Activar giroscopio'
+}
+
+async function toggleGyro() {
+  if (gyroOn) { gyroOn = false; updateGyroBtn(); return }
+  // encender: pedir permiso en iOS la primera vez
+  if (NEEDS_GYRO_PERM && !gyroPermitted) {
     try {
       const state = await DeviceOrientationEvent.requestPermission()
-      if (state === 'granted') {
-        startGyro()
-        gyroBtn.hidden = true
-      } else {
-        // denegado: casi siempre Ajustes › Safari › Movimiento y orientación
-        gyroLabel.textContent = 'Actívalo en Ajustes › Safari'
-        setTimeout(() => { gyroBtn.hidden = true }, 4500)
+      if (state !== 'granted') {
+        if (gyroLabel) gyroLabel.textContent = 'Actívalo en Ajustes › Safari'
+        setTimeout(updateGyroBtn, 4500)
+        return
       }
-    } catch {
-      gyroBtn.hidden = true
-    }
-  })
+      gyroPermitted = true
+    } catch { return }
+  }
+  if (!gyroSetup) { window.addEventListener('deviceorientation', onOrient); gyroSetup = true }
+  baseG = baseB = null // recalibra: la pose actual pasa a ser el centro
+  gDX = gDY = 0
+  gyroOn = true
+  updateGyroBtn()
+  kick()
 }
 
 function setupGyro() {
-  if (REDUCE || !window.DeviceOrientationEvent) return
-  if (NEEDS_GYRO_PERM) {
-    if (gyroBtn) gyroBtn.hidden = false // iOS: mostrar el botón
-  } else {
-    startGyro() // Android: directo
-  }
+  if (REDUCE || !gyroBtn) return
+  // mostrar el toggle solo en dispositivos táctiles con sensor
+  const hasGyro = 'DeviceOrientationEvent' in window &&
+    window.matchMedia('(pointer: coarse)').matches
+  if (hasGyro) { gyroBtn.hidden = false; updateGyroBtn() }
 }
+
+if (gyroBtn) gyroBtn.addEventListener('click', toggleGyro)
 
 // ------------------------------------------------------------
 // 5) Modal de obra
