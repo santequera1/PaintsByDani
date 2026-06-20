@@ -196,6 +196,8 @@ let dragging = false
 let moved = false
 let inertia = false
 let lastX = 0, lastY = 0, downX = 0, downY = 0
+let tapCard = null
+const TAP_SLOP = 12 // px de tolerancia para considerar un toque como "tap"
 
 const pointers = new Map()
 let pinch = false
@@ -348,6 +350,8 @@ function onDown(e) {
   if (pointers.size === 1) {
     dragging = true; moved = false; inertia = false; velX = velY = 0
     lastX = downX = e.clientX; lastY = downY = e.clientY
+    // guardar la tarjeta bajo el dedo AHORA (lo más fiable en móvil)
+    tapCard = e.target && e.target.closest ? e.target.closest('.pg-card') : null
     stage.classList.add('dragging')
   } else if (pointers.size === 2) {
     dragging = false
@@ -365,7 +369,7 @@ function onMove(e) {
   lastX = e.clientX; lastY = e.clientY
   panX += dx; panY += dy
   velX = dx; velY = dy
-  if (Math.abs(e.clientX - downX) + Math.abs(e.clientY - downY) > 6) {
+  if (Math.abs(e.clientX - downX) + Math.abs(e.clientY - downY) > TAP_SLOP) {
     moved = true; dismissHint()
   }
   kick()
@@ -386,12 +390,17 @@ function onUp(e) {
     dragging = false
     stage.classList.remove('dragging')
     if (!moved) {
-      const under = document.elementFromPoint(e.clientX, e.clientY)
-      const card = under && under.closest('.pg-card')
+      // usar la tarjeta capturada en el down; si no, recalcular como respaldo
+      let card = tapCard
+      if (!card) {
+        const under = document.elementFromPoint(e.clientX, e.clientY)
+        card = under && under.closest('.pg-card')
+      }
       if (card) openModal(card.dataset.id)
     } else if (!REDUCE && Math.hypot(velX, velY) > 0.5) {
       inertia = true; kick()
     }
+    tapCard = null
   }
 }
 
@@ -474,10 +483,26 @@ if (gyroBtn) gyroBtn.addEventListener('click', toggleGyro)
 // ------------------------------------------------------------
 // 5) Modal de obra
 // ------------------------------------------------------------
+function setModalImage(filename) {
+  // 1) miniatura (normalmente ya cacheada por la tarjeta) → aparece al instante
+  modalImg.onerror = null
+  modalImg.src = `/posts/thumb/${encodeURIComponent(baseName(filename))}.webp`
+  // 2) precargar la versión grande y cambiarla al terminar (con fallback)
+  const list = candidates(filename, 'full')
+  let idx = 0
+  const tryNext = () => {
+    const probe = new Image()
+    probe.onload = () => { modalImg.src = probe.src }
+    probe.onerror = () => { idx += 1; if (idx < list.length) tryNext() }
+    probe.src = list[idx]
+  }
+  tryNext()
+}
+
 function openModal(id) {
   const art = ARTWORKS.find((a) => a.id === id)
   if (!art) return
-  setImgWithFallback(modalImg, art.filename, 'full')
+  setModalImage(art.filename)
   modalImg.alt = art.title
   modalTitle.textContent = art.title
   modalMedium.textContent = art.medium || ''
