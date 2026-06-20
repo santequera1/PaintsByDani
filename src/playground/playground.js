@@ -32,7 +32,6 @@ function candidates(filename, kind) {
 function setImgWithFallback(img, filename, kind) {
   const list = candidates(filename, kind)
   let idx = 0
-  img.classList.remove('loaded') // re-fade al cambiar de imagen (reciclado)
   img.onerror = () => {
     idx += 1
     if (idx < list.length) img.src = list[idx]
@@ -127,7 +126,7 @@ function createNode() {
   img.className = 'pg-card-img'
   img.decoding = 'async'
   img.draggable = false
-  img.addEventListener('load', () => { img.classList.add('loaded'); hideLoader() })
+  img.addEventListener('load', hideLoader)
   const cap = document.createElement('div')
   cap.className = 'pg-card-cap'
   inner.appendChild(img)
@@ -554,8 +553,19 @@ window.addEventListener('resize', () => {
   }, 180)
 })
 
+// Precargar TODAS las miniaturas (solo 31, ~3MB) para que al hacer zoom-out
+// o scroll las tarjetas aparezcan con su imagen ya cacheada (sin recuadros
+// en blanco). La versión grande del modal se sigue cargando bajo demanda.
+function preloadThumbs() {
+  for (const art of ARTWORKS) {
+    const im = new Image()
+    im.src = `/posts/thumb/${encodeURIComponent(baseName(art.filename))}.webp`
+  }
+}
+
 // init
 computeLayout()
 centerStart()
 setupGyro()
 kick()
+setTimeout(preloadThumbs, 0) // arranca la precarga justo tras el primer frame

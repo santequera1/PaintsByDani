@@ -120,13 +120,11 @@ html, body {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  background: #e3ebf1;
+  /* placeholder gris suave mientras carga (no blanco) */
+  background: #dfe6ed;
   pointer-events: none;
   border-radius: 1px;
-  opacity: 0;
-  transition: opacity 0.45s ease; /* fade-in al cargar, sin "pop" */
 }
-.pg-card-img.loaded { opacity: 1; }
 .pg-card-cap {
   position: absolute;
   left: 9px;
