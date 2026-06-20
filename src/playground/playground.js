@@ -157,6 +157,21 @@ function acquire() {
   return createNode()
 }
 
+// Pre-crea nodos ocultos (repartidos en frames) para que el PRIMER scroll/zoom
+// reutilice el pool en vez de crear muchos nodos de golpe (evita el tirón).
+const PREWARM = 130
+function prewarmPool() {
+  if (active.size + pool.length >= PREWARM) return
+  let n = 0
+  while (active.size + pool.length < PREWARM && n < 10) {
+    const node = createNode()
+    node.el.style.display = 'none'
+    pool.push(node)
+    n += 1
+  }
+  if (active.size + pool.length < PREWARM) requestAnimationFrame(prewarmPool)
+}
+
 function release(node) {
   node.el.style.display = 'none'
   node.inner.classList.remove('pg-enter')
@@ -231,10 +246,12 @@ function kick() {
 }
 
 function virtualize() {
-  const m = 620 // margen amplio: las tarjetas existen antes de entrar en pantalla
+  // margen en coordenadas del mundo (no se infla al hacer zoom-out, así no
+  // se dispara el nº de nodos). Las tarjetas existen antes de entrar en pantalla.
+  const m = 620
   const S = curScale
-  const wMinX = (-m - curX) / S, wMaxX = (vw + m - curX) / S
-  const wMinY = (-m - curY) / S, wMaxY = (vh + m - curY) / S
+  const wMinX = -curX / S - m, wMaxX = (vw - curX) / S + m
+  const wMinY = -curY / S - m, wMaxY = (vh - curY) / S + m
 
   const needed = new Set()
   for (let k = 0; k < cards.length; k++) {
@@ -550,6 +567,7 @@ window.addEventListener('resize', () => {
     world.innerHTML = ''
     active.clear(); pool.length = 0; firstPaint = false
     kick()
+    setTimeout(prewarmPool, 200)
   }, 180)
 })
 
@@ -568,4 +586,5 @@ computeLayout()
 centerStart()
 setupGyro()
 kick()
-setTimeout(preloadThumbs, 0) // arranca la precarga justo tras el primer frame
+setTimeout(preloadThumbs, 0)        // arranca la precarga de miniaturas
+setTimeout(prewarmPool, 200)        // pre-crea el pool de nodos tras el 1er frame
