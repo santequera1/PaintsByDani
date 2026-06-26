@@ -75,11 +75,23 @@ export function initGallery({ artworks, artist, imgBase = 'posts' }) {
     else { NUM_COLS = 5; COL_W = 256 }
     GAP = Math.round(COL_W * 0.18)
 
-    const n = artworks.length
-    NUM_COLS = Math.min(NUM_COLS, n) || 1
+    // Densificar si hay pocas obras: repetir (con rotación para variar el
+    // patrón) hasta ~6 por columna, así el lienzo queda lleno como en una
+    // galería grande en vez de quedar con huecos.
+    let list = artworks
+    const target = NUM_COLS * 6
+    if (artworks.length > 0 && artworks.length < target) {
+      list = []
+      let r = 0
+      while (list.length < target) {
+        const off = r % artworks.length
+        list = list.concat(artworks.slice(off), artworks.slice(0, off))
+        r += 1
+      }
+    }
 
     const cols = Array.from({ length: NUM_COLS }, () => ({ items: [], sumH: 0 }))
-    artworks.forEach((art, i) => {
+    list.forEach((art, i) => {
       let c = 0
       for (let k = 1; k < NUM_COLS; k++) if (cols[k].sumH < cols[c].sumH) c = k
       const h = Math.round(COL_W * RATIOS[i % RATIOS.length])
@@ -515,6 +527,7 @@ export function initGallery({ artworks, artist, imgBase = 'posts' }) {
     const setAbout = (open) => {
       aboutEl.classList.toggle('open', open)
       aboutToggle.setAttribute('aria-expanded', open ? 'true' : 'false')
+      document.body.classList.toggle('pg-about-open', open) // desenfoca el fondo
     }
     aboutToggle.addEventListener('click', (e) => {
       e.stopPropagation()
