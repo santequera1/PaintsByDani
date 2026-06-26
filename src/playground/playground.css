@@ -273,9 +273,18 @@ html, body {
   transform: none;
   transition-delay: 0.06s;
 }
+.pg-about-name {
+  display: block;
+  padding: 16px 18px 0;
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 1.1;
+  color: var(--ink);
+}
 .pg-about-bio {
   margin: 0;
-  padding: 16px 18px 6px;
+  padding: 8px 18px 6px;
   font-size: 13.5px;
   line-height: 1.6;
   color: var(--ink);
@@ -306,49 +315,17 @@ body.pg-about-open #pg-header { z-index: 30; }
 #pg-nav { transition: filter 0.4s ease, opacity 0.4s ease; }
 body.pg-about-open #pg-nav { filter: blur(6px); opacity: 0.5; pointer-events: none; }
 
-/* Tag de la colección / exposición */
-#pg-collection {
-  position: fixed;
-  top: 18px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 9;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 7px 16px;
-  font-family: 'Playfair Display', serif;
-  font-style: italic;
-  font-size: 14px;
-  color: var(--ink-soft);
-  background: rgba(251, 248, 241, 0.7);
-  backdrop-filter: blur(6px);
-  border: 1px solid var(--frame-line);
-  border-radius: 999px;
-  box-shadow: 0 6px 18px -12px rgba(40, 30, 20, 0.4);
-  pointer-events: none;
-}
-#pg-collection svg { color: var(--accent); opacity: 0.85; }
-#pg-collection span { letter-spacing: 0.03em; }
-
-/* Palabra decorativa de fondo (marca de agua de la colección) */
+/* Marca de agua: palabra de la colección repetida por todo el fondo */
 #pg-bgword {
   position: fixed;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%) rotate(-4deg);
+  top: -25%; left: -25%;
+  width: 150%; height: 150%;
   z-index: 1;
-  font-family: 'Playfair Display', serif;
-  font-weight: 600;
-  font-size: clamp(72px, 17vw, 340px);
-  letter-spacing: 0.02em;
-  color: rgba(52, 62, 78, 0.05);
-  white-space: nowrap;
   pointer-events: none;
   user-select: none;
-}
-
-@media (max-width: 620px) {
-  #pg-collection { font-size: 12.5px; padding: 6px 13px; top: 16px; }
+  transform: rotate(-12deg);
+  background-repeat: repeat;
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='470'%20height='150'%3E%3Ctext%20x='16'%20y='100'%20font-family='Georgia,serif'%20font-style='italic'%20font-size='54'%20fill='%2334435a'%20fill-opacity='0.05'%3ERumiaciones%3C/text%3E%3C/svg%3E");
 }
 
 #pg-nav { display: flex; align-items: center; gap: 8px; }

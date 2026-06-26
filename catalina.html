@@ -13,8 +13,8 @@
   <!-- Capa de fondo (papel + puntos) -->
   <div id="pg-paper"></div>
   <div id="pg-dots"></div>
-  <!-- Palabra decorativa de la colección, marca de agua de fondo -->
-  <div id="pg-bgword" aria-hidden="true">Rumiaciones</div>
+  <!-- Marca de agua: palabra de la colección repetida por el fondo -->
+  <div id="pg-bgword" aria-hidden="true"></div>
 
   <!-- Scrim que desenfoca el fondo cuando se abre el panel del artista -->
   <div id="pg-about-scrim"></div>
@@ -43,6 +43,7 @@
       </button>
       <div class="pg-about-wrap">
         <div id="pg-about-panel" class="pg-about-panel">
+          <strong class="pg-about-name">Catalina Olivero</strong>
           <p class="pg-about-bio">
             My name is Catalina Olivero. I am an abstract painter and multidisciplinary
             artist based in Cartagena de Indias, dedicated to the pursuit of visual clarity.
@@ -74,12 +75,6 @@
       </a>
     </nav>
   </header>
-
-  <!-- Tag de colección / exposición -->
-  <div id="pg-collection" title="Colección">
-    <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.4 7.2H22l-6 4.6 2.3 7.2-6.3-4.5L5.7 21l2.3-7.2-6-4.6h7.6z"/></svg>
-    <span>Rumiaciones</span>
-  </div>
 
   <!-- Botón activar giroscopio (solo iOS, requiere gesto del usuario) -->
   <button id="pg-gyro" class="pg-btn pg-btn-ghost" hidden>
