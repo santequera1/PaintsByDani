@@ -11,6 +11,7 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, 'index.html'),
         playground: resolve(__dirname, 'playground.html'),
+        catalina: resolve(__dirname, 'catalina.html'),
       },
     },
   },

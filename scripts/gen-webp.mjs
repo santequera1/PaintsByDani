@@ -6,7 +6,7 @@ import sharp from 'sharp'
 import { readdir, mkdir, stat } from 'node:fs/promises'
 import { join, extname, basename } from 'node:path'
 
-const SRC = 'public/posts'
+const SRC = process.argv[2] || 'public/posts'
 const THUMB_DIR = join(SRC, 'thumb')
 const FULL_DIR = join(SRC, 'full')
 const THUMB_W = 820   // ancho máx miniatura
