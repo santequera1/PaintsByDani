@@ -15,6 +15,10 @@
 
 * { box-sizing: border-box; }
 
+/* Evita el zoom por doble-tap del navegador en controles (móvil) */
+button, a, .pg-modal-nav, .pg-btn,
+#pg-modal-backdrop, #pg-modal-card, #pg-modal-info { touch-action: manipulation; }
+
 html, body {
   margin: 0;
   height: 100%;

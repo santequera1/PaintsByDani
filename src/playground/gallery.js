@@ -12,7 +12,7 @@ const clamp = (v, a, b) => (v < a ? a : v > b ? b : v)
 const baseName = (f) => f.replace(/\.[^.]+$/, '')
 const RATIOS = [1.18, 0.82, 1.34, 0.95, 1.0, 1.46, 0.78, 1.12, 1.28, 0.88]
 
-export function initGallery({ artworks, artist, imgBase = 'posts', scatter = false, audioSrc = null }) {
+export function initGallery({ artworks, artist, imgBase = 'posts', scatter = false, sfx = null }) {
   // Rutas de imagen: WebP (miniatura para tarjetas, grande para el modal) con
   // fallback a los originales (varias codificaciones por nombres raros).
   function candidates(filename, kind) {
@@ -234,6 +234,16 @@ export function initGallery({ artworks, artist, imgBase = 'posts', scatter = fal
   let gyroSetup = false
   let gyroPermitted = false
 
+  // Sonidos (SFX): viento al mover + abrir/clic
+  let sfxOn = true
+  let windAudio = null, sndOpen = null, sndClick = null
+  let prevCurX = 0, prevCurY = 0
+  function playSnd(a, vol) {
+    if (!sfxOn || !a) return
+    try { const c = a.cloneNode(); c.volume = vol; c.play().catch(() => {}) } catch {}
+  }
+  function unlockWind() { if (windAudio && sfxOn) windAudio.play().catch(() => {}) }
+
   function tiltToVel(deg) {
     if (Math.abs(deg) < GYRO_DEAD) return 0
     const d = deg - Math.sign(deg) * GYRO_DEAD
@@ -316,6 +326,14 @@ export function initGallery({ artworks, artist, imgBase = 'posts', scatter = fal
 
     const pf = REDUCE ? 1 : 0.62
     dots.style.backgroundPosition = `${curX * pf}px ${curY * pf}px`
+
+    // viento: el volumen sigue la velocidad de desplazamiento del lienzo
+    if (windAudio && sfxOn) {
+      const sp = Math.hypot(curX - prevCurX, curY - prevCurY)
+      const tv = clamp(sp / 55, 0, 0.5)
+      windAudio.volume += (tv - windAudio.volume) * 0.25
+    }
+    prevCurX = curX; prevCurY = curY
 
     virtualize()
 
@@ -517,6 +535,7 @@ export function initGallery({ artworks, artist, imgBase = 'posts', scatter = fal
   function openModal(id) {
     const idx = artworks.findIndex((a) => a.id === id)
     if (idx < 0) return
+    playSnd(sndOpen, 0.5)
     modalIndex = idx
     showArtwork(artworks[idx])
     modal.classList.remove('hidden')
@@ -527,6 +546,7 @@ export function initGallery({ artworks, artist, imgBase = 'posts', scatter = fal
 
   function navModal(dir) {
     if (modalIndex < 0 || artworks.length < 2) return
+    playSnd(sndClick, 0.5)
     modalIndex = (modalIndex + dir + artworks.length) % artworks.length
     showArtwork(artworks[modalIndex])
   }
@@ -653,6 +673,7 @@ export function initGallery({ artworks, artist, imgBase = 'posts', scatter = fal
   const aboutToggle = document.getElementById('pg-about-toggle')
   if (aboutEl && aboutToggle) {
     const setAbout = (open) => {
+      if (open) playSnd(sndClick, 0.45)
       aboutEl.classList.toggle('open', open)
       aboutToggle.setAttribute('aria-expanded', open ? 'true' : 'false')
       document.body.classList.toggle('pg-about-open', open) // desenfoca el fondo
@@ -669,26 +690,30 @@ export function initGallery({ artworks, artist, imgBase = 'posts', scatter = fal
     })
   }
 
-  // --- Audio ambiente (opcional, con toggle) ---
+  // --- Sonidos (SFX): viento + abrir/clic, con toggle ---
   const audioBtn = document.getElementById('pg-audio')
-  if (audioBtn && audioSrc) {
-    const audio = new Audio(audioSrc)
-    audio.loop = true
-    audio.volume = 0.4
-    let audioOn = false
-    const updateAudioBtn = () => {
-      audioBtn.classList.toggle('on', audioOn)
-      audioBtn.setAttribute('aria-pressed', audioOn ? 'true' : 'false')
-      audioBtn.title = audioOn ? 'Silenciar' : 'Sonido ambiente'
-    }
-    audioBtn.addEventListener('click', () => {
-      audioOn = !audioOn
-      if (audioOn) audio.play().catch(() => { audioOn = false; updateAudioBtn() })
-      else audio.pause()
+  if (sfx) {
+    if (sfx.wind) { windAudio = new Audio(sfx.wind); windAudio.loop = true; windAudio.volume = 0 }
+    const mk = (url) => { const a = new Audio(url); a.preload = 'auto'; return a }
+    if (sfx.open) sndOpen = mk(sfx.open)
+    if (sfx.click) sndClick = mk(sfx.click)
+    if (audioBtn) {
+      const updateAudioBtn = () => {
+        audioBtn.classList.toggle('on', sfxOn)
+        audioBtn.setAttribute('aria-pressed', sfxOn ? 'true' : 'false')
+        audioBtn.title = sfxOn ? 'Silenciar sonidos' : 'Activar sonidos'
+      }
+      audioBtn.addEventListener('click', () => {
+        sfxOn = !sfxOn
+        if (!sfxOn && windAudio) windAudio.volume = 0
+        if (sfxOn) unlockWind()
+        updateAudioBtn()
+      })
+      audioBtn.hidden = false
       updateAudioBtn()
-    })
-    audioBtn.hidden = false
-    updateAudioBtn()
+    }
+    // desbloquear el viento en el primer gesto (política de autoplay)
+    stage.addEventListener('pointerdown', unlockWind, { once: true })
   }
 
   // --- Pantalla de entrada / portada (opcional) ---
@@ -696,6 +721,7 @@ export function initGallery({ artworks, artist, imgBase = 'posts', scatter = fal
   const introEnter = document.getElementById('pg-intro-enter')
   if (intro && introEnter) {
     introEnter.addEventListener('click', () => {
+      unlockWind() // gesto: desbloquea el audio
       intro.classList.add('gone')
       setTimeout(() => { intro.style.display = 'none' }, 700)
     })
