@@ -10,6 +10,17 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
 </head>
 <body>
+  <!-- Portada / pantalla de entrada -->
+  <div id="pg-intro">
+    <div class="pg-intro-card">
+      <img class="pg-intro-photo" src="/cat-profile.jpg" alt="Catalina Olivero" />
+      <p class="pg-intro-collection">Colección</p>
+      <h1 class="pg-intro-title">Rumiaciones</h1>
+      <p class="pg-intro-artist">Catalina Olivero</p>
+      <button id="pg-intro-enter">Entrar a la galería</button>
+    </div>
+  </div>
+
   <!-- Capa de fondo (papel + puntos) -->
   <div id="pg-paper"></div>
   <div id="pg-dots"></div>
@@ -82,6 +93,12 @@
     <span class="pg-gyro-label">Activar giroscopio</span>
   </button>
 
+  <!-- Botón de audio ambiente -->
+  <button id="pg-audio" title="Sonido ambiente" aria-label="Sonido ambiente" aria-pressed="false" hidden>
+    <svg class="ic-on" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a9 9 0 0 1 0 14"/></svg>
+    <svg class="ic-off" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/><line x1="22" y1="9" x2="16" y2="15"/><line x1="16" y1="9" x2="22" y2="15"/></svg>
+  </button>
+
   <!-- Botón de centrar -->
   <button id="pg-center" title="Centrar la galería" aria-label="Centrar la galería">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
@@ -96,6 +113,12 @@
   <!-- Modal de obra -->
   <div id="pg-modal" class="hidden" aria-hidden="true">
     <div id="pg-modal-backdrop"></div>
+    <button id="pg-modal-prev" class="pg-modal-nav" aria-label="Obra anterior">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <button id="pg-modal-next" class="pg-modal-nav" aria-label="Obra siguiente">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
     <div id="pg-modal-card" role="dialog" aria-modal="true">
       <button id="pg-modal-close" title="Cerrar (Esc)" aria-label="Cerrar">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>

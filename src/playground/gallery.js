@@ -12,7 +12,7 @@ const clamp = (v, a, b) => (v < a ? a : v > b ? b : v)
 const baseName = (f) => f.replace(/\.[^.]+$/, '')
 const RATIOS = [1.18, 0.82, 1.34, 0.95, 1.0, 1.46, 0.78, 1.12, 1.28, 0.88]
 
-export function initGallery({ artworks, artist, imgBase = 'posts' }) {
+export function initGallery({ artworks, artist, imgBase = 'posts', scatter = false, audioSrc = null }) {
   // Rutas de imagen: WebP (miniatura para tarjetas, grande para el modal) con
   // fallback a los originales (varias codificaciones por nombres raros).
   function candidates(filename, kind) {
@@ -55,6 +55,9 @@ export function initGallery({ artworks, artist, imgBase = 'posts' }) {
 
   const modal = document.getElementById('pg-modal')
   const modalCard = document.getElementById('pg-modal-card')
+  const modalFrame = document.getElementById('pg-modal-frame')
+  const modalPrev = document.getElementById('pg-modal-prev')
+  const modalNext = document.getElementById('pg-modal-next')
   const modalImg = document.getElementById('pg-modal-img')
   const modalTitle = document.getElementById('pg-modal-title')
   const modalMedium = document.getElementById('pg-modal-medium')
@@ -107,7 +110,10 @@ export function initGallery({ artworks, artist, imgBase = 'posts' }) {
       const s = col.items.length ? (tileH - col.sumH) / col.items.length : GAP
       let y = s / 2
       col.items.forEach(({ art, h }) => {
-        cards.push({ art, x, y, w: COL_W, h })
+        // rotación leve determinista (scatter "fotos sobre la mesa")
+        const seed = Math.sin((cards.length + 1) * 127.1) * 43758.5453
+        const rot = scatter ? ((seed - Math.floor(seed)) * 2 - 1) * 2.2 : 0
+        cards.push({ art, x, y, w: COL_W, h, rot })
         y += h + s
       })
     })
@@ -188,6 +194,7 @@ export function initGallery({ artworks, artist, imgBase = 'posts' }) {
     const cy = card.y + j * tileH
     node.el.style.left = cx + 'px'
     node.el.style.top = cy + 'px'
+    node.inner.style.transform = card.rot ? `rotate(${card.rot}deg)` : ''
     if (node.artId !== card.art.id) {
       node.el.style.width = card.w + 'px'
       node.el.style.height = card.h + 'px'
@@ -477,7 +484,9 @@ export function initGallery({ artworks, artist, imgBase = 'posts' }) {
 
   if (gyroBtn) gyroBtn.addEventListener('click', toggleGyro)
 
-  // --- Modal de obra ---
+  // --- Modal de obra (con zoom, navegación ‹› y enlace directo) ---
+  let modalIndex = -1
+
   function setModalImage(filename) {
     modalImg.onerror = null
     modalImg.src = `/${imgBase}/thumb/${encodeURI(baseName(filename))}.webp`
@@ -492,33 +501,152 @@ export function initGallery({ artworks, artist, imgBase = 'posts' }) {
     tryNext()
   }
 
-  function openModal(id) {
-    const art = artworks.find((a) => a.id === id)
-    if (!art) return
+  function showArtwork(art) {
+    resetModalZoom()
     setModalImage(art.filename)
     modalImg.alt = art.title
     modalTitle.textContent = art.title
     modalMedium.textContent = art.medium || ''
     modalMedium.style.display = art.medium ? '' : 'none'
     modalIg.href = art.instagramUrl || artist.instagramUrl
+    if (location.hash !== '#' + art.id) {
+      history.replaceState(null, '', '#' + art.id)
+    }
+  }
+
+  function openModal(id) {
+    const idx = artworks.findIndex((a) => a.id === id)
+    if (idx < 0) return
+    modalIndex = idx
+    showArtwork(artworks[idx])
     modal.classList.remove('hidden')
     modal.setAttribute('aria-hidden', 'false')
     requestAnimationFrame(() => modal.classList.add('open'))
     document.addEventListener('keydown', onKey)
   }
 
+  function navModal(dir) {
+    if (modalIndex < 0 || artworks.length < 2) return
+    modalIndex = (modalIndex + dir + artworks.length) % artworks.length
+    showArtwork(artworks[modalIndex])
+  }
+
   function closeModal() {
     modal.classList.remove('open')
     modal.setAttribute('aria-hidden', 'true')
+    modalIndex = -1
     document.removeEventListener('keydown', onKey)
-    setTimeout(() => { modal.classList.add('hidden'); modalImg.src = '' }, 320)
+    if (location.hash) history.replaceState(null, '', location.pathname + location.search)
+    setTimeout(() => { modal.classList.add('hidden'); modalImg.src = ''; resetModalZoom() }, 320)
   }
 
-  function onKey(e) { if (e.key === 'Escape') closeModal() }
+  function onKey(e) {
+    if (e.key === 'Escape') closeModal()
+    else if (e.key === 'ArrowLeft') navModal(-1)
+    else if (e.key === 'ArrowRight') navModal(1)
+  }
 
   modalClose.addEventListener('click', closeModal)
   modalBackdrop.addEventListener('click', closeModal)
   modalCard.addEventListener('click', (e) => e.stopPropagation())
+  if (modalPrev) modalPrev.addEventListener('click', (e) => { e.stopPropagation(); navModal(-1) })
+  if (modalNext) modalNext.addEventListener('click', (e) => { e.stopPropagation(); navModal(1) })
+  if (artworks.length < 2) {
+    if (modalPrev) modalPrev.style.display = 'none'
+    if (modalNext) modalNext.style.display = 'none'
+  }
+
+  // --- Zoom dentro del modal (rueda + arrastre + pinch + doble clic) ---
+  let mScale = 1, mX = 0, mY = 0
+  let mDragging = false, mLastX = 0, mLastY = 0
+  const mPointers = new Map()
+  let mPinchDist = 0, mPinchScale = 1
+
+  function applyModalTransform() {
+    modalImg.style.transform = `translate(${mX}px, ${mY}px) scale(${mScale})`
+  }
+  function resetModalZoom() {
+    mScale = 1; mX = 0; mY = 0
+    modalImg.style.transform = ''
+    if (modalFrame) modalFrame.classList.remove('zoomed')
+  }
+  function clampModalPan() {
+    const w = modalImg.offsetWidth, h = modalImg.offsetHeight
+    const maxX = Math.max(0, (mScale - 1) * w / 2)
+    const maxY = Math.max(0, (mScale - 1) * h / 2)
+    mX = clamp(mX, -maxX, maxX)
+    mY = clamp(mY, -maxY, maxY)
+  }
+  function zoomModalAt(cx, cy, ns) {
+    const px = (cx - mX) / mScale, py = (cy - mY) / mScale
+    mScale = ns
+    mX = cx - px * ns; mY = cy - py * ns
+    if (mScale <= 1.001) { mScale = 1; mX = 0; mY = 0 }
+    clampModalPan()
+    applyModalTransform()
+    if (modalFrame) modalFrame.classList.toggle('zoomed', mScale > 1)
+  }
+
+  if (modalFrame) {
+    modalFrame.addEventListener('wheel', (e) => {
+      e.preventDefault()
+      const r = modalImg.getBoundingClientRect()
+      const cx = e.clientX - (r.left + r.width / 2)
+      const cy = e.clientY - (r.top + r.height / 2)
+      const ns = clamp(mScale * (1 + (-Math.sign(e.deltaY)) * 0.18), 1, 4)
+      zoomModalAt(cx, cy, ns)
+    }, { passive: false })
+
+    modalFrame.addEventListener('dblclick', resetModalZoom)
+
+    modalFrame.addEventListener('pointerdown', (e) => {
+      mPointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (mPointers.size === 2) {
+        const p = [...mPointers.values()]
+        mPinchDist = Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y) || 1
+        mPinchScale = mScale
+        mDragging = false
+      } else if (mScale > 1) {
+        mDragging = true; mLastX = e.clientX; mLastY = e.clientY
+        try { modalFrame.setPointerCapture(e.pointerId) } catch {}
+      }
+    })
+    modalFrame.addEventListener('pointermove', (e) => {
+      const p = mPointers.get(e.pointerId); if (p) { p.x = e.clientX; p.y = e.clientY }
+      if (mPointers.size >= 2) {
+        const pts = [...mPointers.values()]
+        const d = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) || 1
+        const mx = (pts[0].x + pts[1].x) / 2, my = (pts[0].y + pts[1].y) / 2
+        const r = modalImg.getBoundingClientRect()
+        zoomModalAt(mx - (r.left + r.width / 2), my - (r.top + r.height / 2),
+          clamp(mPinchScale * (d / mPinchDist), 1, 4))
+        return
+      }
+      if (!mDragging) return
+      mX += e.clientX - mLastX; mY += e.clientY - mLastY
+      mLastX = e.clientX; mLastY = e.clientY
+      clampModalPan(); applyModalTransform()
+    })
+    const endPointer = (e) => {
+      mPointers.delete(e.pointerId)
+      if (mPointers.size < 2) mPinchDist = 0
+      if (mPointers.size === 0) mDragging = false
+      try { modalFrame.releasePointerCapture(e.pointerId) } catch {}
+    }
+    modalFrame.addEventListener('pointerup', endPointer)
+    modalFrame.addEventListener('pointercancel', endPointer)
+  }
+
+  // --- Enlace directo por hash (#id de obra) ---
+  function openFromHash() {
+    const id = decodeURIComponent((location.hash || '').replace('#', ''))
+    if (id && artworks.some((a) => a.id === id)) openModal(id)
+  }
+  window.addEventListener('hashchange', () => {
+    const id = decodeURIComponent((location.hash || '').replace('#', ''))
+    if (id && artworks.some((a) => a.id === id)) openModal(id)
+    else if (!id && !modal.classList.contains('hidden')) closeModal()
+  })
 
   // --- Brand expandible (opcional: solo si existe en el HTML) ---
   const aboutEl = document.getElementById('pg-about')
@@ -538,6 +666,38 @@ export function initGallery({ artworks, artist, imgBase = 'posts' }) {
     })
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') setAbout(false)
+    })
+  }
+
+  // --- Audio ambiente (opcional, con toggle) ---
+  const audioBtn = document.getElementById('pg-audio')
+  if (audioBtn && audioSrc) {
+    const audio = new Audio(audioSrc)
+    audio.loop = true
+    audio.volume = 0.4
+    let audioOn = false
+    const updateAudioBtn = () => {
+      audioBtn.classList.toggle('on', audioOn)
+      audioBtn.setAttribute('aria-pressed', audioOn ? 'true' : 'false')
+      audioBtn.title = audioOn ? 'Silenciar' : 'Sonido ambiente'
+    }
+    audioBtn.addEventListener('click', () => {
+      audioOn = !audioOn
+      if (audioOn) audio.play().catch(() => { audioOn = false; updateAudioBtn() })
+      else audio.pause()
+      updateAudioBtn()
+    })
+    audioBtn.hidden = false
+    updateAudioBtn()
+  }
+
+  // --- Pantalla de entrada / portada (opcional) ---
+  const intro = document.getElementById('pg-intro')
+  const introEnter = document.getElementById('pg-intro-enter')
+  if (intro && introEnter) {
+    introEnter.addEventListener('click', () => {
+      intro.classList.add('gone')
+      setTimeout(() => { intro.style.display = 'none' }, 700)
     })
   }
 
@@ -581,4 +741,5 @@ export function initGallery({ artworks, artist, imgBase = 'posts' }) {
   kick()
   setTimeout(preloadThumbs, 0)
   setTimeout(prewarmPool, 200)
+  openFromHash() // abrir obra si la URL trae #id
 }

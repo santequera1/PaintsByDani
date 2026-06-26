@@ -426,10 +426,14 @@ body.pg-about-open #pg-nav { filter: blur(6px); opacity: 0.5; pointer-events: no
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  touch-action: none; /* para el zoom/pan propio */
   background:
     repeating-linear-gradient(45deg, rgba(0,0,0,0.012) 0 8px, transparent 8px 16px),
     var(--mat);
 }
+#pg-modal-frame.zoomed { cursor: grab; }
+#pg-modal-frame.zoomed:active { cursor: grabbing; }
 #pg-modal-img {
   max-width: 100%;
   max-height: calc(90vh - 32px);
@@ -437,7 +441,34 @@ body.pg-about-open #pg-nav { filter: blur(6px); opacity: 0.5; pointer-events: no
   border: 1px solid var(--frame-line);
   border-radius: 2px;
   box-shadow: 0 10px 30px -16px rgba(0,0,0,0.5);
+  transform-origin: center center;
+  will-change: transform;
+  cursor: zoom-in;
 }
+#pg-modal-frame.zoomed #pg-modal-img { cursor: inherit; }
+
+/* Flechas de navegación del modal */
+.pg-modal-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+  width: 46px; height: 46px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: rgba(20, 16, 12, 0.34);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 50%;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+.pg-modal-nav:hover { background: rgba(20, 16, 12, 0.55); }
+#pg-modal-prev { left: clamp(10px, 3vw, 30px); }
+#pg-modal-next { right: clamp(10px, 3vw, 30px); }
+#pg-modal-prev:hover { transform: translateY(-50%) scale(1.08); }
+#pg-modal-next:hover { transform: translateY(-50%) scale(1.08); }
 
 #pg-modal-info {
   flex: 0 0 290px;
@@ -507,6 +538,107 @@ body.pg-about-open #pg-nav { filter: blur(6px); opacity: 0.5; pointer-events: no
 }
 #pg-center:hover { background: #fff; transform: scale(1.06); }
 #pg-center:active { transform: scale(0.94); }
+
+/* --- Botón de audio ambiente --- */
+#pg-audio {
+  position: fixed;
+  right: clamp(14px, 3vw, 28px);
+  bottom: 78px; /* encima del botón de centrar */
+  z-index: 10;
+  width: 44px; height: 44px;
+  display: grid;
+  place-items: center;
+  color: var(--ink);
+  background: rgba(251, 248, 241, 0.82);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--frame-line);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 6px 18px -10px rgba(40, 30, 20, 0.45);
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+#pg-audio[hidden] { display: none; }
+#pg-audio:hover { background: #fff; transform: scale(1.06); }
+#pg-audio:active { transform: scale(0.94); }
+#pg-audio .ic-on { display: none; }
+#pg-audio.on .ic-off { display: none; }
+#pg-audio.on .ic-on { display: block; }
+#pg-audio.on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  box-shadow: 0 8px 22px -8px rgba(180, 69, 47, 0.55);
+}
+
+/* --- Portada / pantalla de entrada --- */
+#pg-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: radial-gradient(120% 120% at 30% 10%, var(--paper) 0%, var(--paper-2) 100%);
+  transition: opacity 0.7s ease, visibility 0.7s ease;
+}
+#pg-intro.gone { opacity: 0; visibility: hidden; }
+.pg-intro-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  animation: pgIntroUp 0.9s cubic-bezier(.2,.8,.2,1) both;
+}
+.pg-intro-photo {
+  width: 92px; height: 92px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fff;
+  box-shadow: 0 14px 30px -14px rgba(40, 30, 20, 0.5);
+  margin-bottom: 14px;
+}
+.pg-intro-collection {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.pg-intro-title {
+  margin: 4px 0 0;
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-weight: 600;
+  font-size: clamp(40px, 9vw, 78px);
+  line-height: 1;
+  color: var(--ink);
+}
+.pg-intro-artist {
+  margin: 8px 0 0;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  color: var(--ink-soft);
+}
+#pg-intro-enter {
+  margin-top: 28px;
+  padding: 13px 34px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: #fff;
+  background: var(--ink);
+  border: 1px solid var(--ink);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+#pg-intro-enter:hover { background: var(--accent); border-color: var(--accent); }
+#pg-intro-enter:active { transform: scale(0.97); }
+@keyframes pgIntroUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
+}
 
 /* --- Botón activar giroscopio (iOS) --- */
 #pg-gyro {
