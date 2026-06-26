@@ -6,9 +6,5 @@ initGallery({
   artist: ARTIST,
   imgBase: 'cat-posts',
   scatter: true,
-  sfx: {
-    wind: '/cat-sonidos/air-whoosh.mp3',
-    open: '/cat-sonidos/spray.mp3',
-    click: '/cat-sonidos/highlighter.mp3',
-  },
+  sound: true,
 })

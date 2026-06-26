@@ -12,7 +12,7 @@ const clamp = (v, a, b) => (v < a ? a : v > b ? b : v)
 const baseName = (f) => f.replace(/\.[^.]+$/, '')
 const RATIOS = [1.18, 0.82, 1.34, 0.95, 1.0, 1.46, 0.78, 1.12, 1.28, 0.88]
 
-export function initGallery({ artworks, artist, imgBase = 'posts', scatter = false, sfx = null }) {
+export function initGallery({ artworks, artist, imgBase = 'posts', scatter = false, sound = false }) {
   // Rutas de imagen: WebP (miniatura para tarjetas, grande para el modal) con
   // fallback a los originales (varias codificaciones por nombres raros).
   function candidates(filename, kind) {
@@ -234,15 +234,99 @@ export function initGallery({ artworks, artist, imgBase = 'posts', scatter = fal
   let gyroSetup = false
   let gyroPermitted = false
 
-  // Sonidos (SFX): viento al mover + abrir/clic
-  let sfxOn = true
-  let windAudio = null, sndOpen = null, sndClick = null
-  let prevCurX = 0, prevCurY = 0
-  function playSnd(a, vol) {
-    if (!sfxOn || !a) return
-    try { const c = a.cloneNode(); c.volume = vol; c.play().catch(() => {}) } catch {}
+  // Sonidos procedurales (Web Audio API, sin archivos externos)
+  let actx = null, masterGain = null, soundOn = true
+  let prevCurX = 0, prevCurY = 0, scrollThrottle = false
+  let noteIdx = 0
+  const PENTA = [261.63, 293.66, 329.63, 392.0, 440.0, 523.25]
+
+  function initActx() {
+    if (actx || !sound) return
+    try {
+      actx = new (window.AudioContext || window.webkitAudioContext)()
+      masterGain = actx.createGain()
+      masterGain.gain.value = 0.55
+      masterGain.connect(actx.destination)
+    } catch {}
   }
-  function unlockWind() { if (windAudio && sfxOn) windAudio.play().catch(() => {}) }
+  const sndReady = () => sound && actx && soundOn
+  function resumeCtx() { if (actx && actx.state === 'suspended') actx.resume() }
+
+  function soundScroll() { // pincelada/viento al mover
+    if (!sndReady()) return; resumeCtx()
+    const t = actx.currentTime, n = (actx.sampleRate * 0.12) | 0
+    const buf = actx.createBuffer(1, n, actx.sampleRate)
+    const d = buf.getChannelData(0)
+    for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1
+    const src = actx.createBufferSource(); src.buffer = buf
+    const lpf = actx.createBiquadFilter(); lpf.type = 'lowpass'; lpf.frequency.value = 900
+    const bpf = actx.createBiquadFilter(); bpf.type = 'bandpass'; bpf.frequency.value = 400; bpf.Q.value = 0.8
+    const g = actx.createGain()
+    g.gain.setValueAtTime(0, t)
+    g.gain.linearRampToValueAtTime(0.2, t + 0.02)
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.12)
+    src.connect(lpf); lpf.connect(bpf); bpf.connect(g); g.connect(masterGain)
+    src.start(t); src.stop(t + 0.13)
+  }
+
+  function soundOpen() { // acorde cálido con eco al abrir obra
+    if (!sndReady()) return; resumeCtx()
+    const t = actx.currentTime
+    ;[220, 330, 440].forEach((freq, i) => {
+      const osc = actx.createOscillator(); osc.type = i === 0 ? 'sine' : 'triangle'; osc.frequency.value = freq
+      const g = actx.createGain(); const vol = i === 0 ? 0.18 : 0.06 / (i + 1)
+      g.gain.setValueAtTime(0, t)
+      g.gain.linearRampToValueAtTime(vol, t + 0.015)
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.55)
+      const delay = actx.createDelay(0.3); delay.delayTime.value = 0.08 * (i + 1)
+      const dg = actx.createGain(); dg.gain.value = 0.12
+      osc.connect(g); g.connect(masterGain); g.connect(delay); delay.connect(dg); dg.connect(masterGain)
+      osc.start(t); osc.stop(t + 0.6)
+    })
+  }
+
+  function soundClose() { // whoosh descendente al cerrar
+    if (!sndReady()) return; resumeCtx()
+    const t = actx.currentTime
+    const osc = actx.createOscillator(); osc.type = 'sine'
+    osc.frequency.setValueAtTime(320, t)
+    osc.frequency.exponentialRampToValueAtTime(140, t + 0.25)
+    const g = actx.createGain()
+    g.gain.setValueAtTime(0.14, t)
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.25)
+    osc.connect(g); g.connect(masterGain)
+    osc.start(t); osc.stop(t + 0.26)
+  }
+
+  function soundBio() { // susurro de papel al abrir la bio
+    if (!sndReady()) return; resumeCtx()
+    const t = actx.currentTime, n = (actx.sampleRate * 0.2) | 0
+    const buf = actx.createBuffer(1, n, actx.sampleRate)
+    const d = buf.getChannelData(0)
+    for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1
+    const src = actx.createBufferSource(); src.buffer = buf
+    const lpf = actx.createBiquadFilter(); lpf.type = 'lowpass'; lpf.frequency.value = 600; lpf.Q.value = 1.2
+    const g = actx.createGain()
+    g.gain.setValueAtTime(0, t)
+    g.gain.linearRampToValueAtTime(0.18, t + 0.04)
+    g.gain.linearRampToValueAtTime(0.1, t + 0.1)
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.22)
+    src.connect(lpf); lpf.connect(g); g.connect(masterGain)
+    src.start(t); src.stop(t + 0.23)
+  }
+
+  function soundNav(dir) { // nota pentatónica que sube/baja según dirección
+    if (!sndReady()) return; resumeCtx()
+    noteIdx = dir > 0 ? (noteIdx + 1) % PENTA.length : (noteIdx - 1 + PENTA.length) % PENTA.length
+    const t = actx.currentTime
+    const osc = actx.createOscillator(); osc.type = 'sine'; osc.frequency.value = PENTA[noteIdx]
+    const g = actx.createGain()
+    g.gain.setValueAtTime(0, t)
+    g.gain.linearRampToValueAtTime(0.12, t + 0.01)
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.4)
+    osc.connect(g); g.connect(masterGain)
+    osc.start(t); osc.stop(t + 0.42)
+  }
 
   function tiltToVel(deg) {
     if (Math.abs(deg) < GYRO_DEAD) return 0
@@ -327,11 +411,14 @@ export function initGallery({ artworks, artist, imgBase = 'posts', scatter = fal
     const pf = REDUCE ? 1 : 0.62
     dots.style.backgroundPosition = `${curX * pf}px ${curY * pf}px`
 
-    // viento: el volumen sigue la velocidad de desplazamiento del lienzo
-    if (windAudio && sfxOn) {
+    // sonido de movimiento (pincelada/viento) al desplazar el lienzo, throttle
+    if (sound && soundOn) {
       const sp = Math.hypot(curX - prevCurX, curY - prevCurY)
-      const tv = clamp(sp / 55, 0, 0.5)
-      windAudio.volume += (tv - windAudio.volume) * 0.25
+      if (sp > 2 && !scrollThrottle) {
+        scrollThrottle = true
+        soundScroll()
+        setTimeout(() => { scrollThrottle = false }, 200)
+      }
     }
     prevCurX = curX; prevCurY = curY
 
@@ -535,7 +622,7 @@ export function initGallery({ artworks, artist, imgBase = 'posts', scatter = fal
   function openModal(id) {
     const idx = artworks.findIndex((a) => a.id === id)
     if (idx < 0) return
-    playSnd(sndOpen, 0.5)
+    soundOpen()
     modalIndex = idx
     showArtwork(artworks[idx])
     modal.classList.remove('hidden')
@@ -546,12 +633,13 @@ export function initGallery({ artworks, artist, imgBase = 'posts', scatter = fal
 
   function navModal(dir) {
     if (modalIndex < 0 || artworks.length < 2) return
-    playSnd(sndClick, 0.5)
+    soundNav(dir)
     modalIndex = (modalIndex + dir + artworks.length) % artworks.length
     showArtwork(artworks[modalIndex])
   }
 
   function closeModal() {
+    soundClose()
     modal.classList.remove('open')
     modal.setAttribute('aria-hidden', 'true')
     modalIndex = -1
@@ -673,7 +761,7 @@ export function initGallery({ artworks, artist, imgBase = 'posts', scatter = fal
   const aboutToggle = document.getElementById('pg-about-toggle')
   if (aboutEl && aboutToggle) {
     const setAbout = (open) => {
-      if (open) playSnd(sndClick, 0.45)
+      if (open) soundBio()
       aboutEl.classList.toggle('open', open)
       aboutToggle.setAttribute('aria-expanded', open ? 'true' : 'false')
       document.body.classList.toggle('pg-about-open', open) // desenfoca el fondo
@@ -690,30 +778,29 @@ export function initGallery({ artworks, artist, imgBase = 'posts', scatter = fal
     })
   }
 
-  // --- Sonidos (SFX): viento + abrir/clic, con toggle ---
+  // --- Sonidos: contexto de audio + botón de silencio ---
   const audioBtn = document.getElementById('pg-audio')
-  if (sfx) {
-    if (sfx.wind) { windAudio = new Audio(sfx.wind); windAudio.loop = true; windAudio.volume = 0 }
-    const mk = (url) => { const a = new Audio(url); a.preload = 'auto'; return a }
-    if (sfx.open) sndOpen = mk(sfx.open)
-    if (sfx.click) sndClick = mk(sfx.click)
+  if (sound) {
+    const updateAudioBtn = () => {
+      if (!audioBtn) return
+      audioBtn.classList.toggle('on', soundOn)
+      audioBtn.setAttribute('aria-pressed', soundOn ? 'true' : 'false')
+      audioBtn.title = soundOn ? 'Silenciar sonidos' : 'Activar sonidos'
+    }
     if (audioBtn) {
-      const updateAudioBtn = () => {
-        audioBtn.classList.toggle('on', sfxOn)
-        audioBtn.setAttribute('aria-pressed', sfxOn ? 'true' : 'false')
-        audioBtn.title = sfxOn ? 'Silenciar sonidos' : 'Activar sonidos'
-      }
       audioBtn.addEventListener('click', () => {
-        sfxOn = !sfxOn
-        if (!sfxOn && windAudio) windAudio.volume = 0
-        if (sfxOn) unlockWind()
+        initActx()
+        soundOn = !soundOn
+        if (masterGain) masterGain.gain.linearRampToValueAtTime(soundOn ? 0.55 : 0, actx.currentTime + 0.25)
         updateAudioBtn()
       })
       audioBtn.hidden = false
       updateAudioBtn()
     }
-    // desbloquear el viento en el primer gesto (política de autoplay)
-    stage.addEventListener('pointerdown', unlockWind, { once: true })
+    // crear el contexto en el primer gesto (política de autoplay)
+    const initOnce = () => initActx()
+    document.addEventListener('pointerdown', initOnce, { capture: true, once: true })
+    document.addEventListener('wheel', initOnce, { capture: true, once: true })
   }
 
   // --- Pantalla de entrada / portada (opcional) ---
@@ -721,7 +808,7 @@ export function initGallery({ artworks, artist, imgBase = 'posts', scatter = fal
   const introEnter = document.getElementById('pg-intro-enter')
   if (intro && introEnter) {
     introEnter.addEventListener('click', () => {
-      unlockWind() // gesto: desbloquea el audio
+      initActx(); resumeCtx() // gesto: prepara el audio
       intro.classList.add('gone')
       setTimeout(() => { intro.style.display = 'none' }, 700)
     })
