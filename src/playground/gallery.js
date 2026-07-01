@@ -236,7 +236,6 @@ export function initGallery({ artworks, artist, imgBase = 'posts', scatter = fal
 
   // Sonidos procedurales (Web Audio API, sin archivos externos)
   let actx = null, masterGain = null, soundOn = true
-  let prevCurX = 0, prevCurY = 0, scrollThrottle = false
   let noteIdx = 0
   const PENTA = [261.63, 293.66, 329.63, 392.0, 440.0, 523.25]
 
@@ -251,23 +250,6 @@ export function initGallery({ artworks, artist, imgBase = 'posts', scatter = fal
   }
   const sndReady = () => sound && actx && soundOn
   function resumeCtx() { if (actx && actx.state === 'suspended') actx.resume() }
-
-  function soundScroll() { // pincelada/viento al mover
-    if (!sndReady()) return; resumeCtx()
-    const t = actx.currentTime, n = (actx.sampleRate * 0.12) | 0
-    const buf = actx.createBuffer(1, n, actx.sampleRate)
-    const d = buf.getChannelData(0)
-    for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1
-    const src = actx.createBufferSource(); src.buffer = buf
-    const lpf = actx.createBiquadFilter(); lpf.type = 'lowpass'; lpf.frequency.value = 900
-    const bpf = actx.createBiquadFilter(); bpf.type = 'bandpass'; bpf.frequency.value = 400; bpf.Q.value = 0.8
-    const g = actx.createGain()
-    g.gain.setValueAtTime(0, t)
-    g.gain.linearRampToValueAtTime(0.2, t + 0.02)
-    g.gain.exponentialRampToValueAtTime(0.001, t + 0.12)
-    src.connect(lpf); lpf.connect(bpf); bpf.connect(g); g.connect(masterGain)
-    src.start(t); src.stop(t + 0.13)
-  }
 
   function soundOpen() { // acorde cálido con eco al abrir obra
     if (!sndReady()) return; resumeCtx()
@@ -410,17 +392,6 @@ export function initGallery({ artworks, artist, imgBase = 'posts', scatter = fal
 
     const pf = REDUCE ? 1 : 0.62
     dots.style.backgroundPosition = `${curX * pf}px ${curY * pf}px`
-
-    // sonido de movimiento (pincelada/viento) al desplazar el lienzo, throttle
-    if (sound && soundOn) {
-      const sp = Math.hypot(curX - prevCurX, curY - prevCurY)
-      if (sp > 2 && !scrollThrottle) {
-        scrollThrottle = true
-        soundScroll()
-        setTimeout(() => { scrollThrottle = false }, 200)
-      }
-    }
-    prevCurX = curX; prevCurY = curY
 
     virtualize()
 
