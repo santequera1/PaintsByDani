@@ -21,6 +21,7 @@ export const ARTWORKS = [
   {
     id: 'pelicanos',
     filename: 'La Desaparición de los Pelícanos, 2023.png',
+    ratio: 0.705,
     title: 'La Desaparición de los Pelícanos, 2023',
     medium: 'Acrílico sobre lienzo · 70 × 100 cm',
     price: 'No disponible',
@@ -29,6 +30,7 @@ export const ARTWORKS = [
   {
     id: 'narices-frias',
     filename: 'La Noche de las Narices Frías, 2022.jpg',
+    ratio: 0.749,
     title: 'La Noche de las Narices Frías, 2022',
     medium: 'Acrílico sobre lienzo · 90 × 120 cm',
     price: 'No disponible',
@@ -37,6 +39,7 @@ export const ARTWORKS = [
   {
     id: 'maniaco',
     filename: 'Maníaco, 2022.jpg',
+    ratio: 0.600,
     title: 'Maníaco, 2022',
     medium: 'Acrílico sobre lienzo · 60 × 90 cm',
     price: '1.500.000 COP',
@@ -45,6 +48,7 @@ export const ARTWORKS = [
   {
     id: 'oceano',
     filename: 'Océano, 2022.jpg',
+    ratio: 1.489,
     title: 'Océano, 2022',
     medium: 'Óleo sobre lienzo · 60 × 90 cm',
     price: '1.000.000 COP', // corregido por Catalina vía IG (el PDF decía 1.500.000)
@@ -53,6 +57,7 @@ export const ARTWORKS = [
   {
     id: 'colonizacion-x',
     filename: 'Colonización de X, 2023.jpg',
+    ratio: 1.513,
     title: 'Colonización de X, 2023',
     medium: 'Acrílico sobre lienzo · 60 × 90 cm',
     price: '2.000.000 COP',
@@ -61,6 +66,7 @@ export const ARTWORKS = [
   {
     id: 'vainilla-chocolate',
     filename: 'Vainilla y Chocolate, 2025.jpg',
+    ratio: 1.429,
     title: 'Vainilla y Chocolate, 2025',
     medium: 'Acrílico y pasta de modelar sobre lienzo · 70 × 100 cm',
     price: '2.000.000 COP',
@@ -69,6 +75,7 @@ export const ARTWORKS = [
   {
     id: 'claudel-rodin',
     filename: 'Claudel y Rodin, 2025.jpg',
+    ratio: 1.216,
     title: 'Claudel y Rodin, 2025',
     medium: 'Acrílico y pasta de modelar sobre lienzo · 90 × 120 cm',
     price: '2.800.000 COP',
@@ -77,6 +84,7 @@ export const ARTWORKS = [
   {
     id: 'cest-la-vie',
     filename: "C'est la vie, 2023.jpg",
+    ratio: 0.699,
     title: "C'est la vie, 2023",
     medium: 'Acrílico sobre lienzo · 70 × 100 cm',
     price: '2.000.000 COP',
@@ -85,6 +93,7 @@ export const ARTWORKS = [
   {
     id: 'oui-oui-baguette',
     filename: 'Oui Oui Baguette, 2022.webp',
+    ratio: 0.750,
     title: 'Oui Oui Baguette, 2022',
     medium: '',
     price: '',
@@ -93,6 +102,7 @@ export const ARTWORKS = [
   {
     id: 'yes-no',
     filename: 'Yes-No, 2022.png',
+    ratio: 0.751,
     title: 'Yes/No, 2022',
     medium: 'Acrílico sobre lienzo · 30 × 40 cm',
     price: '200.000 COP',
@@ -101,6 +111,7 @@ export const ARTWORKS = [
   {
     id: 'aron-piper',
     filename: 'Aron Piper, 2022.jpg',
+    ratio: 0.765,
     title: 'Aron Piper, 2022',
     medium: 'Acrílico sobre lienzo · 30 × 40 cm',
     price: '200.000 COP',
@@ -109,6 +120,7 @@ export const ARTWORKS = [
   {
     id: 'peut-etre',
     filename: 'Peut être, 2022.png',
+    ratio: 0.727,
     title: 'Peut être, 2022',
     medium: 'Acrílico sobre lienzo · 30 × 40 cm',
     price: '200.000 COP',

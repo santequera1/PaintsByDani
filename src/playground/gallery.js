@@ -98,7 +98,8 @@ export function initGallery({ artworks, artist, imgBase = 'posts', scatter = fal
     list.forEach((art, i) => {
       let c = 0
       for (let k = 1; k < NUM_COLS; k++) if (cols[k].sumH < cols[c].sumH) c = k
-      const h = Math.round(COL_W * ratios[i % ratios.length])
+      // proporción real de la imagen → la obra se ve completa, sin recorte
+      const h = Math.round(COL_W * (art.ratio || ratios[i % ratios.length]))
       cols[c].items.push({ art, h })
       cols[c].sumH += h
     })

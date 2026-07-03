@@ -12,6 +12,7 @@ export const ARTWORKS = [
   {
     id: 'llegaste-bien',
     filename: 'Llegaste bien 2026.jpg',
+    ratio: 0.574,
     title: '¿Llegaste bien? 2026',
     medium: '',
     price: '500.000 COP',
@@ -20,6 +21,7 @@ export const ARTWORKS = [
   {
     id: 'helado',
     filename: 'Me gusta mirarte comer un helado, 2026.jpg',
+    ratio: 0.645,
     title: 'Me gusta mirarte comer un helado, 2026',
     medium: '',
     price: '500.000 COP',
@@ -28,6 +30,7 @@ export const ARTWORKS = [
   {
     id: 'parque',
     filename: 'Me siento conectada a este parque, 2026.jpg',
+    ratio: 0.635,
     title: 'Me siento conectada a este parque, 2026',
     medium: '',
     price: '500.000 COP',
@@ -36,6 +39,7 @@ export const ARTWORKS = [
   {
     id: 'santuario',
     filename: 'Mi casa es mi santuario, 2026.jpg',
+    ratio: 0.628,
     title: 'Mi casa es mi santuario, 2026',
     medium: '',
     price: '500.000 COP',
@@ -44,6 +48,7 @@ export const ARTWORKS = [
   {
     id: 'oceano',
     filename: 'Perdido en el océano, 2026.jpg',
+    ratio: 0.638,
     title: 'Perdido en el océano, 2026',
     medium: '',
     price: '500.000 COP',
@@ -52,6 +57,7 @@ export const ARTWORKS = [
   {
     id: 'te-deseo',
     filename: 'Te deseo lo mejor, 2026.jpg',
+    ratio: 0.638,
     title: 'Te deseo lo mejor, 2026',
     medium: '',
     price: '500.000 COP',
@@ -60,6 +66,7 @@ export const ARTWORKS = [
   {
     id: 'distancia',
     filename: 'Te ví desde la distancia, 2026.jpg',
+    ratio: 0.559,
     title: 'Te ví desde la distancia, 2026',
     medium: '',
     price: '500.000 COP',
