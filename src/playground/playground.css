@@ -33,7 +33,7 @@
   --pill-bg: rgba(30, 34, 41, 0.85);
   --pill-solid: #262b33;
   --panel-bg: rgba(26, 29, 36, 0.96);
-  --card-mat: #f2eee6;      /* los marcos siguen claros, como en un museo */
+  --card-mat: #14171c;      /* sin marco blanco en oscuro: la obra al borde */
   --card-ph: #262b33;
   --modal-bg: #1d2026;
   --modal-side: #22262d;
@@ -146,6 +146,11 @@ html, body {
   border-radius: 2px;
   pointer-events: none;
 }
+/* Modo oscuro: obra a borde completo, sin marco blanco ni passe-partout */
+:root[data-theme='dark'] .pg-card-inner { padding: 0; }
+:root[data-theme='dark'] .pg-card-inner::after { display: none; }
+:root[data-theme='dark'] .pg-card-img { border-radius: 2px; }
+:root[data-theme='dark'] .pg-card-cap { left: 0; right: 0; bottom: 0; border-radius: 0 0 2px 2px; }
 .pg-card-img {
   display: block;
   width: 100%;
