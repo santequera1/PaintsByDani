@@ -51,4 +51,11 @@ export const ARTWORKS = [
     medium: '',
     instagramUrl: ARTIST.instagramUrl,
   },
+  {
+    id: 'distancia',
+    filename: 'Te ví desde la distancia, 2026.jpg',
+    title: 'Te ví desde la distancia, 2026',
+    medium: '',
+    instagramUrl: ARTIST.instagramUrl,
+  },
 ]

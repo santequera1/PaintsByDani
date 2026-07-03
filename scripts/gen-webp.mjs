@@ -11,7 +11,7 @@ const THUMB_DIR = join(SRC, 'thumb')
 const FULL_DIR = join(SRC, 'full')
 const THUMB_W = 820   // ancho máx miniatura
 const FULL_W = 1600   // ancho máx modal
-const EXTS = new Set(['.jpg', '.jpeg', '.png'])
+const EXTS = new Set(['.jpg', '.jpeg', '.png', '.webp'])
 
 await mkdir(THUMB_DIR, { recursive: true })
 await mkdir(FULL_DIR, { recursive: true })

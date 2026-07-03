@@ -12,6 +12,7 @@ export default defineConfig({
         main: resolve(__dirname, 'index.html'),
         playground: resolve(__dirname, 'playground.html'),
         catalina: resolve(__dirname, 'catalina.html'),
+        conexiones: resolve(__dirname, 'conexiones.html'),
       },
     },
   },

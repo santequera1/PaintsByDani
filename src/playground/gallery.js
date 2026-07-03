@@ -12,7 +12,7 @@ const clamp = (v, a, b) => (v < a ? a : v > b ? b : v)
 const baseName = (f) => f.replace(/\.[^.]+$/, '')
 const RATIOS = [1.18, 0.82, 1.34, 0.95, 1.0, 1.46, 0.78, 1.12, 1.28, 0.88]
 
-export function initGallery({ artworks, artist, imgBase = 'posts', scatter = false, sound = false, ratios = RATIOS }) {
+export function initGallery({ artworks, artist, imgBase = 'posts', scatter = false, sound = false, ratios = RATIOS, watermark = null }) {
   // Rutas de imagen: WebP (miniatura para tarjetas, grande para el modal) con
   // fallback a los originales (varias codificaciones por nombres raros).
   function candidates(filename, kind) {
@@ -61,6 +61,7 @@ export function initGallery({ artworks, artist, imgBase = 'posts', scatter = fal
   const modalImg = document.getElementById('pg-modal-img')
   const modalTitle = document.getElementById('pg-modal-title')
   const modalMedium = document.getElementById('pg-modal-medium')
+  const modalPrice = document.getElementById('pg-modal-price')
   const modalIg = document.getElementById('pg-modal-ig')
   const modalClose = document.getElementById('pg-modal-close')
   const modalBackdrop = document.getElementById('pg-modal-backdrop')
@@ -584,6 +585,11 @@ export function initGallery({ artworks, artist, imgBase = 'posts', scatter = fal
     modalTitle.textContent = art.title
     modalMedium.textContent = art.medium || ''
     modalMedium.style.display = art.medium ? '' : 'none'
+    if (modalPrice) {
+      modalPrice.textContent = art.price || ''
+      modalPrice.style.display = art.price ? '' : 'none'
+      modalPrice.classList.toggle('pg-price-na', art.price === 'No disponible')
+    }
     modalIg.href = art.instagramUrl || artist.instagramUrl
     if (location.hash !== '#' + art.id) {
       history.replaceState(null, '', '#' + art.id)
@@ -606,7 +612,15 @@ export function initGallery({ artworks, artist, imgBase = 'posts', scatter = fal
     if (modalIndex < 0 || artworks.length < 2) return
     soundNav(dir)
     modalIndex = (modalIndex + dir + artworks.length) % artworks.length
-    showArtwork(artworks[modalIndex])
+    if (REDUCE) { showArtwork(artworks[modalIndex]); return }
+    // crossfade con leve deslizamiento hacia la dirección de navegación
+    modalImg.classList.add('pg-img-out')
+    modalCard.classList.add(dir > 0 ? 'pg-nav-next' : 'pg-nav-prev')
+    setTimeout(() => {
+      showArtwork(artworks[modalIndex])
+      modalImg.classList.remove('pg-img-out')
+      modalCard.classList.remove('pg-nav-next', 'pg-nav-prev')
+    }, 170)
   }
 
   function closeModal() {
@@ -772,6 +786,41 @@ export function initGallery({ artworks, artist, imgBase = 'posts', scatter = fal
     const initOnce = () => initActx()
     document.addEventListener('pointerdown', initOnce, { capture: true, once: true })
     document.addEventListener('wheel', initOnce, { capture: true, once: true })
+  }
+
+  // --- Tema claro/oscuro + marca de agua dinámica ---
+  const themeBtn = document.getElementById('pg-theme')
+  const bgword = document.getElementById('pg-bgword')
+
+  function applyWatermark() {
+    if (!bgword || !watermark) return
+    const dark = document.documentElement.dataset.theme === 'dark'
+    const fill = dark ? '%23b9c6da' : '%2334435a'
+    const op = dark ? '0.06' : '0.05'
+    const w = Math.max(300, Math.round(watermark.length * 32) + 90)
+    bgword.style.backgroundImage =
+      `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${w}' height='150'%3E%3Ctext x='16' y='100' font-family='Georgia,serif' font-style='italic' font-size='54' fill='${fill}' fill-opacity='${op}'%3E${encodeURIComponent(watermark)}%3C/text%3E%3C/svg%3E")`
+  }
+
+  function setTheme(t) {
+    document.documentElement.dataset.theme = t
+    try { localStorage.setItem('pg-theme', t) } catch {}
+    applyWatermark()
+  }
+  let savedTheme = null
+  try { savedTheme = localStorage.getItem('pg-theme') } catch {}
+  setTheme(savedTheme === 'dark' || savedTheme === 'light'
+    ? savedTheme
+    : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'))
+
+  if (themeBtn) {
+    themeBtn.hidden = false
+    themeBtn.addEventListener('click', () => {
+      const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'
+      // crossfade nativo del navegador si está disponible
+      if (document.startViewTransition && !REDUCE) document.startViewTransition(() => setTheme(next))
+      else setTheme(next)
+    })
   }
 
   // --- Pantalla de entrada / portada (opcional) ---
