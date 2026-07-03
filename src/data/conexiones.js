@@ -8,6 +8,12 @@ export const COLLECTION = {
   // Declaración de artista (del catálogo de la expo)
   statement:
     'Mi práctica artística se centra en la saturación informativa de la cultura digital y la manera en que esta configura las relaciones interpersonales en el mundo actual. A través de capas de acrílico y sutiles relieves, he desarrollado un lenguaje visual que traduce el flujo constante de datos en estructuras gráficas que evocan estados de sobrecarga cognitiva.',
+  // Versión completa (para el catálogo/flipbook)
+  statementFull: [
+    'Mi práctica artística se centra en la saturación informativa de la cultura digital y la manera en que esta configura las relaciones interpersonales en el mundo actual. A través de capas de acrílico y sutiles relieves, he desarrollado un lenguaje visual que traduce el flujo constante de datos en estructuras gráficas que evocan estados de sobrecarga cognitiva, donde la acumulación física de la pintura contrasta con la bidimensionalidad de las interfaces digitales y simula una experiencia tanto tangible como virtual.',
+    'Las piezas funcionan como ventanas al presente que invitan al espectador a confrontar el consumo de información impuesto en nuestra vida cotidiana. En ellas observamos un mapa visual que cuestiona cómo interactuamos en entornos mediatizados, donde los algoritmos influyen cada vez más en nuestra percepción de la realidad. Al hacer uso de la abstracción y el símbolo, mi trabajo no solo busca evidenciar la dispersión de la atención contemporánea, sino también abrir espacios de contemplación, propiciando una observación más consciente de los sistemas que nos rigen. En última instancia, busco plantear una visión crítica de cómo la tecnología nos influye y lo que dice de nosotros como especie.',
+  ],
+  pdfUrl: '/docs/EXPO-CONEXIONES-2026.pdf',
 }
 
 // Datos del PDF "EXPO CONEXIONES 2026" (título, técnica, medidas, precio)

@@ -649,8 +649,22 @@ export function initGallery({ artworks, artist, imgBase = 'posts', scatter = fal
   modalClose.addEventListener('click', closeModal)
   modalBackdrop.addEventListener('click', closeModal)
   modalCard.addEventListener('click', (e) => e.stopPropagation())
-  if (modalPrev) modalPrev.addEventListener('click', (e) => { e.stopPropagation(); navModal(-1) })
-  if (modalNext) modalNext.addEventListener('click', (e) => { e.stopPropagation(); navModal(1) })
+  // Navegación blindada: solo cuenta un click precedido por un pointerdown
+  // físico y reciente sobre el botón; cada pointerdown habilita UN solo nav.
+  // (mata clicks sintéticos/duplicados de cualquier origen)
+  function bindNav(btn, dir) {
+    if (!btn) return
+    let armed = 0
+    btn.addEventListener('pointerdown', (e) => { e.stopPropagation(); armed = performance.now() })
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation()
+      const ok = armed && performance.now() - armed < 900
+      armed = 0
+      if (ok) navModal(dir)
+    })
+  }
+  bindNav(modalPrev, -1)
+  bindNav(modalNext, 1)
   if (artworks.length < 2) {
     if (modalPrev) modalPrev.style.display = 'none'
     if (modalNext) modalNext.style.display = 'none'
