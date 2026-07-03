@@ -782,6 +782,23 @@ export function initGallery({ artworks, artist, imgBase = 'posts', scatter = fal
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') setAbout(false)
     })
+
+    // Toggle de idioma ESP/ENG dentro de la mini bio (persistente)
+    const langBtns = [...aboutEl.querySelectorAll('.pg-lang-btn')]
+    const bios = [...aboutEl.querySelectorAll('.pg-about-bio[data-lang]')]
+    if (langBtns.length && bios.length) {
+      const setLang = (l) => {
+        try { localStorage.setItem('pg-lang', l) } catch {}
+        langBtns.forEach((b) => b.classList.toggle('active', b.dataset.lang === l))
+        bios.forEach((p) => { p.hidden = p.dataset.lang !== l })
+      }
+      langBtns.forEach((b) =>
+        b.addEventListener('click', (e) => { e.stopPropagation(); setLang(b.dataset.lang) })
+      )
+      let saved = null
+      try { saved = localStorage.getItem('pg-lang') } catch {}
+      setLang(saved === 'en' ? 'en' : 'es')
+    }
   }
 
   // --- Sonidos: contexto de audio + botón de silencio ---
