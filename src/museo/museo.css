@@ -49,6 +49,7 @@ body.museo-conexiones #gallery-link { text-transform: none; letter-spacing: 0.04
 
 /* Interruptor de luces */
 #lights-btn {
+  pointer-events: auto; /* el HUD tiene pointer-events:none; el botón debe recibir toques */
   position: fixed;
   top: 52px;
   right: 18px;
@@ -80,7 +81,8 @@ body.museo-conexiones #gallery-link { text-transform: none; letter-spacing: 0.04
 }
 
 /* Botón de recorrido automático (overlay) */
-#tour-btn {
+#tour-btn,
+#lights-btn-overlay {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -96,7 +98,8 @@ body.museo-conexiones #gallery-link { text-transform: none; letter-spacing: 0.04
   cursor: pointer;
   transition: all 0.3s ease;
 }
-#tour-btn:hover {
+#tour-btn:hover,
+#lights-btn-overlay:hover {
   color: #fff;
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.45);

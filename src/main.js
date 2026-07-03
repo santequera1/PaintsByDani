@@ -357,29 +357,29 @@ document.addEventListener('pointerlockchange', () => {
 // Mobile virtual joystick
 // ============================================================
 if (isMobile) {
-  let joystickActive = false
+  // Joystick con tracking por identificador de toque: el dedo del joystick y
+  // el dedo de la cámara son independientes (como en un juego móvil).
+  let joyTouchId = null
   let joystickStartX = 0, joystickStartY = 0
   const joystickRadius = 50
 
   joystickZone.addEventListener('touchstart', (e) => {
     e.preventDefault()
-    joystickActive = true
-    const touch = e.touches[0]
+    if (joyTouchId !== null) return
+    const touch = e.changedTouches[0]
+    joyTouchId = touch.identifier
     joystickStartX = touch.clientX
     joystickStartY = touch.clientY
     joystickBase.classList.add('active')
   }, { passive: false })
 
   document.addEventListener('touchmove', (e) => {
-    if (!joystickActive) return
-    // Find the correct touch by proximity to start position
+    if (joyTouchId === null) return
     let touch = null
     for (const t of e.touches) {
-      const tdx = t.clientX - joystickStartX
-      const tdy = t.clientY - joystickStartY
-      if (Math.sqrt(tdx * tdx + tdy * tdy) < 120) { touch = t; break }
+      if (t.identifier === joyTouchId) { touch = t; break }
     }
-    if (!touch) touch = e.touches[0]
+    if (!touch) return
     let dx = touch.clientX - joystickStartX
     let dy = touch.clientY - joystickStartY
     const dist = Math.sqrt(dx * dx + dy * dy)
@@ -391,8 +391,14 @@ if (isMobile) {
     engine.setVirtualJoystick(dx / joystickRadius, dy / joystickRadius)
   }, { passive: true })
 
-  const endJoystick = () => {
-    joystickActive = false
+  const endJoystick = (e) => {
+    if (joyTouchId === null) return
+    let released = false
+    for (const t of e.changedTouches) {
+      if (t.identifier === joyTouchId) { released = true; break }
+    }
+    if (!released) return
+    joyTouchId = null
     joystickThumb.style.transform = ''
     joystickBase.classList.remove('active')
     engine.setVirtualJoystick(0, 0)

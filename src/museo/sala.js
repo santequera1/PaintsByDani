@@ -416,7 +416,7 @@ export async function buildSalaConexiones({ artworks, collection, imgBase, refle
 
     // foco de galería por obra
     const dir = new THREE.Vector3(Math.sin(p.rotY), 0, Math.cos(p.rotY)) // normal de la pared
-    const spot = new THREE.SpotLight(0xfff2dd, 5.5, 9, 0.4, 0.6, 2)
+    const spot = new THREE.SpotLight(0xfff2dd, 5.5, 6, 0.4, 0.6, 2)
     spot.position.set(p.x + dir.x * 1.7, H - 0.25, p.z + dir.z * 1.7)
     spot.target.position.set(p.x, 1.62, p.z)
     lights.push(spot)
@@ -444,7 +444,7 @@ export async function buildSalaConexiones({ artworks, collection, imgBase, refle
   group.add(titleMesh)
 
   // foco del título
-  const titleSpot = new THREE.SpotLight(0xfff2dd, 4, 11, 0.5, 0.65, 2)
+  const titleSpot = new THREE.SpotLight(0xfff2dd, 4, 4.2, 0.5, 0.65, 2)
   titleSpot.position.set(0, H - 0.25, -halfL + 2.4)
   titleSpot.target.position.set(0, 2.6, -halfL)
   lights.push(titleSpot)
@@ -459,7 +459,7 @@ export async function buildSalaConexiones({ artworks, collection, imgBase, refle
   stMesh.rotation.y = Math.PI
   group.add(stMesh)
 
-  const stSpot = new THREE.SpotLight(0xfff2dd, 3.2, 11, 0.55, 0.7, 2)
+  const stSpot = new THREE.SpotLight(0xfff2dd, 3.2, 4.2, 0.55, 0.7, 2)
   stSpot.position.set(0, H - 0.25, halfL - 2.4)
   stSpot.target.position.set(0, 2.1, halfL)
   lights.push(stSpot)
@@ -550,8 +550,8 @@ export async function buildSalaConexiones({ artworks, collection, imgBase, refle
     glass.position.set(0, 1.24, 0)
     group.add(glass)
 
-    // foco cenital de la vitrina
-    const vitSpot = new THREE.SpotLight(0xfff2dd, 3, 6, 0.5, 0.7, 2)
+    // foco cenital de la vitrina (corto y cerrado: no debe manchar el piso)
+    const vitSpot = new THREE.SpotLight(0xfff2dd, 1.7, 3.6, 0.3, 0.8, 2)
     vitSpot.position.set(0, H - 0.25, 0)
     vitSpot.target.position.set(0, 1.0, 0)
     lights.push(vitSpot)

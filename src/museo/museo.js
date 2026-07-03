@@ -101,16 +101,19 @@ async function enterSala() {
 // Luces: encendidas / apagadas (modo oscuro, tecla L)
 // ============================================================
 const lightsBtn = document.getElementById('lights-btn')
+const lightsBtnOverlay = document.getElementById('lights-btn-overlay')
 let darkMode = false
 
 function applyLights() {
   if (sala && sala.setDark) sala.setDark(darkMode)
   engine.scene.environmentIntensity = darkMode ? 0.1 : 0.28
   engine.scene.background.set(darkMode ? 0x040404 : 0x0d0c0b)
+  const label = darkMode ? 'Encender luces' : 'Apagar luces'
   if (lightsBtn) {
     lightsBtn.classList.toggle('off', darkMode)
-    lightsBtn.querySelector('span').textContent = darkMode ? 'Encender luces' : 'Apagar luces'
+    lightsBtn.querySelector('span').textContent = label
   }
+  if (lightsBtnOverlay) lightsBtnOverlay.textContent = label
 }
 
 function toggleLights() {
@@ -119,6 +122,7 @@ function toggleLights() {
 }
 
 if (lightsBtn) lightsBtn.addEventListener('click', toggleLights)
+if (lightsBtnOverlay) lightsBtnOverlay.addEventListener('click', toggleLights)
 document.addEventListener('keydown', (e) => {
   if (e.code === 'KeyL') toggleLights()
 })
@@ -372,28 +376,29 @@ document.addEventListener('pointerlockchange', () => {
 if (isMobile) {
   playBtn.addEventListener('click', () => engine.enableMobile())
 
-  let joystickActive = false
+  // Joystick con tracking por identificador de toque: el dedo del joystick y
+  // el dedo de la cámara son independientes (como en un juego móvil).
+  let joyTouchId = null
   let joystickStartX = 0, joystickStartY = 0
   const joystickRadius = 50
 
   joystickZone.addEventListener('touchstart', (e) => {
     e.preventDefault()
-    joystickActive = true
-    const touch = e.touches[0]
+    if (joyTouchId !== null) return // ya hay un dedo en el joystick
+    const touch = e.changedTouches[0]
+    joyTouchId = touch.identifier
     joystickStartX = touch.clientX
     joystickStartY = touch.clientY
     joystickBase.classList.add('active')
   }, { passive: false })
 
   document.addEventListener('touchmove', (e) => {
-    if (!joystickActive) return
+    if (joyTouchId === null) return
     let touch = null
     for (const t of e.touches) {
-      const tdx = t.clientX - joystickStartX
-      const tdy = t.clientY - joystickStartY
-      if (Math.sqrt(tdx * tdx + tdy * tdy) < 120) { touch = t; break }
+      if (t.identifier === joyTouchId) { touch = t; break }
     }
-    if (!touch) touch = e.touches[0]
+    if (!touch) return // este evento es de otro dedo (p. ej. la cámara)
     let dx = touch.clientX - joystickStartX
     let dy = touch.clientY - joystickStartY
     const dist = Math.sqrt(dx * dx + dy * dy)
@@ -405,8 +410,15 @@ if (isMobile) {
     engine.setVirtualJoystick(dx / joystickRadius, dy / joystickRadius)
   }, { passive: true })
 
-  const endJoystick = () => {
-    joystickActive = false
+  const endJoystick = (e) => {
+    if (joyTouchId === null) return
+    // solo termina si el dedo que se levantó es EL del joystick
+    let released = false
+    for (const t of e.changedTouches) {
+      if (t.identifier === joyTouchId) { released = true; break }
+    }
+    if (!released) return
+    joyTouchId = null
     joystickThumb.style.transform = ''
     joystickBase.classList.remove('active')
     engine.setVirtualJoystick(0, 0)

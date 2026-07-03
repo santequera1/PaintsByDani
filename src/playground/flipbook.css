@@ -249,3 +249,9 @@
   .fb-statement p { font-size: 10.5px; }
   .fb-face { padding: 8% 10%; }
 }
+
+/* En táctil, la sombra animada del giro parpadea (artefacto de iOS con
+   transforms 3D) → se desactiva; el giro queda limpio */
+@media (pointer: coarse) {
+  .fb-shade { display: none; }
+}
