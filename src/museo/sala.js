@@ -322,40 +322,64 @@ export async function buildSalaConexiones({ artworks, collection, imgBase }, ren
   const obraSpots = []
 
   for (const p of layout) {
-    const ratio = p.art.ratio || 0.75 // alto/ancho
-    let iw, ih
-    if (ratio >= 1) { ih = 1.85; iw = ih / ratio } // vertical
-    else { iw = 2.05; ih = iw * ratio }            // horizontal
-
     const fg = new THREE.Group()
     fg.position.set(p.x, 1.62, p.z)
     fg.rotation.y = p.rotY
 
-    // marco nogal
     const fw = 0.06, fd = 0.05, mw = 0.11 // marco, fondo, passe-partout
-    const outW = iw + mw * 2, outH = ih + mw * 2
-    const mkBar = (w, h, x, y) => {
-      const bar = new THREE.Mesh(new THREE.BoxGeometry(w, h, fd), frameMat)
-      bar.position.set(x, y, 0)
-      fg.add(bar)
-    }
-    mkBar(outW + fw * 2, fw, 0, outH / 2 + fw / 2)
-    mkBar(outW + fw * 2, fw, 0, -outH / 2 - fw / 2)
-    mkBar(fw, outH, -outW / 2 - fw / 2, 0)
-    mkBar(fw, outH, outW / 2 + fw / 2, 0)
 
-    // passe-partout blanco
-    const matMesh = new THREE.Mesh(new THREE.PlaneGeometry(outW, outH), matWhite)
-    matMesh.position.z = fd / 2 - 0.006
-    fg.add(matMesh)
-
-    // imagen
+    // imagen (la geometría se ajusta a la proporción REAL de la textura)
     const imgMat = new THREE.MeshBasicMaterial({ color: 0x4a4a4a })
-    const imgMesh = new THREE.Mesh(new THREE.PlaneGeometry(iw, ih), imgMat)
+    const imgMesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), imgMat)
     imgMesh.position.z = fd / 2 - 0.002
     imgMesh.userData.artwork = p.art
     fg.add(imgMesh)
     paintingMeshes.push(imgMesh)
+
+    // placa
+    const plaque = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.92, 0.3),
+      new THREE.MeshBasicMaterial({ map: makePlaque(p.art.title, p.art.medium, p.art.price) })
+    )
+    fg.add(plaque)
+
+    // construye/reconstruye marco + passe-partout para una proporción dada
+    const sizeFrame = (ratio) => {
+      let iw, ih
+      if (ratio >= 1) { ih = 1.85; iw = ih / ratio } // vertical
+      else { iw = 2.05; ih = iw * ratio }            // horizontal
+      const outW = iw + mw * 2, outH = ih + mw * 2
+
+      // limpiar piezas anteriores del marco
+      for (const part of [...fg.children]) {
+        if (part.userData.framePart) {
+          fg.remove(part)
+          part.geometry.dispose()
+        }
+      }
+      const mkBar = (w, h, x, y) => {
+        const bar = new THREE.Mesh(new THREE.BoxGeometry(w, h, fd), frameMat)
+        bar.position.set(x, y, 0)
+        bar.userData.framePart = true
+        fg.add(bar)
+      }
+      mkBar(outW + fw * 2, fw, 0, outH / 2 + fw / 2)
+      mkBar(outW + fw * 2, fw, 0, -outH / 2 - fw / 2)
+      mkBar(fw, outH, -outW / 2 - fw / 2, 0)
+      mkBar(fw, outH, outW / 2 + fw / 2, 0)
+
+      const matMesh = new THREE.Mesh(new THREE.PlaneGeometry(outW, outH), matWhite)
+      matMesh.position.z = fd / 2 - 0.006
+      matMesh.userData.framePart = true
+      fg.add(matMesh)
+
+      imgMesh.geometry.dispose()
+      imgMesh.geometry = new THREE.PlaneGeometry(iw, ih)
+      plaque.position.set(0, -(outH / 2) - 0.32, 0.012)
+    }
+
+    let usedRatio = p.art.ratio || 0.75
+    sizeFrame(usedRatio)
 
     const base = p.art.filename.replace(/\.[^.]+$/, '')
     texLoader.load(`/${imgBase}/full/${encodeURI(base)}.webp`, (tex) => {
@@ -363,15 +387,15 @@ export async function buildSalaConexiones({ artworks, collection, imgBase }, ren
       imgMat.map = tex
       imgMat.color.set(0xffffff)
       imgMat.needsUpdate = true
+      // la textura manda: si la proporción real difiere, re-encuadrar
+      if (tex.image && tex.image.width) {
+        const real = tex.image.height / tex.image.width
+        if (Math.abs(real - usedRatio) / usedRatio > 0.02) {
+          usedRatio = real
+          sizeFrame(real)
+        }
+      }
     })
-
-    // placa
-    const plaque = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.92, 0.3),
-      new THREE.MeshBasicMaterial({ map: makePlaque(p.art.title, p.art.medium, p.art.price) })
-    )
-    plaque.position.set(0, -(outH / 2) - 0.32, 0.012)
-    fg.add(plaque)
 
     group.add(fg)
 
@@ -478,6 +502,9 @@ export async function buildSalaConexiones({ artworks, collection, imgBase }, ren
     titleMat.needsUpdate = true
     stMat.map = dark ? stTexDark : stTexLight
     stMat.needsUpdate = true
+    // fondo de las obras (passe-partout): blanco de día, negro de noche
+    matWhite.color.set(dark ? 0x050505 : 0xffffff)
+    frameMat.color.set(dark ? 0x141210 : 0x362b21)
   }
 
   return {
