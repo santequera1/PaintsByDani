@@ -14,6 +14,7 @@ export const ARTWORKS = [
     filename: 'Llegaste bien 2026.jpg',
     title: '¿Llegaste bien? 2026',
     medium: '',
+    price: '500.000 COP',
     instagramUrl: ARTIST.instagramUrl,
   },
   {
@@ -21,6 +22,7 @@ export const ARTWORKS = [
     filename: 'Me gusta mirarte comer un helado, 2026.jpg',
     title: 'Me gusta mirarte comer un helado, 2026',
     medium: '',
+    price: '500.000 COP',
     instagramUrl: ARTIST.instagramUrl,
   },
   {
@@ -28,6 +30,7 @@ export const ARTWORKS = [
     filename: 'Me siento conectada a este parque, 2026.jpg',
     title: 'Me siento conectada a este parque, 2026',
     medium: '',
+    price: '500.000 COP',
     instagramUrl: ARTIST.instagramUrl,
   },
   {
@@ -35,6 +38,7 @@ export const ARTWORKS = [
     filename: 'Mi casa es mi santuario, 2026.jpg',
     title: 'Mi casa es mi santuario, 2026',
     medium: '',
+    price: '500.000 COP',
     instagramUrl: ARTIST.instagramUrl,
   },
   {
@@ -42,6 +46,7 @@ export const ARTWORKS = [
     filename: 'Perdido en el océano, 2026.jpg',
     title: 'Perdido en el océano, 2026',
     medium: '',
+    price: '500.000 COP',
     instagramUrl: ARTIST.instagramUrl,
   },
   {
@@ -49,6 +54,7 @@ export const ARTWORKS = [
     filename: 'Te deseo lo mejor, 2026.jpg',
     title: 'Te deseo lo mejor, 2026',
     medium: '',
+    price: '500.000 COP',
     instagramUrl: ARTIST.instagramUrl,
   },
   {
@@ -56,6 +62,7 @@ export const ARTWORKS = [
     filename: 'Te ví desde la distancia, 2026.jpg',
     title: 'Te ví desde la distancia, 2026',
     medium: '',
+    price: '500.000 COP',
     instagramUrl: ARTIST.instagramUrl,
   },
 ]

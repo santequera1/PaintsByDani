@@ -4,7 +4,7 @@ export { ARTIST }
 
 export const COLLECTION = {
   name: 'Conexiones',
-  year: '2026',
+  year: '2022 – Presente',
   // Declaración de artista (del catálogo de la expo)
   statement:
     'Mi práctica artística se centra en la saturación informativa de la cultura digital y la manera en que esta configura las relaciones interpersonales en el mundo actual. A través de capas de acrílico y sutiles relieves, he desarrollado un lenguaje visual que traduce el flujo constante de datos en estructuras gráficas que evocan estados de sobrecarga cognitiva.',
@@ -41,7 +41,7 @@ export const ARTWORKS = [
     filename: 'Océano, 2022.jpg',
     title: 'Océano, 2022',
     medium: 'Óleo sobre lienzo · 60 × 90 cm',
-    price: '1.500.000 COP',
+    price: '1.000.000 COP', // corregido por Catalina vía IG (el PDF decía 1.500.000)
     instagramUrl: ARTIST.instagramUrl,
   },
   {

@@ -563,6 +563,8 @@ export function initGallery({ artworks, artist, imgBase = 'posts', scatter = fal
 
   // --- Modal de obra (con zoom, navegación ‹› y enlace directo) ---
   let modalIndex = -1
+  let modalOpenedAt = 0 // ignora el "ghost click" que sigue al tap de apertura
+  let lastNavAt = 0     // evita dobles avances por eventos duplicados
 
   function setModalImage(filename) {
     modalImg.onerror = null
@@ -600,6 +602,7 @@ export function initGallery({ artworks, artist, imgBase = 'posts', scatter = fal
     const idx = artworks.findIndex((a) => a.id === id)
     if (idx < 0) return
     soundOpen()
+    modalOpenedAt = performance.now()
     modalIndex = idx
     showArtwork(artworks[idx])
     modal.classList.remove('hidden')
@@ -610,6 +613,10 @@ export function initGallery({ artworks, artist, imgBase = 'posts', scatter = fal
 
   function navModal(dir) {
     if (modalIndex < 0 || artworks.length < 2) return
+    const now = performance.now()
+    // el click sintético tras abrir con tap, o eventos duplicados, no navegan
+    if (now - modalOpenedAt < 400 || now - lastNavAt < 240) return
+    lastNavAt = now
     soundNav(dir)
     modalIndex = (modalIndex + dir + artworks.length) % artworks.length
     if (REDUCE) { showArtwork(artworks[modalIndex]); return }
@@ -799,7 +806,7 @@ export function initGallery({ artworks, artist, imgBase = 'posts', scatter = fal
     const op = dark ? '0.06' : '0.05'
     const w = Math.max(300, Math.round(watermark.length * 32) + 90)
     bgword.style.backgroundImage =
-      `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${w}' height='150'%3E%3Ctext x='16' y='100' font-family='Georgia,serif' font-style='italic' font-size='54' fill='${fill}' fill-opacity='${op}'%3E${encodeURIComponent(watermark)}%3C/text%3E%3C/svg%3E")`
+      `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${w}' height='150'%3E%3Ctext x='16' y='100' font-family='Helvetica,Arial,sans-serif' font-weight='bold' font-size='54' fill='${fill}' fill-opacity='${op}'%3E${encodeURIComponent(watermark)}%3C/text%3E%3C/svg%3E")`
   }
 
   function setTheme(t) {
@@ -827,11 +834,16 @@ export function initGallery({ artworks, artist, imgBase = 'posts', scatter = fal
   const intro = document.getElementById('pg-intro')
   const introEnter = document.getElementById('pg-intro-enter')
   if (intro && introEnter) {
-    introEnter.addEventListener('click', () => {
-      initActx(); resumeCtx() // gesto: prepara el audio
-      intro.classList.add('gone')
-      setTimeout(() => { intro.style.display = 'none' }, 700)
-    })
+    if (new URLSearchParams(location.search).has('entrar')) {
+      // viene del selector de la otra colección → entrar directo
+      intro.style.display = 'none'
+    } else {
+      introEnter.addEventListener('click', () => {
+        initActx(); resumeCtx() // gesto: prepara el audio
+        intro.classList.add('gone')
+        setTimeout(() => { intro.style.display = 'none' }, 700)
+      })
+    }
   }
 
   // --- Centrar, hint, resize ---

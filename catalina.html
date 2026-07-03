@@ -9,15 +9,25 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
 </head>
-<body>
-  <!-- Portada / pantalla de entrada -->
+<body class="pg-helvetica">
+  <!-- Portada / selector de colecciones -->
   <div id="pg-intro">
     <div class="pg-intro-card">
       <img class="pg-intro-photo" src="/cat-profile.jpg" alt="Catalina Olivero" />
-      <p class="pg-intro-collection">Colección</p>
-      <h1 class="pg-intro-title">Rumiaciones</h1>
-      <p class="pg-intro-artist">Catalina Olivero</p>
-      <button id="pg-intro-enter">Entrar a la galería</button>
+      <p class="pg-intro-collection">Colecciones</p>
+      <h1 class="pg-intro-title">Catalina Olivero</h1>
+      <div class="pg-intro-choices">
+        <button id="pg-intro-enter" class="pg-choice">
+          <span class="pg-choice-img"><img src="/cat-posts/thumb/Me%20siento%20conectada%20a%20este%20parque,%202026.webp" alt="Rumiaciones" /></span>
+          <span class="pg-choice-name">Rumiaciones</span>
+          <span class="pg-choice-sub">2026</span>
+        </button>
+        <a class="pg-choice" href="./conexiones.html?entrar">
+          <span class="pg-choice-img"><img src="/conexiones-posts/thumb/Oc%C3%A9ano,%202022.webp" alt="Conexiones" /></span>
+          <span class="pg-choice-name">Conexiones</span>
+          <span class="pg-choice-sub">2022 – Presente</span>
+        </a>
+      </div>
     </div>
   </div>
 

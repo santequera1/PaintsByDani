@@ -682,22 +682,65 @@ body.pg-about-open #pg-nav { filter: blur(6px); opacity: 0.5; pointer-events: no
   letter-spacing: 0.02em;
   color: var(--ink-soft);
 }
-#pg-intro-enter {
-  margin-top: 28px;
-  padding: 13px 34px;
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  color: var(--paper);
-  background: var(--ink);
-  border: 1px solid var(--ink);
-  border-radius: 999px;
-  cursor: pointer;
-  transition: background 0.2s ease, transform 0.15s ease;
+/* Selector de colecciones en la portada */
+.pg-intro-choices {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 30px;
 }
-#pg-intro-enter:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
-#pg-intro-enter:active { transform: scale(0.97); }
+.pg-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: min(200px, 42vw);
+  padding: 9px 9px 12px;
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  color: var(--ink);
+  background: var(--pill-solid);
+  border: 1px solid var(--frame-line);
+  border-radius: 14px;
+  box-shadow: 0 10px 26px -16px rgba(40, 30, 20, 0.4);
+  cursor: pointer;
+  transition: transform 0.3s cubic-bezier(.2,.8,.2,1), box-shadow 0.3s ease;
+}
+.pg-choice:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 22px 40px -18px rgba(40, 30, 20, 0.5);
+}
+.pg-choice:active { transform: translateY(-2px) scale(0.985); }
+.pg-choice-img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: 8px;
+  border: 1px solid var(--frame-line);
+}
+.pg-choice-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s cubic-bezier(.2,.8,.2,1);
+}
+.pg-choice:hover .pg-choice-img img { transform: scale(1.06); }
+.pg-choice-name {
+  margin: 10px 4px 0;
+  font-family: 'Playfair Display', serif;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.1;
+}
+.pg-choice-sub {
+  margin: 2px 4px 0;
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
 @keyframes pgIntroUp {
   from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: none; }
@@ -754,6 +797,29 @@ body.pg-about-open #pg-nav { filter: blur(6px); opacity: 0.5; pointer-events: no
   }
   #pg-tilt { transform: none !important; }
   .pg-spinner { animation: pgSpin 1.2s linear infinite; } /* el spinner sí gira */
+}
+
+/* --- Tipografía Helvetica (pedido de Catalina, para sus 2 galerías) --- */
+body.pg-helvetica,
+body.pg-helvetica button,
+body.pg-helvetica input,
+body.pg-helvetica .pg-brand-text strong,
+body.pg-helvetica .pg-about-name,
+body.pg-helvetica .pg-card-cap,
+body.pg-helvetica .pg-intro-title,
+body.pg-helvetica .pg-choice-name,
+body.pg-helvetica #pg-modal-title {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+body.pg-helvetica .pg-intro-title {
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+body.pg-helvetica .pg-about-name,
+body.pg-helvetica .pg-choice-name,
+body.pg-helvetica #pg-modal-title {
+  font-weight: 700;
 }
 
 /* --- Responsive --- */
