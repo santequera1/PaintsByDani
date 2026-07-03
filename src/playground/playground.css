@@ -783,6 +783,31 @@ body.pg-about-open #pg-nav { filter: blur(6px); opacity: 0.5; pointer-events: no
   text-transform: uppercase;
   color: var(--ink-soft);
 }
+/* Enlace al museo 3D bajo el selector */
+.pg-intro-museo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 22px;
+  padding: 10px 20px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--ink-soft);
+  border: 1px solid var(--frame-line);
+  border-radius: 999px;
+  background: var(--pill-bg);
+  transition: color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+.pg-intro-museo:hover {
+  color: var(--ink);
+  background: var(--pill-solid);
+  transform: translateY(-2px);
+}
+#pg-intro.pg-choosing .pg-intro-museo { opacity: 0.25; transition: opacity 0.4s ease; }
+
 /* Animación al elegir colección: la elegida se realza, el resto se apaga */
 #pg-intro.pg-choosing .pg-choice {
   opacity: 0;
