@@ -48,7 +48,9 @@ const engine = createEngine(canvas)
 {
   const pmrem = new THREE.PMREMGenerator(engine.renderer)
   engine.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
+  engine.scene.environmentIntensity = 0.28 // solo reflejos sutiles, sin lavar la luz
   engine.scene.background = new THREE.Color(0x0d0c0b)
+  engine.renderer.toneMappingExposure = 1.0
 }
 
 // --- Audio: solo pasos (sin música, pedido de Catalina) ---
@@ -77,15 +79,43 @@ const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0
 // ============================================================
 // Sala
 // ============================================================
+let sala = null
 async function enterSala() {
-  const room = await buildSalaConexiones(
+  sala = await buildSalaConexiones(
     { artworks: OBRAS, collection: COLLECTION, imgBase: 'conexiones-posts' },
     engine.renderer
   )
-  engine.setRoom(room)
+  engine.setRoom(sala)
+  applyLights()
   roomNameEl.textContent = COLLECTION.name
   artworkCounterEl.textContent = `${OBRAS.length} obras`
 }
+
+// ============================================================
+// Luces: encendidas / apagadas (modo oscuro, tecla L)
+// ============================================================
+const lightsBtn = document.getElementById('lights-btn')
+let darkMode = false
+
+function applyLights() {
+  if (sala && sala.setDark) sala.setDark(darkMode)
+  engine.scene.environmentIntensity = darkMode ? 0.1 : 0.28
+  engine.scene.background.set(darkMode ? 0x040404 : 0x0d0c0b)
+  if (lightsBtn) {
+    lightsBtn.classList.toggle('off', darkMode)
+    lightsBtn.querySelector('span').textContent = darkMode ? 'Encender luces' : 'Apagar luces'
+  }
+}
+
+function toggleLights() {
+  darkMode = !darkMode
+  applyLights()
+}
+
+if (lightsBtn) lightsBtn.addEventListener('click', toggleLights)
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'KeyL') toggleLights()
+})
 
 // ============================================================
 // Zoom / Tour

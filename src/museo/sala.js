@@ -91,14 +91,14 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
 }
 
 // --- vinilo del título (fondo transparente) ---
-function makeTitleVinyl(title, subtitle) {
+function makeTitleVinyl(title, subtitle, lightText = false) {
   const canvas = document.createElement('canvas')
   canvas.width = 2048
   canvas.height = 640
   const ctx = canvas.getContext('2d')
   ctx.clearRect(0, 0, 2048, 640)
 
-  ctx.fillStyle = '#211e1a'
+  ctx.fillStyle = lightText ? '#ece7dc' : '#211e1a'
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
   ctx.font = '700 190px Helvetica, Arial, sans-serif'
@@ -116,7 +116,7 @@ function makeTitleVinyl(title, subtitle) {
   }
 
   ctx.font = '400 54px Helvetica, Arial, sans-serif'
-  ctx.fillStyle = '#6d6459'
+  ctx.fillStyle = lightText ? '#a59d8f' : '#6d6459'
   ctx.fillText(subtitle, 1024, 480)
 
   const tex = new THREE.CanvasTexture(canvas)
@@ -125,14 +125,14 @@ function makeTitleVinyl(title, subtitle) {
 }
 
 // --- statement en la pared (vinilo, fondo transparente) ---
-function makeStatementVinyl(heading, paragraphs, credit) {
+function makeStatementVinyl(heading, paragraphs, credit, lightText = false) {
   const canvas = document.createElement('canvas')
   canvas.width = 1600
   canvas.height = 1280
   const ctx = canvas.getContext('2d')
   ctx.clearRect(0, 0, 1600, 1280)
 
-  ctx.fillStyle = '#26221d'
+  ctx.fillStyle = lightText ? '#ece7dc' : '#26221d'
   ctx.textAlign = 'left'
   ctx.textBaseline = 'alphabetic'
   ctx.font = '700 64px Helvetica, Arial, sans-serif'
@@ -141,14 +141,14 @@ function makeStatementVinyl(heading, paragraphs, credit) {
   ctx.fillStyle = '#b4452f'
   ctx.fillRect(90, 175, 150, 7)
 
-  ctx.fillStyle = '#3d382f'
+  ctx.fillStyle = lightText ? '#c6bfb1' : '#3d382f'
   ctx.font = '400 40px Helvetica, Arial, sans-serif'
   let y = 265
   for (const p of paragraphs) {
     y = wrapText(ctx, p, 90, y, 1420, 58) + 26
   }
 
-  ctx.fillStyle = '#6d6459'
+  ctx.fillStyle = lightText ? '#8f8779' : '#6d6459'
   ctx.font = 'italic 400 40px Helvetica, Arial, sans-serif'
   ctx.fillText(credit, 90, Math.min(y + 30, 1220))
 
@@ -276,16 +276,16 @@ export async function buildSalaConexiones({ artworks, collection, imgBase }, ren
   mkBase(L, halfW - 0.03, 0, Math.PI / 2)
   mkBase(L, -halfW + 0.03, 0, Math.PI / 2)
 
-  // ---------- iluminación ----------
-  group.add(new THREE.AmbientLight(0xfff8ee, 0.32))
-  group.add(new THREE.HemisphereLight(0xfff6e8, 0x59504a, 0.5))
+  // ---------- iluminación (calibrada para no "quemar") ----------
+  const ambient = new THREE.AmbientLight(0xfff8ee, 0.22)
+  group.add(ambient)
+  const hemi = new THREE.HemisphereLight(0xfff6e8, 0x59504a, 0.28)
+  group.add(hemi)
 
   // "skylight" central: banda emisiva + RectAreaLight hacia abajo
   const skyW = 2.6, skyL = L - 7
-  const skyGlow = new THREE.Mesh(
-    new THREE.PlaneGeometry(skyW, skyL),
-    new THREE.MeshBasicMaterial({ color: 0xfffdf4 })
-  )
+  const skyGlowMat = new THREE.MeshBasicMaterial({ color: 0xf5efdd })
+  const skyGlow = new THREE.Mesh(new THREE.PlaneGeometry(skyW, skyL), skyGlowMat)
   skyGlow.rotation.x = Math.PI / 2
   skyGlow.position.y = H - 0.02
   group.add(skyGlow)
@@ -294,7 +294,7 @@ export async function buildSalaConexiones({ artworks, collection, imgBase }, ren
   skyFrame.position.y = H - 0.04
   group.add(skyFrame)
 
-  const rect = new THREE.RectAreaLight(0xfff6e6, 4.2, skyW, skyL)
+  const rect = new THREE.RectAreaLight(0xfff6e6, 1.4, skyW, skyL)
   rect.position.set(0, H - 0.06, 0)
   rect.rotation.x = -Math.PI / 2
   group.add(rect)
@@ -319,6 +319,7 @@ export async function buildSalaConexiones({ artworks, collection, imgBase }, ren
     color: 0x362b21, roughness: 0.34, metalness: 0.12, envMapIntensity: 0.7,
   })
   const matWhite = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9 })
+  const obraSpots = []
 
   for (const p of layout) {
     const ratio = p.art.ratio || 0.75 // alto/ancho
@@ -376,10 +377,11 @@ export async function buildSalaConexiones({ artworks, collection, imgBase }, ren
 
     // foco de galería por obra
     const dir = new THREE.Vector3(Math.sin(p.rotY), 0, Math.cos(p.rotY)) // normal de la pared
-    const spot = new THREE.SpotLight(0xfff2dd, 22, 10, 0.42, 0.55, 1.9)
+    const spot = new THREE.SpotLight(0xfff2dd, 5.5, 9, 0.4, 0.6, 2)
     spot.position.set(p.x + dir.x * 1.7, H - 0.25, p.z + dir.z * 1.7)
     spot.target.position.set(p.x, 1.62, p.z)
     lights.push(spot)
+    obraSpots.push(spot)
 
     // luminaria visible (riel)
     const fixture = new THREE.Mesh(
@@ -394,35 +396,31 @@ export async function buildSalaConexiones({ artworks, collection, imgBase }, ren
   }
 
   // ---------- vinilo del título (pared norte) ----------
-  const titleTex = makeTitleVinyl(collection.name, `${'Catalina Olivero'} · ${collection.year}`)
-  const titleMesh = new THREE.Mesh(
-    new THREE.PlaneGeometry(5.6, 1.75),
-    new THREE.MeshBasicMaterial({ map: titleTex, transparent: true })
-  )
+  const titleSub = `${'Catalina Olivero'} · ${collection.year}`
+  const titleTexLight = makeTitleVinyl(collection.name, titleSub, false) // texto oscuro (sala clara)
+  const titleTexDark = makeTitleVinyl(collection.name, titleSub, true)   // texto claro (sala oscura)
+  const titleMat = new THREE.MeshBasicMaterial({ map: titleTexLight, transparent: true })
+  const titleMesh = new THREE.Mesh(new THREE.PlaneGeometry(5.6, 1.75), titleMat)
   titleMesh.position.set(0, 2.75, -halfL + 0.06)
   group.add(titleMesh)
 
   // foco del título
-  const titleSpot = new THREE.SpotLight(0xfff2dd, 14, 11, 0.5, 0.6, 1.9)
+  const titleSpot = new THREE.SpotLight(0xfff2dd, 4, 11, 0.5, 0.65, 2)
   titleSpot.position.set(0, H - 0.25, -halfL + 2.4)
   titleSpot.target.position.set(0, 2.6, -halfL)
   lights.push(titleSpot)
 
   // ---------- statement (pared sur) ----------
-  const stTex = makeStatementVinyl(
-    'Declaración de Artista',
-    collection.statementFull || [collection.statement],
-    '— Catalina Olivero'
-  )
-  const stMesh = new THREE.Mesh(
-    new THREE.PlaneGeometry(4.0, 3.2),
-    new THREE.MeshBasicMaterial({ map: stTex, transparent: true })
-  )
+  const stParas = collection.statementFull || [collection.statement]
+  const stTexLight = makeStatementVinyl('Declaración de Artista', stParas, '— Catalina Olivero', false)
+  const stTexDark = makeStatementVinyl('Declaración de Artista', stParas, '— Catalina Olivero', true)
+  const stMat = new THREE.MeshBasicMaterial({ map: stTexLight, transparent: true })
+  const stMesh = new THREE.Mesh(new THREE.PlaneGeometry(4.0, 3.2), stMat)
   stMesh.position.set(0, 2.15, halfL - 0.06)
   stMesh.rotation.y = Math.PI
   group.add(stMesh)
 
-  const stSpot = new THREE.SpotLight(0xfff2dd, 10, 11, 0.55, 0.65, 1.9)
+  const stSpot = new THREE.SpotLight(0xfff2dd, 3.2, 11, 0.55, 0.7, 2)
   stSpot.position.set(0, H - 0.25, halfL - 2.4)
   stSpot.target.position.set(0, 2.1, halfL)
   lights.push(stSpot)
@@ -463,6 +461,25 @@ export async function buildSalaConexiones({ artworks, collection, imgBase }, ren
     }
   } catch { /* sin banca si falla el modelo */ }
 
+  // ---------- modo "luces apagadas" (sala oscura, tipo el catálogo) ----------
+  function setDark(dark) {
+    wallMat.color.set(dark ? 0x232126 : 0xefece5)
+    ceilMat.color.set(dark ? 0x18171b : 0xf4f1ea)
+    floorMat.color.set(dark ? 0x8a7a68 : 0xd8c9b4)
+    baseMat.color.set(dark ? 0x0f0e11 : 0x211e1b)
+    skyGlowMat.color.set(dark ? 0x2e2b26 : 0xf5efdd)
+    ambient.intensity = dark ? 0.06 : 0.22
+    hemi.intensity = dark ? 0.08 : 0.28
+    rect.intensity = dark ? 0.3 : 1.4
+    for (const s of obraSpots) s.intensity = dark ? 7 : 5.5
+    titleSpot.intensity = dark ? 5 : 4
+    stSpot.intensity = dark ? 4 : 3.2
+    titleMat.map = dark ? titleTexDark : titleTexLight
+    titleMat.needsUpdate = true
+    stMat.map = dark ? stTexDark : stTexLight
+    stMat.needsUpdate = true
+  }
+
   return {
     group,
     obstacles,
@@ -473,5 +490,6 @@ export async function buildSalaConexiones({ artworks, collection, imgBase }, ren
     spawnX: 0,
     spawnZ: halfL - 2.2,
     spawnYaw: 0,
+    setDark,
   }
 }
