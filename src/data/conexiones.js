@@ -75,7 +75,7 @@ export const ARTWORKS = [
   {
     id: 'claudel-rodin',
     filename: 'Claudel y Rodin, 2025.jpg',
-    ratio: 1.216,
+    ratio: 1.322, // recortado el borde negro del PDF
     title: 'Claudel y Rodin, 2025',
     medium: 'Acrílico y pasta de modelar sobre lienzo · 90 × 120 cm',
     price: '2.800.000 COP',

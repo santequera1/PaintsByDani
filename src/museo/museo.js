@@ -193,6 +193,17 @@ function stopTour() {
   clearTimeout(tourTimer)
   if (tourStopBtn) tourStopBtn.classList.add('hidden')
   exitZoom()
+  // En desktop el navegador no permite recapturar el mouse sin un gesto del
+  // usuario → si no se pudo re-lockear, mostrar la pausa para continuar.
+  if (!isMobile) {
+    setTimeout(() => {
+      if (!engine.locked && !engine.zoomMode) {
+        overlay.style.display = ''
+        overlay.classList.remove('fade-out')
+        hud.classList.add('hidden')
+      }
+    }, 1100)
+  }
 }
 
 // lento acercamiento a la obra mientras se contempla (dolly-in)

@@ -126,12 +126,43 @@ function makeTitleVinyl(title, subtitle, lightText = false) {
 }
 
 // --- statement en la pared (vinilo, fondo transparente) ---
+// El tamaño de fuente se auto-ajusta midiendo con la fuente REAL del
+// sistema (sin Helvetica Neue, Arial es más ancha y el texto no cabía).
 function makeStatementVinyl(heading, paragraphs, credit, lightText = false) {
   const canvas = document.createElement('canvas')
   canvas.width = 1600
   canvas.height = 1280
   const ctx = canvas.getContext('2d')
   ctx.clearRect(0, 0, 1600, 1280)
+
+  const maxW = 1420
+  const startY = 265
+  const bottom = 1150 // límite para el texto (deja sitio al crédito)
+
+  // altura final del bloque de texto para un tamaño dado
+  const measure = (size) => {
+    ctx.font = `400 ${size}px Helvetica, Arial, sans-serif`
+    const lh = Math.round(size * 1.45)
+    let y = startY
+    for (const p of paragraphs) {
+      let line = ''
+      for (const word of p.split(' ')) {
+        const test = line ? line + ' ' + word : word
+        if (ctx.measureText(test).width > maxW && line) { y += lh; line = word }
+        else line = test
+      }
+      y += lh + 24
+    }
+    return { end: y, lh }
+  }
+
+  let fontSize = 40
+  let lh = 58
+  for (; fontSize >= 26; fontSize -= 2) {
+    const m = measure(fontSize)
+    lh = m.lh
+    if (m.end <= bottom) break
+  }
 
   ctx.fillStyle = lightText ? '#ece7dc' : '#26221d'
   ctx.textAlign = 'left'
@@ -143,15 +174,15 @@ function makeStatementVinyl(heading, paragraphs, credit, lightText = false) {
   ctx.fillRect(90, 175, 150, 7)
 
   ctx.fillStyle = lightText ? '#c6bfb1' : '#3d382f'
-  ctx.font = '400 40px Helvetica, Arial, sans-serif'
-  let y = 265
+  ctx.font = `400 ${fontSize}px Helvetica, Arial, sans-serif`
+  let y = startY
   for (const p of paragraphs) {
-    y = wrapText(ctx, p, 90, y, 1420, 58) + 26
+    y = wrapText(ctx, p, 90, y, maxW, lh) + 24
   }
 
   ctx.fillStyle = lightText ? '#8f8779' : '#6d6459'
-  ctx.font = 'italic 400 40px Helvetica, Arial, sans-serif'
-  ctx.fillText(credit, 90, Math.min(y + 30, 1220))
+  ctx.font = `italic 400 ${fontSize}px Helvetica, Arial, sans-serif`
+  ctx.fillText(credit, 90, Math.min(y + 26, 1235))
 
   const tex = new THREE.CanvasTexture(canvas)
   tex.colorSpace = THREE.SRGBColorSpace
