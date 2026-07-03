@@ -304,7 +304,7 @@ function showPaintingPanel(artwork) {
   if (panelPrice) {
     panelPrice.textContent = artwork.price || ''
     panelPrice.style.display = artwork.price ? '' : 'none'
-    panelPrice.classList.toggle('na', artwork.price === 'No disponible')
+    panelPrice.classList.toggle('na', artwork.price === 'Vendido')
   }
   const base = artwork.filename.replace(/\.[^.]+$/, '')
   panelImage.src = `/conexiones-posts/full/${encodeURI(base)}.webp`

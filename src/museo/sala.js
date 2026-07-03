@@ -218,8 +218,8 @@ function makePlaque(title, medium, price) {
     ctx.fillText(m, 512, 168)
   }
   if (price) {
-    ctx.fillStyle = price === 'No disponible' ? '#8d857a' : '#d98a6a'
-    ctx.font = `${price === 'No disponible' ? 'italic 400' : '700'} 34px Helvetica, Arial, sans-serif`
+    ctx.fillStyle = price === 'Vendido' ? '#8d857a' : '#d98a6a'
+    ctx.font = `${price === 'Vendido' ? 'italic 400' : '700'} 34px Helvetica, Arial, sans-serif`
     ctx.fillText(price, 512, 248)
   }
 

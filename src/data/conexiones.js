@@ -24,7 +24,7 @@ export const ARTWORKS = [
     ratio: 0.705,
     title: 'La Desaparición de los Pelícanos, 2023',
     medium: 'Acrílico sobre lienzo · 70 × 100 cm',
-    price: 'No disponible',
+    price: 'Vendido',
     instagramUrl: ARTIST.instagramUrl,
   },
   {
@@ -33,7 +33,7 @@ export const ARTWORKS = [
     ratio: 0.749,
     title: 'La Noche de las Narices Frías, 2022',
     medium: 'Acrílico sobre lienzo · 90 × 120 cm',
-    price: 'No disponible',
+    price: 'Vendido',
     instagramUrl: ARTIST.instagramUrl,
   },
   {

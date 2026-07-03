@@ -50,7 +50,7 @@ export function initFlipbook({
         <div class="fb-work-img"><img src="${thumb(art.filename)}" alt="${esc(art.title)}" loading="lazy" decoding="async" /></div>
         <h4>${esc(art.title)}</h4>
         ${art.medium ? `<p class="fb-medium">${esc(art.medium)}</p>` : ''}
-        ${art.price ? `<p class="fb-price${art.price === 'No disponible' ? ' na' : ''}">${esc(art.price)}</p>` : ''}
+        ${art.price ? `<p class="fb-price${art.price === 'Vendido' ? ' na' : ''}">${esc(art.price)}</p>` : ''}
       </div>`)
   }
   faces.push(`

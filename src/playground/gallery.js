@@ -591,7 +591,7 @@ export function initGallery({ artworks, artist, imgBase = 'posts', scatter = fal
     if (modalPrice) {
       modalPrice.textContent = art.price || ''
       modalPrice.style.display = art.price ? '' : 'none'
-      modalPrice.classList.toggle('pg-price-na', art.price === 'No disponible')
+      modalPrice.classList.toggle('pg-price-na', art.price === 'Vendido')
     }
     modalIg.href = art.instagramUrl || artist.instagramUrl
     if (location.hash !== '#' + art.id) {
