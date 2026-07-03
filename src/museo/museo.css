@@ -19,6 +19,49 @@ body.museo-conexiones #overlay-brand h1 {
   font-weight: 700;
 }
 
+/* Subtítulo del overlay: centrado y discreto */
+body.museo-conexiones #overlay-brand .subtitle {
+  text-align: center;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  line-height: 1.6;
+  padding: 0 24px;
+  max-width: 420px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Los 3 botones del overlay: mismos estilos, todo en mayúsculas */
+body.museo-conexiones #play-btn,
+body.museo-conexiones #tour-btn,
+body.museo-conexiones #gallery-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 250px;
+  padding: 13px 30px;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.85);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+body.museo-conexiones #play-btn:hover,
+body.museo-conexiones #tour-btn:hover,
+body.museo-conexiones #gallery-link:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
 body.museo-conexiones #artist-photo {
   border-radius: 50%;
   object-fit: cover;
@@ -44,8 +87,30 @@ body.museo-conexiones #panel-instagram:hover {
   border-color: #b4452f;
 }
 
-/* Enlace de vuelta a la galería */
-body.museo-conexiones #gallery-link { text-transform: none; letter-spacing: 0.04em; }
+/* Panel de obra: la imagen SIEMPRE completa (sin recortes) */
+body.museo-conexiones #panel-image {
+  object-fit: contain;
+  background: #0c0b0a;
+}
+
+/* Fondo difuminado tras el panel de obra — SOLO móvil: en desktop la obra
+   grande es la del 3D y no debe difuminarse */
+#panel-scrim { display: none; }
+@media (pointer: coarse) {
+  #panel-scrim {
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: 20; /* bajo el panel (22) y los controles del tour (25) */
+    background: rgba(8, 7, 6, 0.35);
+    backdrop-filter: blur(9px);
+    -webkit-backdrop-filter: blur(9px);
+  }
+  #panel-scrim.hidden { display: none; }
+
+  /* panel más protagonista en móvil */
+  body.museo-conexiones #panel-image { height: 260px; }
+}
 
 /* Interruptor de luces */
 #lights-btn {
@@ -77,33 +142,19 @@ body.museo-conexiones #gallery-link { text-transform: none; letter-spacing: 0.04
   border-color: rgba(255, 255, 255, 0.4);
 }
 @media (max-width: 640px) {
-  #lights-btn { top: auto; bottom: 96px; right: 14px; }
+  /* bien separado del botón de interactuar */
+  #lights-btn { top: auto; bottom: 190px; right: 14px; }
+
+  /* botón de interactuar más grande y cómodo */
+  body.museo-conexiones #mobile-interact {
+    width: 68px;
+    height: 68px;
+    bottom: 44px;
+    right: 22px;
+  }
 }
 
-/* Botón de recorrido automático (overlay) */
-#tour-btn,
-#lights-btn-overlay {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 30px;
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  font-size: 0.85rem;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.75);
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-#tour-btn:hover,
-#lights-btn-overlay:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.45);
-}
+/* (los botones del overlay se unifican arriba) */
 
 /* Pill para detener el recorrido */
 #tour-auto-stop {

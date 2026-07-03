@@ -32,6 +32,7 @@ const tourExit = document.getElementById('tour-exit')
 const tourCounter = document.getElementById('tour-counter')
 
 const paintingPanel = document.getElementById('painting-panel')
+const panelScrim = document.getElementById('panel-scrim')
 const panelImage = document.getElementById('panel-image')
 const panelTitle = document.getElementById('panel-title')
 const panelMedium = document.getElementById('panel-medium')
@@ -101,19 +102,16 @@ async function enterSala() {
 // Luces: encendidas / apagadas (modo oscuro, tecla L)
 // ============================================================
 const lightsBtn = document.getElementById('lights-btn')
-const lightsBtnOverlay = document.getElementById('lights-btn-overlay')
 let darkMode = false
 
 function applyLights() {
   if (sala && sala.setDark) sala.setDark(darkMode)
   engine.scene.environmentIntensity = darkMode ? 0.1 : 0.28
   engine.scene.background.set(darkMode ? 0x040404 : 0x0d0c0b)
-  const label = darkMode ? 'Encender luces' : 'Apagar luces'
   if (lightsBtn) {
     lightsBtn.classList.toggle('off', darkMode)
-    lightsBtn.querySelector('span').textContent = label
+    lightsBtn.querySelector('span').textContent = darkMode ? 'Encender luces' : 'Apagar luces'
   }
-  if (lightsBtnOverlay) lightsBtnOverlay.textContent = label
 }
 
 function toggleLights() {
@@ -122,7 +120,6 @@ function toggleLights() {
 }
 
 if (lightsBtn) lightsBtn.addEventListener('click', toggleLights)
-if (lightsBtnOverlay) lightsBtnOverlay.addEventListener('click', toggleLights)
 document.addEventListener('keydown', (e) => {
   if (e.code === 'KeyL') toggleLights()
 })
@@ -303,9 +300,13 @@ function showPaintingPanel(artwork) {
   panelImage.alt = artwork.title
   panelInstagram.href = artwork.instagramUrl || ARTIST.instagramUrl
   paintingPanel.classList.remove('hidden')
+  if (panelScrim) panelScrim.classList.remove('hidden')
 }
 
-function hidePaintingPanel() { paintingPanel.classList.add('hidden') }
+function hidePaintingPanel() {
+  paintingPanel.classList.add('hidden')
+  if (panelScrim) panelScrim.classList.add('hidden')
+}
 function showTourControls() { tourControls.classList.remove('hidden'); updateTourCounter() }
 function hideTourControls() { tourControls.classList.add('hidden') }
 function updateTourCounter() {
@@ -318,6 +319,7 @@ function updateTourCounter() {
 tourPrev.addEventListener('click', () => navigateZoom(-1))
 tourNext.addEventListener('click', () => navigateZoom(1))
 tourExit.addEventListener('click', () => exitZoom())
+if (panelScrim) panelScrim.addEventListener('click', () => { if (!touring) exitZoom() })
 
 document.addEventListener('keydown', (e) => {
   if (engine.zoomMode) {
