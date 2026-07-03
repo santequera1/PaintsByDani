@@ -395,7 +395,13 @@ body.pg-about-open #pg-nav { filter: blur(6px); opacity: 0.5; pointer-events: no
   background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='470'%20height='150'%3E%3Ctext%20x='16'%20y='100'%20font-family='Georgia,serif'%20font-style='italic'%20font-size='54'%20fill='%2334435a'%20fill-opacity='0.05'%3ERumiaciones%3C/text%3E%3C/svg%3E");
 }
 
-#pg-nav { display: flex; align-items: center; gap: 8px; }
+#pg-nav {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
 
 .pg-btn {
   display: inline-flex;

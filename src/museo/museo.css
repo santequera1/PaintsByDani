@@ -1,0 +1,48 @@
+/* ============================================================
+   Museo Virtual · Conexiones — overrides sobre style.css
+   Tipografía Helvetica (pedido de Catalina) + acento terracota.
+   ============================================================ */
+
+body.museo-conexiones,
+body.museo-conexiones button,
+body.museo-conexiones h1,
+body.museo-conexiones h2,
+body.museo-conexiones .subtitle,
+body.museo-conexiones #room-name,
+body.museo-conexiones #panel-title {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+body.museo-conexiones #overlay-brand h1 {
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+body.museo-conexiones #artist-photo {
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Precio en el panel de obra */
+body.museo-conexiones #panel-price {
+  margin: 6px 0 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #d98a6a;
+}
+body.museo-conexiones #panel-price.na {
+  font-weight: 400;
+  font-style: italic;
+  color: #8d857a;
+}
+
+/* Botón de Instagram con acento terracota al pasar */
+body.museo-conexiones #panel-instagram:hover {
+  background: #b4452f;
+  border-color: #b4452f;
+}
+
+/* Enlace de vuelta a la galería */
+body.museo-conexiones #gallery-link { text-transform: none; letter-spacing: 0.04em; }
