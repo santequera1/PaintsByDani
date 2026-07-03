@@ -830,20 +830,56 @@ export function initGallery({ artworks, artist, imgBase = 'posts', scatter = fal
     })
   }
 
-  // --- Pantalla de entrada / portada (opcional) ---
+  // --- Portada / selector de colecciones (opcional) ---
   const intro = document.getElementById('pg-intro')
   const introEnter = document.getElementById('pg-intro-enter')
   if (intro && introEnter) {
+    // animación de elección: la tarjeta elegida se realza, el resto se apaga
+    const chooseAnim = (el, done) => {
+      if (REDUCE) { done(); return }
+      intro.classList.add('pg-choosing')
+      el.classList.add('pg-chosen')
+      setTimeout(done, 480)
+    }
+
+    introEnter.addEventListener('click', () => {
+      initActx(); resumeCtx() // gesto: prepara el audio
+      chooseAnim(introEnter, () => {
+        intro.classList.add('gone')
+        setTimeout(() => {
+          intro.style.display = 'none'
+          intro.classList.remove('pg-choosing')
+          introEnter.classList.remove('pg-chosen')
+        }, 700)
+      })
+    })
+
+    // tarjetas que llevan a la otra colección: animar antes de navegar
+    intro.querySelectorAll('a.pg-choice').forEach((a) => {
+      a.addEventListener('click', (e) => {
+        e.preventDefault()
+        chooseAnim(a, () => { location.href = a.href })
+      })
+    })
+
     if (new URLSearchParams(location.search).has('entrar')) {
       // viene del selector de la otra colección → entrar directo
+      // (.gone permite que "volver a colecciones" reaparezca con fade)
+      intro.classList.add('gone')
       intro.style.display = 'none'
-    } else {
-      introEnter.addEventListener('click', () => {
-        initActx(); resumeCtx() // gesto: prepara el audio
-        intro.classList.add('gone')
-        setTimeout(() => { intro.style.display = 'none' }, 700)
-      })
     }
+  }
+
+  // --- Botón "volver a colecciones": re-muestra la portada ---
+  const collectionsBtn = document.getElementById('pg-collections')
+  if (collectionsBtn && intro && introEnter) {
+    collectionsBtn.hidden = false
+    collectionsBtn.addEventListener('click', () => {
+      intro.classList.remove('pg-choosing')
+      intro.querySelectorAll('.pg-choice').forEach((c) => c.classList.remove('pg-chosen'))
+      intro.style.display = ''
+      requestAnimationFrame(() => requestAnimationFrame(() => intro.classList.remove('gone')))
+    })
   }
 
   // --- Centrar, hint, resize ---

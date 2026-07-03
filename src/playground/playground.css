@@ -391,7 +391,7 @@ body.pg-about-open #pg-nav { filter: blur(6px); opacity: 0.5; pointer-events: no
 
 /* Botón de icono (tema claro/oscuro) */
 .pg-icon-btn { padding: 9px 11px; }
-#pg-theme[hidden] { display: none; }
+#pg-theme[hidden], #pg-collections[hidden] { display: none; }
 #pg-theme .ic-sun { display: none; }
 :root[data-theme='dark'] #pg-theme .ic-sun { display: block; }
 :root[data-theme='dark'] #pg-theme .ic-moon { display: none; }
@@ -740,6 +740,24 @@ body.pg-about-open #pg-nav { filter: blur(6px); opacity: 0.5; pointer-events: no
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ink-soft);
+}
+/* Animación al elegir colección: la elegida se realza, el resto se apaga */
+#pg-intro.pg-choosing .pg-choice {
+  opacity: 0;
+  transform: translateY(10px) scale(0.94);
+  pointer-events: none;
+  transition: opacity 0.4s ease, transform 0.45s cubic-bezier(.2,.8,.2,1);
+}
+#pg-intro.pg-choosing .pg-choice.pg-chosen {
+  opacity: 1;
+  transform: scale(1.07);
+  box-shadow: 0 26px 50px -20px rgba(40, 30, 20, 0.55);
+}
+#pg-intro.pg-choosing .pg-intro-photo,
+#pg-intro.pg-choosing .pg-intro-collection,
+#pg-intro.pg-choosing .pg-intro-title {
+  opacity: 0.25;
+  transition: opacity 0.4s ease;
 }
 @keyframes pgIntroUp {
   from { opacity: 0; transform: translateY(16px); }
