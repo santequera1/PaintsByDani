@@ -2,6 +2,7 @@ import { createEngine } from '../engine/engine.js'
 import * as THREE from 'three'
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 import { buildSalaConexiones } from './sala.js'
+import { initFlipbook } from '../playground/flipbook.js'
 import { ARTWORKS, ARTIST, COLLECTION } from '../data/conexiones.js'
 import '../style.css'
 import './museo.css'
@@ -82,7 +83,12 @@ const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0
 let sala = null
 async function enterSala() {
   sala = await buildSalaConexiones(
-    { artworks: OBRAS, collection: COLLECTION, imgBase: 'conexiones-posts' },
+    {
+      artworks: OBRAS,
+      collection: COLLECTION,
+      imgBase: 'conexiones-posts',
+      reflect: !isMobile, // piso espejo solo en desktop (rendimiento)
+    },
     engine.renderer
   )
   engine.setRoom(sala)
@@ -116,6 +122,131 @@ if (lightsBtn) lightsBtn.addEventListener('click', toggleLights)
 document.addEventListener('keydown', (e) => {
   if (e.code === 'KeyL') toggleLights()
 })
+
+// ============================================================
+// Vitrina central → catálogo (flipbook)
+// ============================================================
+let viewingBook = false
+const book = initFlipbook({
+  trigger: null,
+  title: COLLECTION.name,
+  years: COLLECTION.year,
+  artist: ARTIST.name,
+  handle: ARTIST.handle,
+  photo: ARTIST.profileImage,
+  statement: COLLECTION.statementFull,
+  artworks: ARTWORKS,
+  imgBase: 'conexiones-posts',
+  pdfUrl: COLLECTION.pdfUrl,
+  onClose: () => {
+    viewingBook = false
+    if (!isMobile && museumEntered) {
+      setTimeout(() => { try { engine.requestLock() } catch {} }, 150)
+    }
+  },
+})
+
+engine.onDoorClicked = () => {
+  if (!book) return
+  viewingBook = true
+  stopFootsteps()
+  engine.exitLock()
+  book.open()
+}
+
+// ============================================================
+// Recorrido automático (cinematográfico)
+// ============================================================
+const tourBtn = document.getElementById('tour-btn')
+const tourStopBtn = document.getElementById('tour-auto-stop')
+let touring = false
+let tourTimer = null
+const TOUR_DWELL = 5200 // ms frente a cada obra
+
+function tourAdvance() {
+  if (!touring) return
+  const total = engine.paintingMeshes.length
+  if (zoomIndex >= total - 1) { stopTour(); return }
+  navigateZoom(1)
+  tourTimer = setTimeout(tourAdvance, TOUR_DWELL)
+}
+
+function startTour() {
+  const meshes = engine.paintingMeshes
+  if (!meshes.length || touring) return
+  touring = true
+  museumEntered = true
+  overlay.classList.add('fade-out')
+  setTimeout(() => { overlay.style.display = 'none' }, 600)
+  hud.classList.remove('hidden')
+  if (isMobile) { engine.enableMobile(); mobileControls.classList.remove('hidden') }
+  if (tourStopBtn) tourStopBtn.classList.remove('hidden')
+  enterZoom(meshes[0].userData.artwork, meshes[0])
+  tourTimer = setTimeout(tourAdvance, TOUR_DWELL + 800)
+  pushIn()
+}
+
+function stopTour() {
+  if (!touring) return
+  touring = false
+  clearTimeout(tourTimer)
+  if (tourStopBtn) tourStopBtn.classList.add('hidden')
+  exitZoom()
+}
+
+// lento acercamiento a la obra mientras se contempla (dolly-in)
+function pushIn() {
+  if (!touring) return
+  if (engine.zoomMode && !engine.zoomAnimating) {
+    engine.camera.translateZ(-0.0009)
+  }
+  requestAnimationFrame(pushIn)
+}
+
+if (tourBtn) tourBtn.addEventListener('click', () => { startRoomTone(); startTour() })
+if (tourStopBtn) tourStopBtn.addEventListener('click', stopTour)
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'KeyT' && !touring && museumEntered) startTour()
+  else if (touring && (e.code === 'Escape' || e.code === 'KeyT')) stopTour()
+})
+
+// ============================================================
+// Room tone posicional (murmullo de sala, generado — sin archivos)
+// ============================================================
+let toneStarted = false
+function startRoomTone() {
+  if (toneStarted) return
+  toneStarted = true
+  try {
+    const listener = new THREE.AudioListener()
+    engine.camera.add(listener)
+    const ctx = listener.context
+    const dur = 4
+    const buf = ctx.createBuffer(1, dur * ctx.sampleRate, ctx.sampleRate)
+    const data = buf.getChannelData(0)
+    let last = 0
+    for (let i = 0; i < data.length; i++) {
+      const white = Math.random() * 2 - 1
+      last = (last + 0.02 * white) / 1.02 // ruido marrón (grave, suave)
+      data[i] = last * 3.5
+    }
+    const tone = new THREE.PositionalAudio(listener)
+    tone.setBuffer(buf)
+    tone.setLoop(true)
+    tone.setVolume(0.05)
+    tone.setRefDistance(5)
+    tone.setRolloffFactor(1.1)
+    const filter = ctx.createBiquadFilter()
+    filter.type = 'lowpass'
+    filter.frequency.value = 320
+    tone.setFilter(filter)
+    const holder = new THREE.Object3D()
+    holder.position.set(0, 3.9, 0) // bajo el lucernario
+    engine.scene.add(holder)
+    holder.add(tone)
+    tone.play()
+  } catch { /* sin audio si el navegador lo bloquea */ }
+}
 
 // ============================================================
 // Zoom / Tour
@@ -198,7 +329,9 @@ document.addEventListener('keydown', (e) => {
 engine.onPaintingClicked = (artwork, mesh) => enterZoom(artwork, mesh)
 engine.onMovementChange = (isMoving) => { if (isMoving) playFootsteps(); else stopFootsteps() }
 engine.onCrosshairChange = (state) => {
-  crosshair.className = state === 'pointer-artwork' ? 'clickable artwork' : ''
+  if (state === 'pointer-artwork') crosshair.className = 'clickable artwork'
+  else if (state === 'pointer-door') crosshair.className = 'clickable door'
+  else crosshair.className = ''
 }
 
 // ============================================================
@@ -206,6 +339,7 @@ engine.onCrosshairChange = (state) => {
 // ============================================================
 playBtn.addEventListener('click', () => {
   museumEntered = true
+  startRoomTone()
   overlay.classList.add('fade-out')
   hud.classList.remove('hidden')
   if (isMobile) mobileControls.classList.remove('hidden')
@@ -217,6 +351,7 @@ playBtn.addEventListener('click', () => {
 
 document.addEventListener('pointerlockchange', () => {
   if (isMobile) return
+  if (viewingBook || touring) return // el catálogo/recorrido gestionan su propio estado
   if (!engine.locked && !engine.zoomMode && !engine.zoomAnimating) {
     if (museumEntered) {
       overlay.style.display = ''

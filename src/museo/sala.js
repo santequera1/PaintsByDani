@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js'
+import { Reflector } from 'three/addons/objects/Reflector.js'
 import { configureArtworkTexture } from '../misc/helper.js'
 
 /* ============================================================
@@ -214,7 +215,7 @@ function makeContactShadow() {
 // ============================================================
 // Construcción de la sala
 // ============================================================
-export async function buildSalaConexiones({ artworks, collection, imgBase }, renderer) {
+export async function buildSalaConexiones({ artworks, collection, imgBase, reflect = false }, renderer) {
   if (!rectInit) { RectAreaLightUniformsLib.init(); rectInit = true }
 
   const W = 15, L = 22, H = 4.3
@@ -223,6 +224,7 @@ export async function buildSalaConexiones({ artworks, collection, imgBase }, ren
   const group = new THREE.Group()
   const obstacles = []
   const paintingMeshes = []
+  const doorMeshes = []
   const lights = []
 
   // ---------- materiales base ----------
@@ -242,6 +244,19 @@ export async function buildSalaConexiones({ artworks, collection, imgBase }, ren
   const baseMat = new THREE.MeshStandardMaterial({ color: 0x211e1b, roughness: 0.5, metalness: 0.1 })
 
   // ---------- suelo / techo / paredes ----------
+  if (reflect) {
+    // espejo real bajo la madera semitransparente (solo desktop)
+    const mirror = new Reflector(new THREE.PlaneGeometry(W + 0.4, L + 0.4), {
+      textureWidth: 1024,
+      textureHeight: 1024,
+      color: 0x777777,
+    })
+    mirror.rotation.x = -Math.PI / 2
+    mirror.position.y = -0.012
+    group.add(mirror)
+    floorMat.transparent = true
+    floorMat.opacity = 0.86
+  }
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(W + 0.4, L + 0.4), floorMat)
   floor.rotation.x = -Math.PI / 2
   floor.position.y = -0.005
@@ -449,6 +464,111 @@ export async function buildSalaConexiones({ artworks, collection, imgBase }, ren
   stSpot.target.position.set(0, 2.1, halfL)
   lights.push(stSpot)
 
+  // ---------- polvo flotando en los haces de luz ----------
+  const DUST_N = 320
+  const dustPos = new Float32Array(DUST_N * 3)
+  const dustSpeed = new Float32Array(DUST_N)
+  const dustPhase = new Float32Array(DUST_N)
+  for (let i = 0; i < DUST_N; i++) {
+    dustPos[i * 3] = (Math.random() * 2 - 1) * (halfW - 0.6)
+    dustPos[i * 3 + 1] = Math.random() * (H - 0.4) + 0.2
+    dustPos[i * 3 + 2] = (Math.random() * 2 - 1) * (halfL - 0.6)
+    dustSpeed[i] = 0.03 + Math.random() * 0.06
+    dustPhase[i] = Math.random() * Math.PI * 2
+  }
+  const dustGeo = new THREE.BufferGeometry()
+  dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3))
+  const dustMat = new THREE.PointsMaterial({
+    color: 0xfff3dd,
+    size: 0.016,
+    sizeAttenuation: true,
+    transparent: true,
+    opacity: 0.22,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  })
+  const dust = new THREE.Points(dustGeo, dustMat)
+  dust.frustumCulled = false
+  const dustClock = new THREE.Clock()
+  dust.onBeforeRender = () => {
+    const dt = Math.min(dustClock.getDelta(), 0.1)
+    const t = dustClock.elapsedTime
+    const arr = dustGeo.attributes.position.array
+    for (let i = 0; i < DUST_N; i++) {
+      arr[i * 3 + 1] -= dustSpeed[i] * dt // cae lentamente
+      arr[i * 3] += Math.sin(t * 0.4 + dustPhase[i]) * 0.0006 // deriva
+      if (arr[i * 3 + 1] < 0.15) arr[i * 3 + 1] = H - 0.3 // recicla arriba
+    }
+    dustGeo.attributes.position.needsUpdate = true
+  }
+  group.add(dust)
+
+  // ---------- vitrina central con el catálogo ----------
+  {
+    const pedMat = new THREE.MeshStandardMaterial({ color: 0xe9e4da, roughness: 0.6 })
+    const ped = new THREE.Mesh(new THREE.BoxGeometry(0.85, 1.02, 0.65), pedMat)
+    ped.position.set(0, 0.51, 0)
+    group.add(ped)
+
+    // libro del catálogo sobre el pedestal
+    const coverCanvas = document.createElement('canvas')
+    coverCanvas.width = 512
+    coverCanvas.height = 360
+    const cctx = coverCanvas.getContext('2d')
+    cctx.fillStyle = '#f7f3ea'
+    cctx.fillRect(0, 0, 512, 360)
+    cctx.strokeStyle = '#c9c0ae'
+    cctx.lineWidth = 4
+    cctx.strokeRect(14, 14, 484, 332)
+    cctx.fillStyle = '#211e1a'
+    cctx.textAlign = 'center'
+    cctx.font = '700 54px Helvetica, Arial, sans-serif'
+    cctx.fillText('CONEXIONES', 256, 168)
+    cctx.fillStyle = '#8a8072'
+    cctx.font = '400 28px Helvetica, Arial, sans-serif'
+    cctx.fillText('Catálogo · 2022 – Presente', 256, 226)
+    const coverTex = new THREE.CanvasTexture(coverCanvas)
+    coverTex.colorSpace = THREE.SRGBColorSpace
+    const pageMat = new THREE.MeshStandardMaterial({ color: 0xf1ece1, roughness: 0.8 })
+    const coverMat = new THREE.MeshStandardMaterial({ map: coverTex, roughness: 0.65 })
+    const book = new THREE.Mesh(
+      new THREE.BoxGeometry(0.42, 0.05, 0.3),
+      [pageMat, pageMat, coverMat, pageMat, pageMat, pageMat] // +Y = portada
+    )
+    book.position.set(0, 1.045, 0)
+    book.rotation.y = -0.35
+    group.add(book)
+
+    // campana de vidrio
+    const glass = new THREE.Mesh(
+      new THREE.BoxGeometry(0.7, 0.42, 0.52),
+      new THREE.MeshPhysicalMaterial({
+        color: 0xffffff, transparent: true, opacity: 0.12,
+        roughness: 0.05, metalness: 0, envMapIntensity: 1.4,
+      })
+    )
+    glass.position.set(0, 1.24, 0)
+    group.add(glass)
+
+    // foco cenital de la vitrina
+    const vitSpot = new THREE.SpotLight(0xfff2dd, 3, 6, 0.5, 0.7, 2)
+    vitSpot.position.set(0, H - 0.25, 0)
+    vitSpot.target.position.set(0, 1.0, 0)
+    lights.push(vitSpot)
+
+    // área clickeable (abre el flipbook del catálogo)
+    const clickMesh = new THREE.Mesh(
+      new THREE.BoxGeometry(0.95, 1.6, 0.75),
+      new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })
+    )
+    clickMesh.position.set(0, 0.8, 0)
+    clickMesh.userData.door = { target: 'catalogo' }
+    group.add(clickMesh)
+    doorMeshes.push(clickMesh)
+
+    obstacles.push({ type: 'box', minX: -0.55, maxX: 0.55, minZ: -0.45, maxZ: 0.45 })
+  }
+
   // ---------- bancas + sombras de contacto ----------
   const shadowTex = makeContactShadow()
   const addShadow = (x, z, sx, sz) => {
@@ -505,13 +625,16 @@ export async function buildSalaConexiones({ artworks, collection, imgBase }, ren
     // fondo de las obras (passe-partout): blanco de día, negro de noche
     matWhite.color.set(dark ? 0x050505 : 0xffffff)
     frameMat.color.set(dark ? 0x141210 : 0x362b21)
+    // el polvo se nota más con las luces apagadas
+    dustMat.opacity = dark ? 0.4 : 0.22
+    if (reflect) floorMat.opacity = dark ? 0.78 : 0.86
   }
 
   return {
     group,
     obstacles,
     paintingMeshes,
-    doorMeshes: [],
+    doorMeshes,
     lights,
     bounds: { halfW, halfL },
     spawnX: 0,

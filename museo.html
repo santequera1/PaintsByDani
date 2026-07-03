@@ -22,6 +22,10 @@
       </div>
       <div id="overlay-cta">
         <button id="play-btn">Entrar al Museo</button>
+        <button id="tour-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21"/></svg>
+          Recorrido automático
+        </button>
         <a id="gallery-link" href="./conexiones.html?entrar">Ver galería en lienzo &rarr;</a>
         <p class="controls-hint">
           <span class="desktop-only">WASD / Flechas mover &middot; Mouse mirar &middot; Click interactuar</span>
@@ -80,6 +84,12 @@
         </div>
       </div>
     </div>
+
+    <!-- Detener recorrido automático -->
+    <button id="tour-auto-stop" class="hidden">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>
+      Detener recorrido
+    </button>
 
     <!-- Zoom/Tour Controls -->
     <div id="tour-controls" class="hidden">

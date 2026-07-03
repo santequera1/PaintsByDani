@@ -22,9 +22,10 @@ export function initFlipbook({
   artworks = [],
   imgBase,
   pdfUrl,
+  onClose = null,
 }) {
   const triggerEl = typeof trigger === 'string' ? document.querySelector(trigger) : trigger
-  if (!triggerEl) return
+  if (trigger && !triggerEl) return null
 
   const thumb = (f) => `/${imgBase}/thumb/${encodeURI(f.replace(/\.[^.]+$/, ''))}.webp`
 
@@ -182,6 +183,7 @@ export function initFlipbook({
     overlay.classList.remove('open')
     document.removeEventListener('keydown', onKey)
     setTimeout(() => overlay.classList.remove('show'), 450)
+    if (onClose) onClose()
   }
   function onKey(e) {
     if (e.key === 'Escape') close()
@@ -189,8 +191,10 @@ export function initFlipbook({
     else if (e.key === 'ArrowLeft') flip(-1)
   }
 
-  triggerEl.hidden = false
-  triggerEl.addEventListener('click', open)
+  if (triggerEl) {
+    triggerEl.hidden = false
+    triggerEl.addEventListener('click', open)
+  }
   btnClose.addEventListener('click', close)
   overlay.querySelector('.fb-backdrop').addEventListener('click', close)
   btnNext.addEventListener('click', () => flip(1))
@@ -213,4 +217,6 @@ export function initFlipbook({
     swX = null
     if (Math.abs(dx) > 42) flip(dx < 0 ? 1 : -1)
   })
+
+  return { open, close }
 }
