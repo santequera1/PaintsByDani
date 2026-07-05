@@ -20,7 +20,7 @@ body.museo-conexiones #overlay-brand h1 {
 }
 
 /* Subtítulo del overlay: centrado y discreto */
-body.museo-conexiones #overlay-brand .subtitle {
+body.museo-3d #overlay-brand .subtitle {
   text-align: center;
   font-size: 0.72rem;
   letter-spacing: 0.14em;
@@ -32,16 +32,16 @@ body.museo-conexiones #overlay-brand .subtitle {
 }
 
 /* Los 3 botones del overlay: mismos estilos, todo en mayúsculas */
-body.museo-conexiones #play-btn,
-body.museo-conexiones #tour-btn,
-body.museo-conexiones #gallery-link {
+body.museo-3d #play-btn,
+body.museo-3d #tour-btn,
+body.museo-3d #gallery-link {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   min-width: 250px;
   padding: 13px 30px;
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-family: inherit; /* cada museo usa su tipografía (Helvetica / Inter) */
   font-size: 0.82rem;
   font-weight: 500;
   letter-spacing: 0.1em;
@@ -54,15 +54,15 @@ body.museo-conexiones #gallery-link {
   cursor: pointer;
   transition: all 0.3s ease;
 }
-body.museo-conexiones #play-btn:hover,
-body.museo-conexiones #tour-btn:hover,
-body.museo-conexiones #gallery-link:hover {
+body.museo-3d #play-btn:hover,
+body.museo-3d #tour-btn:hover,
+body.museo-3d #gallery-link:hover {
   color: #fff;
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.5);
 }
 
-body.museo-conexiones #artist-photo {
+body.museo-3d #artist-photo {
   border-radius: 50%;
   object-fit: cover;
 }
@@ -88,7 +88,7 @@ body.museo-conexiones #panel-instagram:hover {
 }
 
 /* Panel de obra: la imagen SIEMPRE completa (sin recortes) */
-body.museo-conexiones #panel-image {
+body.museo-3d #panel-image {
   object-fit: contain;
   background: #0c0b0a;
 }
@@ -109,7 +109,7 @@ body.museo-conexiones #panel-image {
   #panel-scrim.hidden { display: none; }
 
   /* panel más protagonista en móvil */
-  body.museo-conexiones #panel-image { height: 260px; }
+  body.museo-3d #panel-image { height: 260px; }
 }
 
 /* Interruptor de luces */
@@ -146,7 +146,7 @@ body.museo-conexiones #panel-image {
   #lights-btn { top: auto; bottom: 190px; right: 14px; }
 
   /* botón de interactuar más grande y cómodo */
-  body.museo-conexiones #mobile-interact {
+  body.museo-3d #mobile-interact {
     width: 68px;
     height: 68px;
     bottom: 44px;

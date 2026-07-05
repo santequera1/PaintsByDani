@@ -5,15 +5,18 @@ import { Reflector } from 'three/addons/objects/Reflector.js'
 import { configureArtworkTexture } from '../misc/helper.js'
 
 /* ============================================================
-   Sala premium "Conexiones" — una sola sala de museo:
-   luz de skylight central (RectAreaLight), foco por obra,
-   piso de nogal pulido con reflejos (environment PMREM),
-   zócalos, vinilo de título, statement y placas con precio.
+   Sala premium genérica (buildSalaPremium):
+   skylight central, foco por obra, piso de nogal pulido con
+   reflejos, zócalos, vinilos, statement/vitrina/puertas
+   opcionales, polvo en la luz y modo "luces apagadas".
+   Acepta cualquier nº de obras (el largo de la sala escala).
    ============================================================ */
 
 const texLoader = new THREE.TextureLoader()
 const gltfLoader = new GLTFLoader()
 let rectInit = false
+
+const DEFAULT_FONT = 'Helvetica, Arial, sans-serif'
 
 // --- util: aleatorio con semilla (para el piso) ---
 function seededRand(seed) {
@@ -73,7 +76,7 @@ function makeWalnutFloor(size = 1024) {
   return tex
 }
 
-// --- texto envuelto en canvas (statement) ---
+// --- texto envuelto en canvas ---
 function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
   const words = text.split(' ')
   let line = ''
@@ -92,7 +95,7 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
 }
 
 // --- vinilo del título (fondo transparente) ---
-function makeTitleVinyl(title, subtitle, lightText = false) {
+function makeTitleVinyl(title, subtitle, lightText, font = DEFAULT_FONT) {
   const canvas = document.createElement('canvas')
   canvas.width = 2048
   canvas.height = 640
@@ -102,21 +105,26 @@ function makeTitleVinyl(title, subtitle, lightText = false) {
   ctx.fillStyle = lightText ? '#ece7dc' : '#211e1a'
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  ctx.font = '700 190px Helvetica, Arial, sans-serif'
-  // tracking amplio dibujando letra a letra
+  ctx.font = `700 190px ${font}`
   const word = title.toUpperCase()
   const spacing = 34
   let total = 0
   for (const ch of word) total += ctx.measureText(ch).width + spacing
   total -= spacing
-  let cx = (2048 - total) / 2
+  // si no cabe, reducir tracking proporcionalmente
+  const scale = total > 1960 ? 1960 / total : 1
+  let cx = (2048 - total * scale) / 2
+  ctx.save()
+  if (scale < 1) { ctx.translate(1024, 270); ctx.scale(scale, scale); ctx.translate(-1024, -270) }
+  cx = (2048 - total) / 2
   for (const ch of word) {
     const w = ctx.measureText(ch).width
     ctx.fillText(ch, cx + w / 2, 270)
     cx += w + spacing
   }
+  ctx.restore()
 
-  ctx.font = '400 54px Helvetica, Arial, sans-serif'
+  ctx.font = `400 54px ${font}`
   ctx.fillStyle = lightText ? '#a59d8f' : '#6d6459'
   ctx.fillText(subtitle, 1024, 480)
 
@@ -125,10 +133,8 @@ function makeTitleVinyl(title, subtitle, lightText = false) {
   return tex
 }
 
-// --- statement en la pared (vinilo, fondo transparente) ---
-// El tamaño de fuente se auto-ajusta midiendo con la fuente REAL del
-// sistema (sin Helvetica Neue, Arial es más ancha y el texto no cabía).
-function makeStatementVinyl(heading, paragraphs, credit, lightText = false) {
+// --- statement en la pared (auto-ajusta el tamaño de fuente) ---
+function makeStatementVinyl(heading, paragraphs, credit, lightText, font = DEFAULT_FONT) {
   const canvas = document.createElement('canvas')
   canvas.width = 1600
   canvas.height = 1280
@@ -137,11 +143,10 @@ function makeStatementVinyl(heading, paragraphs, credit, lightText = false) {
 
   const maxW = 1420
   const startY = 265
-  const bottom = 1150 // límite para el texto (deja sitio al crédito)
+  const bottom = 1150
 
-  // altura final del bloque de texto para un tamaño dado
   const measure = (size) => {
-    ctx.font = `400 ${size}px Helvetica, Arial, sans-serif`
+    ctx.font = `400 ${size}px ${font}`
     const lh = Math.round(size * 1.45)
     let y = startY
     for (const p of paragraphs) {
@@ -167,21 +172,21 @@ function makeStatementVinyl(heading, paragraphs, credit, lightText = false) {
   ctx.fillStyle = lightText ? '#ece7dc' : '#26221d'
   ctx.textAlign = 'left'
   ctx.textBaseline = 'alphabetic'
-  ctx.font = '700 64px Helvetica, Arial, sans-serif'
+  ctx.font = `700 64px ${font}`
   ctx.fillText(heading, 90, 140)
 
   ctx.fillStyle = '#b4452f'
   ctx.fillRect(90, 175, 150, 7)
 
   ctx.fillStyle = lightText ? '#c6bfb1' : '#3d382f'
-  ctx.font = `400 ${fontSize}px Helvetica, Arial, sans-serif`
+  ctx.font = `400 ${fontSize}px ${font}`
   let y = startY
   for (const p of paragraphs) {
     y = wrapText(ctx, p, 90, y, maxW, lh) + 24
   }
 
   ctx.fillStyle = lightText ? '#8f8779' : '#6d6459'
-  ctx.font = `italic 400 ${fontSize}px Helvetica, Arial, sans-serif`
+  ctx.font = `italic 400 ${fontSize}px ${font}`
   ctx.fillText(credit, 90, Math.min(y + 26, 1235))
 
   const tex = new THREE.CanvasTexture(canvas)
@@ -189,8 +194,8 @@ function makeStatementVinyl(heading, paragraphs, credit, lightText = false) {
   return tex
 }
 
-// --- placa: título / técnica / precio ---
-function makePlaque(title, medium, price) {
+// --- placa: título / técnica / precio (precio opcional) ---
+function makePlaque(title, medium, price, font = DEFAULT_FONT) {
   const canvas = document.createElement('canvas')
   canvas.width = 1024
   canvas.height = 340
@@ -205,21 +210,21 @@ function makePlaque(title, medium, price) {
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
   ctx.fillStyle = '#f0ece4'
-  ctx.font = '700 46px Helvetica, Arial, sans-serif'
+  ctx.font = `700 46px ${font}`
   let t = title || ''
   while (ctx.measureText(t).width > 920 && t.length > 3) t = t.slice(0, -4) + '…'
   ctx.fillText(t, 512, medium || price ? 84 : 170)
 
   if (medium) {
     ctx.fillStyle = '#a29a8a'
-    ctx.font = 'italic 400 32px Helvetica, Arial, sans-serif'
+    ctx.font = `italic 400 32px ${font}`
     let m = medium
     while (ctx.measureText(m).width > 940 && m.length > 3) m = m.slice(0, -4) + '…'
-    ctx.fillText(m, 512, 168)
+    ctx.fillText(m, 512, price ? 168 : 190)
   }
   if (price) {
     ctx.fillStyle = price === 'Vendido' ? '#8d857a' : '#d98a6a'
-    ctx.font = `${price === 'Vendido' ? 'italic 400' : '700'} 34px Helvetica, Arial, sans-serif`
+    ctx.font = `${price === 'Vendido' ? 'italic 400' : '700'} 34px ${font}`
     ctx.fillText(price, 512, 248)
   }
 
@@ -228,7 +233,28 @@ function makePlaque(title, medium, price) {
   return tex
 }
 
-// --- sombra de contacto (radial, para bancas) ---
+// --- etiqueta de puerta (estilo placa, legible en ambos modos) ---
+function makeDoorLabel(label, font = DEFAULT_FONT) {
+  const canvas = document.createElement('canvas')
+  canvas.width = 768
+  canvas.height = 140
+  const ctx = canvas.getContext('2d')
+  ctx.fillStyle = '#171614'
+  ctx.fillRect(0, 0, 768, 140)
+  ctx.strokeStyle = '#7c6f5c'
+  ctx.lineWidth = 3
+  ctx.strokeRect(4, 4, 760, 132)
+  ctx.fillStyle = '#f0ece4'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.font = `700 52px ${font}`
+  ctx.fillText(label, 384, 72)
+  const tex = new THREE.CanvasTexture(canvas)
+  tex.colorSpace = THREE.SRGBColorSpace
+  return tex
+}
+
+// --- sombra de contacto (radial) ---
 function makeContactShadow() {
   const canvas = document.createElement('canvas')
   canvas.width = 256
@@ -239,17 +265,40 @@ function makeContactShadow() {
   g.addColorStop(1, 'rgba(0,0,0,0)')
   ctx.fillStyle = g
   ctx.fillRect(0, 0, 256, 256)
-  const tex = new THREE.CanvasTexture(canvas)
-  return tex
+  return new THREE.CanvasTexture(canvas)
 }
 
 // ============================================================
-// Construcción de la sala
+// Sala premium genérica
 // ============================================================
-export async function buildSalaConexiones({ artworks, collection, imgBase, reflect = false }, renderer) {
+export async function buildSalaPremium(config, renderer) {
+  const {
+    artworks,
+    imgBase,
+    reflect = false,
+    title = '',
+    subtitle = '',
+    font = DEFAULT_FONT,
+    statement = null,        // array de párrafos (o null)
+    statementTitle = 'Declaración de Artista',
+    statementCredit = '',
+    statementX = 0,
+    vitrina = null,          // { title, sub } → pedestal clickeable (target 'catalogo')
+    doors = [],              // [{ x, target, label }] en la pared sur
+    spawnX = 0,
+  } = config
+
   if (!rectInit) { RectAreaLightUniformsLib.init(); rectInit = true }
 
-  const W = 15, L = 22, H = 4.3
+  // ---------- dimensiones según nº de obras ----------
+  const n = artworks.length
+  const northArts = n >= 5 ? 2 : 0
+  const sideTotal = n - northArts
+  const westN = Math.ceil(sideTotal / 2)
+  const eastN = sideTotal - westN
+  const W = 15
+  const L = Math.max(20, Math.max(westN, eastN) * 3.35 + 5)
+  const H = 4.3
   const halfW = W / 2, halfL = L / 2
 
   const group = new THREE.Group()
@@ -259,15 +308,13 @@ export async function buildSalaConexiones({ artworks, collection, imgBase, refle
   const lights = []
 
   // ---------- materiales base ----------
-  const wallMat = new THREE.MeshStandardMaterial({
-    color: 0xefece5, roughness: 0.94, metalness: 0,
-  })
+  const wallMat = new THREE.MeshStandardMaterial({ color: 0xefece5, roughness: 0.94, metalness: 0 })
   const floorTex = makeWalnutFloor()
   floorTex.repeat.set(Math.round(W / 2.4), Math.round(L / 2.4))
   const floorMat = new THREE.MeshStandardMaterial({
     map: floorTex,
     color: 0xd8c9b4,
-    roughness: 0.24,          // pulido → refleja el environment
+    roughness: 0.24,
     metalness: 0.0,
     envMapIntensity: 1.15,
   })
@@ -276,11 +323,8 @@ export async function buildSalaConexiones({ artworks, collection, imgBase, refle
 
   // ---------- suelo / techo / paredes ----------
   if (reflect) {
-    // espejo real bajo la madera semitransparente (solo desktop)
     const mirror = new Reflector(new THREE.PlaneGeometry(W + 0.4, L + 0.4), {
-      textureWidth: 1024,
-      textureHeight: 1024,
-      color: 0x777777,
+      textureWidth: 1024, textureHeight: 1024, color: 0x777777,
     })
     mirror.rotation.x = -Math.PI / 2
     mirror.position.y = -0.012
@@ -310,7 +354,6 @@ export async function buildSalaConexiones({ artworks, collection, imgBase, refle
   mkWall(L, halfW - 0.01, 0, -Math.PI / 2)
   mkWall(L, -halfW + 0.01, 0, Math.PI / 2)
 
-  // zócalos
   const mkBase = (w, x, z, rotY) => {
     const b = new THREE.Mesh(new THREE.BoxGeometry(w, 0.14, 0.03), baseMat)
     b.position.set(x, 0.07, z)
@@ -322,20 +365,18 @@ export async function buildSalaConexiones({ artworks, collection, imgBase, refle
   mkBase(L, halfW - 0.03, 0, Math.PI / 2)
   mkBase(L, -halfW + 0.03, 0, Math.PI / 2)
 
-  // ---------- iluminación (calibrada para no "quemar") ----------
+  // ---------- iluminación ----------
   const ambient = new THREE.AmbientLight(0xfff8ee, 0.22)
   group.add(ambient)
   const hemi = new THREE.HemisphereLight(0xfff6e8, 0x59504a, 0.28)
   group.add(hemi)
 
-  // "skylight" central: banda emisiva + RectAreaLight hacia abajo
   const skyW = 2.6, skyL = L - 7
   const skyGlowMat = new THREE.MeshBasicMaterial({ color: 0xf5efdd })
   const skyGlow = new THREE.Mesh(new THREE.PlaneGeometry(skyW, skyL), skyGlowMat)
   skyGlow.rotation.x = Math.PI / 2
   skyGlow.position.y = H - 0.02
   group.add(skyGlow)
-  // marco del lucernario
   const skyFrame = new THREE.Mesh(new THREE.BoxGeometry(skyW + 0.24, 0.1, skyL + 0.24), baseMat)
   skyFrame.position.y = H - 0.04
   group.add(skyFrame)
@@ -346,20 +387,31 @@ export async function buildSalaConexiones({ artworks, collection, imgBase, refle
   group.add(rect)
 
   // ---------- colocación de obras ----------
-  // recorrido: oeste (S→N), norte (izq→der), este (N→S)
-  const layout = [
-    // pared oeste (3)
-    ...[5.6, 0, -5.6].map((z, i) => ({
-      art: artworks[i], x: -halfW + 0.075, z, rotY: Math.PI / 2,
-    })),
-    // pared norte (2, flanqueando el vinilo)
-    { art: artworks[3], x: -4.4, z: -halfL + 0.075, rotY: 0 },
-    { art: artworks[4], x: 4.4, z: -halfL + 0.075, rotY: 0 },
-    // pared este (3)
-    ...[-5.6, 0, 5.6].map((z, i) => ({
-      art: artworks[5 + i], x: halfW - 0.075, z, rotY: -Math.PI / 2,
-    })),
-  ].filter((p) => p.art)
+  // recorrido: oeste (S→N) → norte (izq→der) → este (N→S)
+  const layout = []
+  const sideZ = (count, fromSouth) => {
+    if (count <= 0) return []
+    const m = 2.7
+    const span = halfL - m
+    if (count === 1) return [0]
+    const zs = []
+    for (let i = 0; i < count; i++) {
+      const t = i / (count - 1)
+      zs.push(fromSouth ? span - t * span * 2 : -span + t * span * 2)
+    }
+    return zs
+  }
+  let ai = 0
+  for (const z of sideZ(westN, true)) {
+    layout.push({ art: artworks[ai++], x: -halfW + 0.075, z, rotY: Math.PI / 2 })
+  }
+  if (northArts === 2) {
+    layout.push({ art: artworks[ai++], x: -4.4, z: -halfL + 0.075, rotY: 0 })
+    layout.push({ art: artworks[ai++], x: 4.4, z: -halfL + 0.075, rotY: 0 })
+  }
+  for (const z of sideZ(eastN, false)) {
+    layout.push({ art: artworks[ai++], x: halfW - 0.075, z, rotY: -Math.PI / 2 })
+  }
 
   const frameMat = new THREE.MeshStandardMaterial({
     color: 0x362b21, roughness: 0.34, metalness: 0.12, envMapIntensity: 0.7,
@@ -368,13 +420,13 @@ export async function buildSalaConexiones({ artworks, collection, imgBase, refle
   const obraSpots = []
 
   for (const p of layout) {
+    if (!p.art) continue
     const fg = new THREE.Group()
     fg.position.set(p.x, 1.62, p.z)
     fg.rotation.y = p.rotY
 
-    const fw = 0.06, fd = 0.05, mw = 0.11 // marco, fondo, passe-partout
+    const fw = 0.06, fd = 0.05, mw = 0.11
 
-    // imagen (la geometría se ajusta a la proporción REAL de la textura)
     const imgMat = new THREE.MeshBasicMaterial({ color: 0x4a4a4a })
     const imgMesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), imgMat)
     imgMesh.position.z = fd / 2 - 0.002
@@ -382,21 +434,18 @@ export async function buildSalaConexiones({ artworks, collection, imgBase, refle
     fg.add(imgMesh)
     paintingMeshes.push(imgMesh)
 
-    // placa
     const plaque = new THREE.Mesh(
       new THREE.PlaneGeometry(0.92, 0.3),
-      new THREE.MeshBasicMaterial({ map: makePlaque(p.art.title, p.art.medium, p.art.price) })
+      new THREE.MeshBasicMaterial({ map: makePlaque(p.art.title, p.art.medium, p.art.price, font) })
     )
     fg.add(plaque)
 
-    // construye/reconstruye marco + passe-partout para una proporción dada
     const sizeFrame = (ratio) => {
       let iw, ih
-      if (ratio >= 1) { ih = 1.85; iw = ih / ratio } // vertical
-      else { iw = 2.05; ih = iw * ratio }            // horizontal
+      if (ratio >= 1) { ih = 1.85; iw = ih / ratio }
+      else { iw = 2.05; ih = iw * ratio }
       const outW = iw + mw * 2, outH = ih + mw * 2
 
-      // limpiar piezas anteriores del marco
       for (const part of [...fg.children]) {
         if (part.userData.framePart) {
           fg.remove(part)
@@ -433,7 +482,6 @@ export async function buildSalaConexiones({ artworks, collection, imgBase, refle
       imgMat.map = tex
       imgMat.color.set(0xffffff)
       imgMat.needsUpdate = true
-      // la textura manda: si la proporción real difiere, re-encuadrar
       if (tex.image && tex.image.width) {
         const real = tex.image.height / tex.image.width
         if (Math.abs(real - usedRatio) / usedRatio > 0.02) {
@@ -443,59 +491,106 @@ export async function buildSalaConexiones({ artworks, collection, imgBase, refle
       }
     })
 
-    group.add(fg)
-
-    // foco de galería por obra
-    const dir = new THREE.Vector3(Math.sin(p.rotY), 0, Math.cos(p.rotY)) // normal de la pared
+    const dir = new THREE.Vector3(Math.sin(p.rotY), 0, Math.cos(p.rotY))
     const spot = new THREE.SpotLight(0xfff2dd, 5.5, 6, 0.4, 0.6, 2)
     spot.position.set(p.x + dir.x * 1.7, H - 0.25, p.z + dir.z * 1.7)
     spot.target.position.set(p.x, 1.62, p.z)
     lights.push(spot)
     obraSpots.push(spot)
 
-    // luminaria visible (riel)
     const fixture = new THREE.Mesh(
       new THREE.CylinderGeometry(0.045, 0.06, 0.16, 12),
       new THREE.MeshStandardMaterial({ color: 0x15130f, roughness: 0.4, metalness: 0.5 })
     )
     fixture.position.set(p.x + dir.x * 1.7, H - 0.12, p.z + dir.z * 1.7)
-    // inclinar la luminaria hacia la obra
     fixture.lookAt(p.x, 1.62, p.z)
     fixture.rotateX(Math.PI / 2)
     group.add(fixture)
+
+    group.add(fg)
   }
 
   // ---------- vinilo del título (pared norte) ----------
-  const titleSub = `${'Catalina Olivero'} · ${collection.year}`
-  const titleTexLight = makeTitleVinyl(collection.name, titleSub, false) // texto oscuro (sala clara)
-  const titleTexDark = makeTitleVinyl(collection.name, titleSub, true)   // texto claro (sala oscura)
+  const titleTexLight = makeTitleVinyl(title, subtitle, false, font)
+  const titleTexDark = makeTitleVinyl(title, subtitle, true, font)
   const titleMat = new THREE.MeshBasicMaterial({ map: titleTexLight, transparent: true })
   const titleMesh = new THREE.Mesh(new THREE.PlaneGeometry(5.6, 1.75), titleMat)
   titleMesh.position.set(0, 2.75, -halfL + 0.06)
   group.add(titleMesh)
 
-  // foco del título
   const titleSpot = new THREE.SpotLight(0xfff2dd, 4, 4.2, 0.5, 0.65, 2)
   titleSpot.position.set(0, H - 0.25, -halfL + 2.4)
   titleSpot.target.position.set(0, 2.6, -halfL)
   lights.push(titleSpot)
 
-  // ---------- statement (pared sur) ----------
-  const stParas = collection.statementFull || [collection.statement]
-  const stTexLight = makeStatementVinyl('Declaración de Artista', stParas, '— Catalina Olivero', false)
-  const stTexDark = makeStatementVinyl('Declaración de Artista', stParas, '— Catalina Olivero', true)
-  const stMat = new THREE.MeshBasicMaterial({ map: stTexLight, transparent: true })
-  const stMesh = new THREE.Mesh(new THREE.PlaneGeometry(4.0, 3.2), stMat)
-  stMesh.position.set(0, 2.15, halfL - 0.06)
-  stMesh.rotation.y = Math.PI
-  group.add(stMesh)
+  // ---------- statement (pared sur, opcional) ----------
+  let stMat = null, stTexLight = null, stTexDark = null, stSpot = null
+  if (statement && statement.length) {
+    stTexLight = makeStatementVinyl(statementTitle, statement, statementCredit, false, font)
+    stTexDark = makeStatementVinyl(statementTitle, statement, statementCredit, true, font)
+    stMat = new THREE.MeshBasicMaterial({ map: stTexLight, transparent: true })
+    const stMesh = new THREE.Mesh(new THREE.PlaneGeometry(4.0, 3.2), stMat)
+    stMesh.position.set(statementX, 2.15, halfL - 0.06)
+    stMesh.rotation.y = Math.PI
+    group.add(stMesh)
 
-  const stSpot = new THREE.SpotLight(0xfff2dd, 3.2, 4.2, 0.55, 0.7, 2)
-  stSpot.position.set(0, H - 0.25, halfL - 2.4)
-  stSpot.target.position.set(0, 2.1, halfL)
-  lights.push(stSpot)
+    stSpot = new THREE.SpotLight(0xfff2dd, 3.2, 4.2, 0.55, 0.7, 2)
+    stSpot.position.set(statementX, H - 0.25, halfL - 2.4)
+    stSpot.target.position.set(statementX, 2.1, halfL)
+    lights.push(stSpot)
+  }
 
-  // ---------- polvo flotando en los haces de luz ----------
+  // ---------- puertas (pared sur) ----------
+  for (const d of doors) {
+    const doorW = 1.8, doorH = 3.0
+    const dg = new THREE.Group()
+    dg.position.set(d.x, 0, halfL - 0.02)
+    dg.rotation.y = Math.PI
+
+    const inner = new THREE.Mesh(
+      new THREE.PlaneGeometry(doorW, doorH),
+      new THREE.MeshStandardMaterial({ color: 0x0d0c0b, roughness: 0.95 })
+    )
+    inner.position.set(0, doorH / 2, 0)
+    dg.add(inner)
+
+    const postGeo = new THREE.BoxGeometry(0.12, doorH, 0.16)
+    const lp = new THREE.Mesh(postGeo, frameMat)
+    lp.position.set(-doorW / 2 - 0.06, doorH / 2, 0)
+    dg.add(lp)
+    const rp = new THREE.Mesh(postGeo.clone(), frameMat)
+    rp.position.set(doorW / 2 + 0.06, doorH / 2, 0)
+    dg.add(rp)
+    const lintel = new THREE.Mesh(new THREE.BoxGeometry(doorW + 0.36, 0.14, 0.16), frameMat)
+    lintel.position.set(0, doorH + 0.07, 0)
+    dg.add(lintel)
+
+    const labelMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(1.5, 0.28),
+      new THREE.MeshBasicMaterial({ map: makeDoorLabel(d.label, font) })
+    )
+    labelMesh.position.set(0, doorH + 0.42, 0.02)
+    dg.add(labelMesh)
+
+    const click = new THREE.Mesh(
+      new THREE.PlaneGeometry(doorW, doorH),
+      new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.001, depthWrite: false })
+    )
+    click.position.set(0, doorH / 2, 0.05)
+    click.userData.door = { target: d.target }
+    dg.add(click)
+    doorMeshes.push(click)
+
+    // foco tenue sobre la puerta
+    const dSpot = new THREE.SpotLight(0xfff2dd, 2.2, 4.2, 0.5, 0.7, 2)
+    dSpot.position.set(d.x, H - 0.25, halfL - 2.2)
+    dSpot.target.position.set(d.x, 1.8, halfL)
+    lights.push(dSpot)
+
+    group.add(dg)
+  }
+
+  // ---------- polvo flotando ----------
   const DUST_N = 320
   const dustPos = new Float32Array(DUST_N * 3)
   const dustSpeed = new Float32Array(DUST_N)
@@ -510,13 +605,9 @@ export async function buildSalaConexiones({ artworks, collection, imgBase, refle
   const dustGeo = new THREE.BufferGeometry()
   dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3))
   const dustMat = new THREE.PointsMaterial({
-    color: 0xfff3dd,
-    size: 0.016,
-    sizeAttenuation: true,
-    transparent: true,
-    opacity: 0.22,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false,
+    color: 0xfff3dd, size: 0.016, sizeAttenuation: true,
+    transparent: true, opacity: 0.22,
+    blending: THREE.AdditiveBlending, depthWrite: false,
   })
   const dust = new THREE.Points(dustGeo, dustMat)
   dust.frustumCulled = false
@@ -526,22 +617,21 @@ export async function buildSalaConexiones({ artworks, collection, imgBase, refle
     const t = dustClock.elapsedTime
     const arr = dustGeo.attributes.position.array
     for (let i = 0; i < DUST_N; i++) {
-      arr[i * 3 + 1] -= dustSpeed[i] * dt // cae lentamente
-      arr[i * 3] += Math.sin(t * 0.4 + dustPhase[i]) * 0.0006 // deriva
-      if (arr[i * 3 + 1] < 0.15) arr[i * 3 + 1] = H - 0.3 // recicla arriba
+      arr[i * 3 + 1] -= dustSpeed[i] * dt
+      arr[i * 3] += Math.sin(t * 0.4 + dustPhase[i]) * 0.0006
+      if (arr[i * 3 + 1] < 0.15) arr[i * 3 + 1] = H - 0.3
     }
     dustGeo.attributes.position.needsUpdate = true
   }
   group.add(dust)
 
-  // ---------- vitrina central con el catálogo ----------
-  {
+  // ---------- vitrina central (opcional) ----------
+  if (vitrina) {
     const pedMat = new THREE.MeshStandardMaterial({ color: 0xe9e4da, roughness: 0.6 })
     const ped = new THREE.Mesh(new THREE.BoxGeometry(0.85, 1.02, 0.65), pedMat)
     ped.position.set(0, 0.51, 0)
     group.add(ped)
 
-    // libro del catálogo sobre el pedestal
     const coverCanvas = document.createElement('canvas')
     coverCanvas.width = 512
     coverCanvas.height = 360
@@ -553,24 +643,23 @@ export async function buildSalaConexiones({ artworks, collection, imgBase, refle
     cctx.strokeRect(14, 14, 484, 332)
     cctx.fillStyle = '#211e1a'
     cctx.textAlign = 'center'
-    cctx.font = '700 54px Helvetica, Arial, sans-serif'
-    cctx.fillText('CONEXIONES', 256, 168)
+    cctx.font = `700 54px ${font}`
+    cctx.fillText(vitrina.title, 256, 168)
     cctx.fillStyle = '#8a8072'
-    cctx.font = '400 28px Helvetica, Arial, sans-serif'
-    cctx.fillText('Catálogo · 2022 – Presente', 256, 226)
+    cctx.font = `400 28px ${font}`
+    cctx.fillText(vitrina.sub, 256, 226)
     const coverTex = new THREE.CanvasTexture(coverCanvas)
     coverTex.colorSpace = THREE.SRGBColorSpace
     const pageMat = new THREE.MeshStandardMaterial({ color: 0xf1ece1, roughness: 0.8 })
     const coverMat = new THREE.MeshStandardMaterial({ map: coverTex, roughness: 0.65 })
     const book = new THREE.Mesh(
       new THREE.BoxGeometry(0.42, 0.05, 0.3),
-      [pageMat, pageMat, coverMat, pageMat, pageMat, pageMat] // +Y = portada
+      [pageMat, pageMat, coverMat, pageMat, pageMat, pageMat]
     )
     book.position.set(0, 1.045, 0)
     book.rotation.y = -0.35
     group.add(book)
 
-    // campana de vidrio
     const glass = new THREE.Mesh(
       new THREE.BoxGeometry(0.7, 0.42, 0.52),
       new THREE.MeshPhysicalMaterial({
@@ -581,13 +670,11 @@ export async function buildSalaConexiones({ artworks, collection, imgBase, refle
     glass.position.set(0, 1.24, 0)
     group.add(glass)
 
-    // foco cenital de la vitrina (corto y cerrado: no debe manchar el piso)
     const vitSpot = new THREE.SpotLight(0xfff2dd, 1.7, 3.6, 0.3, 0.8, 2)
     vitSpot.position.set(0, H - 0.25, 0)
     vitSpot.target.position.set(0, 1.0, 0)
     lights.push(vitSpot)
 
-    // área clickeable (abre el flipbook del catálogo)
     const clickMesh = new THREE.Mesh(
       new THREE.BoxGeometry(0.95, 1.6, 0.75),
       new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })
@@ -616,7 +703,8 @@ export async function buildSalaConexiones({ artworks, collection, imgBase, refle
     const gltf = await new Promise((resolve, reject) =>
       gltfLoader.load('/models/metal_bench.glb', resolve, undefined, reject))
     const benchBase = gltf.scene
-    for (const bz of [-4.2, 4.2]) {
+    const benchZ = [-L * 0.19, L * 0.19]
+    for (const bz of benchZ) {
       const bench = benchBase.clone()
       bench.scale.set(0.45, 0.5, 0.4)
       bench.position.set(0, 0, bz)
@@ -636,7 +724,7 @@ export async function buildSalaConexiones({ artworks, collection, imgBase, refle
     }
   } catch { /* sin banca si falla el modelo */ }
 
-  // ---------- modo "luces apagadas" (sala oscura, tipo el catálogo) ----------
+  // ---------- modo "luces apagadas" ----------
   function setDark(dark) {
     wallMat.color.set(dark ? 0x232126 : 0xefece5)
     ceilMat.color.set(dark ? 0x18171b : 0xf4f1ea)
@@ -648,15 +736,15 @@ export async function buildSalaConexiones({ artworks, collection, imgBase, refle
     rect.intensity = dark ? 0.3 : 1.4
     for (const s of obraSpots) s.intensity = dark ? 7 : 5.5
     titleSpot.intensity = dark ? 5 : 4
-    stSpot.intensity = dark ? 4 : 3.2
+    if (stSpot) stSpot.intensity = dark ? 4 : 3.2
     titleMat.map = dark ? titleTexDark : titleTexLight
     titleMat.needsUpdate = true
-    stMat.map = dark ? stTexDark : stTexLight
-    stMat.needsUpdate = true
-    // fondo de las obras (passe-partout): blanco de día, negro de noche
+    if (stMat) {
+      stMat.map = dark ? stTexDark : stTexLight
+      stMat.needsUpdate = true
+    }
     matWhite.color.set(dark ? 0x050505 : 0xffffff)
     frameMat.color.set(dark ? 0x141210 : 0x362b21)
-    // el polvo se nota más con las luces apagadas
     dustMat.opacity = dark ? 0.4 : 0.22
     if (reflect) floorMat.opacity = dark ? 0.78 : 0.86
   }
@@ -668,9 +756,26 @@ export async function buildSalaConexiones({ artworks, collection, imgBase, refle
     doorMeshes,
     lights,
     bounds: { halfW, halfL },
-    spawnX: 0,
+    spawnX,
     spawnZ: halfL - 2.2,
     spawnYaw: 0,
     setDark,
   }
+}
+
+// ============================================================
+// Wrapper: sala de Conexiones (Catalina) — misma API que antes
+// ============================================================
+export async function buildSalaConexiones({ artworks, collection, imgBase, reflect = false }, renderer) {
+  return buildSalaPremium({
+    artworks,
+    imgBase,
+    reflect,
+    title: collection.name,
+    subtitle: `Catalina Olivero · ${collection.year}`,
+    statement: collection.statementFull || [collection.statement],
+    statementTitle: 'Declaración de Artista',
+    statementCredit: '— Catalina Olivero',
+    vitrina: { title: 'CONEXIONES', sub: 'Catálogo · 2022 – Presente' },
+  }, renderer)
 }

@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
 </head>
-<body>
+<body class="museo-3d">
   <div id="app">
     <!-- 3D Canvas -->
     <div id="scene-container">
@@ -25,7 +25,11 @@
       </div>
       <div id="overlay-cta">
         <button id="play-btn">Entrar al Museo</button>
-        <a id="gallery-link" href="./playground.html">Ver galería en lienzo &rarr;</a>
+        <button id="tour-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21"/></svg>
+          Recorrido automático
+        </button>
+        <a id="gallery-link" href="./playground.html?entrar">Ver galería en lienzo &rarr;</a>
         <p class="controls-hint">
           <span class="desktop-only">WASD / Flechas mover &middot; Mouse mirar &middot; Click interactuar</span>
           <span class="mobile-only">Usa el joystick para moverte &middot; Toca para interactuar</span>
@@ -39,6 +43,12 @@
       <div id="room-name"></div>
       <div id="artwork-counter"></div>
       <div id="watermark">@paintsbydani</div>
+
+      <!-- Interruptor de luces (tecla L en escritorio) -->
+      <button id="lights-btn" title="Apagar/encender luces (L)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.4 1 2.3h6c0-.9.4-1.8 1-2.3A7 7 0 0 0 12 2z"/></svg>
+        <span>Apagar luces</span>
+      </button>
 
       <!-- Control hints (desktop only) -->
       <div id="control-hints" class="desktop-only">
@@ -69,12 +79,22 @@
           <span class="hint-label">Click interactuar</span>
         </div>
         <div class="hint-group">
+          <span class="key">L</span>
+          <span class="hint-label">Luces</span>
+        </div>
+        <div class="hint-group">
           <span class="key key-wide">ESC</span>
           <span class="hint-label">Pausar</span>
         </div>
       </div>
 
     </div>
+
+    <!-- Detener recorrido automático -->
+    <button id="tour-auto-stop" class="hidden">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>
+      Detener recorrido
+    </button>
 
     <!-- Zoom/Tour Controls (when zoomed into a painting) -->
     <div id="tour-controls" class="hidden">
@@ -89,6 +109,9 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
+
+    <!-- Fondo difuminado tras el panel de obra -->
+    <div id="panel-scrim" class="hidden"></div>
 
     <!-- Painting Panel (info + image when zoomed) -->
     <div id="painting-panel" class="hidden">

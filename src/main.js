@@ -1,9 +1,41 @@
 import { createEngine } from './engine/engine.js'
-import { buildGalleryRoom, buildFoyer } from './game/room.js'
-import { ROOMS, getArtworksByRoom, ARTWORKS, ARTIST } from './data/artworks.js'
+import * as THREE from 'three'
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
+import { buildSalaPremium } from './museo/sala.js'
+import { initFlipbook } from './playground/flipbook.js'
+import { ARTWORKS, ARTIST } from './data/artworks.js'
 import './style.css'
+import './museo/museo.css'
 
-// --- DOM refs ---
+/* ============================================================
+   Museo Virtual · Danní — 2 salas premium (sin música).
+   Misma experiencia que el museo de Catalina: skylight, focos,
+   piso reflectante, polvo, recorrido automático, luces on/off.
+   ============================================================ */
+
+const SERIF = 'Georgia, "Times New Roman", serif' // identidad tipográfica de Danní
+
+const SALAS = {
+  sala1: {
+    name: 'Sala I',
+    artworks: ARTWORKS.filter((a) => a.room === 0 || a.room === 1),
+    statement: [ARTIST.bioEs],
+    statementTitle: 'Sobre la artista',
+    statementCredit: '— Danní',
+    statementX: -3,
+    vitrina: { title: 'DANNÍ', sub: 'Catálogo · Museo Virtual' },
+    doors: [{ x: 4.6, target: 'sala2', label: 'Sala II' }],
+  },
+  sala2: {
+    name: 'Sala II',
+    artworks: ARTWORKS.filter((a) => a.room === 2),
+    statement: null,
+    vitrina: null,
+    doors: [{ x: 0, target: 'sala1', label: 'Volver a Sala I' }],
+  },
+}
+
+// --- DOM ---
 const canvas = document.getElementById('scene')
 const overlay = document.getElementById('overlay')
 const playBtn = document.getElementById('play-btn')
@@ -12,44 +44,43 @@ const crosshair = document.getElementById('crosshair')
 const roomNameEl = document.getElementById('room-name')
 const artworkCounterEl = document.getElementById('artwork-counter')
 
-// Tour controls
 const tourControls = document.getElementById('tour-controls')
 const tourPrev = document.getElementById('tour-prev')
 const tourNext = document.getElementById('tour-next')
 const tourExit = document.getElementById('tour-exit')
 const tourCounter = document.getElementById('tour-counter')
 
-// Painting panel
 const paintingPanel = document.getElementById('painting-panel')
+const panelScrim = document.getElementById('panel-scrim')
 const panelImage = document.getElementById('panel-image')
 const panelTitle = document.getElementById('panel-title')
 const panelMedium = document.getElementById('panel-medium')
 const panelInstagram = document.getElementById('panel-instagram')
 
-// Room transition
 const roomTransition = document.getElementById('room-transition')
 
-// Mobile
 const mobileControls = document.getElementById('mobile-controls')
 const joystickZone = document.getElementById('joystick-zone')
 const joystickBase = document.getElementById('joystick-base')
 const joystickThumb = document.getElementById('joystick-thumb')
 const mobileInteract = document.getElementById('mobile-interact')
 
-// --- Engine ---
+// --- Engine + environment ---
 const engine = createEngine(canvas)
+{
+  const pmrem = new THREE.PMREMGenerator(engine.renderer)
+  engine.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
+  engine.scene.environmentIntensity = 0.28
+  engine.scene.background = new THREE.Color(0x0d0c0b)
+  engine.renderer.toneMappingExposure = 1.0
+}
 
-// --- Audio ---
-const audioAmbient = new Audio('/sonidos/piano-sonido ambiente.mp3')
-audioAmbient.loop = true
-audioAmbient.volume = 0.5
-
+// --- Audio: solo pasos y puerta (sin música) ---
 const audioFootsteps = new Audio('/sonidos/pasos.mp3')
 audioFootsteps.loop = true
-audioFootsteps.volume = 0.4
-
+audioFootsteps.volume = 0.35
 const audioDoor = new Audio('/sonidos/abrir-puerta.mp3')
-audioDoor.volume = 0.7
+audioDoor.volume = 0.6
 
 function playFootsteps() {
   if (audioFootsteps.paused) {
@@ -57,7 +88,6 @@ function playFootsteps() {
     audioFootsteps.play().catch(() => {})
   }
 }
-
 function stopFootsteps() {
   if (!audioFootsteps.paused) {
     audioFootsteps.pause()
@@ -65,93 +95,117 @@ function stopFootsteps() {
   }
 }
 
-function playDoorSound() {
-  audioDoor.currentTime = 0
-  audioDoor.play().catch(() => {})
-}
-
-// --- State ---
-let currentRoomId = 'foyer'
+// --- Estado ---
 let zoomIndex = -1
 let museumEntered = false
+let currentSala = 'sala1'
 const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0
 
 // ============================================================
-// Room management — Linear: Foyer → Sala I → Sala II
+// Salas
 // ============================================================
-async function enterRoom(roomId) {
-  currentRoomId = roomId
+let sala = null
+async function enterSala(id) {
+  currentSala = id
   zoomIndex = -1
   hidePaintingPanel()
   hideTourControls()
-
-  if (roomId === 'foyer') {
-    const room = await buildFoyer({
-      artworks: getArtworksByRoom(0),
-      doors: [
-        // Single door to Sala I (centered, on south wall at platform height)
-        { position: { x: 0, z: 7.9, y: 0.7 }, rotation: Math.PI, target: 'sala1', label: 'Sala I' },
-      ],
-    }, engine.renderer)
-    engine.setRoom(room)
-    updateHUD('Bienvenida')
-    return
-  }
-
-  if (roomId === 'sala1') {
-    const roomDef = ROOMS[1]
-    const artworks = getArtworksByRoom(1)
-    const room = await buildGalleryRoom({
-      width: roomDef.width,
-      length: roomDef.length,
-      artworks, roomId,
-      doors: [
-        // Back to foyer (south wall, flush)
-        { position: { x: -3, z: roomDef.length / 2 - 0.01 }, rotation: Math.PI, target: 'foyer', label: 'Volver al Lobby' },
-        // To Sala II (north wall, flush)
-        { position: { x: 0, z: -roomDef.length / 2 + 0.01 }, rotation: 0, target: 'sala2', label: 'Sala II' },
-      ],
-      spawnZ: roomDef.length / 2 - 2,
-    }, engine.renderer)
-    engine.setRoom(room)
-    updateHUD(roomDef.name)
-    return
-  }
-
-  if (roomId === 'sala2') {
-    const roomDef = ROOMS[2]
-    const artworks = getArtworksByRoom(2)
-    const room = await buildGalleryRoom({
-      width: roomDef.width,
-      length: roomDef.length,
-      artworks, roomId,
-      doors: [
-        // Back to Sala I (south wall, flush)
-        { position: { x: 0, z: roomDef.length / 2 - 0.01 }, rotation: Math.PI, target: 'sala1', label: 'Volver a Sala I' },
-      ],
-      spawnZ: roomDef.length / 2 - 2,
-    }, engine.renderer)
-    engine.setRoom(room)
-    updateHUD(roomDef.name)
-  }
+  const cfg = SALAS[id]
+  sala = await buildSalaPremium(
+    {
+      artworks: cfg.artworks,
+      imgBase: 'posts',
+      reflect: !isMobile,
+      title: 'Danní',
+      subtitle: `Museo Virtual · ${cfg.name}`,
+      font: SERIF,
+      statement: cfg.statement,
+      statementTitle: cfg.statementTitle,
+      statementCredit: cfg.statementCredit,
+      statementX: cfg.statementX || 0,
+      vitrina: cfg.vitrina,
+      doors: cfg.doors,
+    },
+    engine.renderer
+  )
+  engine.setRoom(sala)
+  applyLights()
+  roomNameEl.textContent = cfg.name
+  artworkCounterEl.textContent = `${cfg.artworks.length} obras`
 }
 
-function updateHUD(roomName) {
-  roomNameEl.textContent = roomName
-  artworkCounterEl.textContent = `${ARTWORKS.length} obras`
+async function transitionToSala(id) {
+  stopFootsteps()
+  audioDoor.currentTime = 0
+  audioDoor.play().catch(() => {})
+  roomTransition.classList.add('active')
+  await new Promise((res) => setTimeout(res, 420))
+  await new Promise(requestAnimationFrame)
+  await enterSala(id)
+  if (!isMobile && museumEntered) {
+    try { engine.requestLock() } catch {}
+  }
+  await new Promise((res) => setTimeout(res, 120))
+  roomTransition.classList.remove('active')
 }
 
 // ============================================================
-// Zoom / Tour mode
+// Luces (tecla L)
+// ============================================================
+const lightsBtn = document.getElementById('lights-btn')
+let darkMode = false
+
+function applyLights() {
+  if (sala && sala.setDark) sala.setDark(darkMode)
+  engine.scene.environmentIntensity = darkMode ? 0.1 : 0.28
+  engine.scene.background.set(darkMode ? 0x040404 : 0x0d0c0b)
+  if (lightsBtn) {
+    lightsBtn.classList.toggle('off', darkMode)
+    lightsBtn.querySelector('span').textContent = darkMode ? 'Encender luces' : 'Apagar luces'
+  }
+}
+function toggleLights() {
+  darkMode = !darkMode
+  applyLights()
+}
+if (lightsBtn) lightsBtn.addEventListener('click', toggleLights)
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'KeyL') toggleLights()
+})
+
+// ============================================================
+// Vitrina → catálogo (flipbook generado de los datos)
+// ============================================================
+let viewingBook = false
+const book = initFlipbook({
+  trigger: null,
+  title: 'Danní',
+  years: 'Museo Virtual',
+  artist: ARTIST.name,
+  handle: ARTIST.handle,
+  photo: ARTIST.profileImage,
+  statementTitle: 'Sobre la artista',
+  statement: [ARTIST.bioEs],
+  artworks: ARTWORKS,
+  imgBase: 'posts',
+  pdfUrl: null,
+  onClose: () => {
+    viewingBook = false
+    if (!isMobile && museumEntered) {
+      setTimeout(() => { try { engine.requestLock() } catch {} }, 150)
+    }
+  },
+})
+
+// ============================================================
+// Zoom / Tour
 // ============================================================
 function enterZoom(artwork, mesh) {
   stopFootsteps()
   const meshes = engine.paintingMeshes
   zoomIndex = meshes.indexOf(mesh)
   if (zoomIndex < 0) zoomIndex = 0
-
   engine.zoomToPainting(mesh)
-
   showPaintingPanel(artwork)
   showTourControls()
   hud.classList.add('hidden')
@@ -163,87 +217,41 @@ function exitZoom() {
   hidePaintingPanel()
   hideTourControls()
   hud.classList.remove('hidden')
-
-  // Re-lock after zoom-out animation
   if (!isMobile && museumEntered) {
-    setTimeout(() => {
-      try { engine.requestLock() } catch (e) { /* ignore */ }
-    }, 900)
+    setTimeout(() => { try { engine.requestLock() } catch {} }, 900)
   }
 }
 
 function navigateZoom(delta) {
   const meshes = engine.paintingMeshes
   if (meshes.length === 0) return
-
   const newIndex = zoomIndex + delta
   if (newIndex < 0 || newIndex >= meshes.length) return
-
   zoomIndex = newIndex
   const mesh = meshes[zoomIndex]
-  const artwork = mesh.userData.artwork
   engine.zoomToMesh(mesh)
-  showPaintingPanel(artwork)
+  showPaintingPanel(mesh.userData.artwork)
   updateTourCounter()
 }
 
-// --- Painting panel ---
 function showPaintingPanel(artwork) {
   panelTitle.textContent = artwork.title
   panelMedium.textContent = artwork.medium || ''
-
-  // Show artwork image in panel
-  const encodedFilename = encodeURIComponent(artwork.filename)
-  const uriFilename = encodeURI(artwork.filename)
-  const rawFilename = artwork.filename
-
-  // Try multiple URL encodings — track attempt index to avoid src comparison issues
-  let loadAttempt = 0
-  const candidates = [
-    `/posts/${encodedFilename}`,
-    `/posts/${uriFilename}`,
-    `/posts/${rawFilename}`,
-  ]
-  panelImage.onload = () => { panelImage.onerror = null }
-  panelImage.onerror = () => {
-    loadAttempt++
-    if (loadAttempt < candidates.length) {
-      panelImage.src = candidates[loadAttempt]
-    } else {
-      panelImage.src = '/profile.jpg'
-    }
-  }
-  panelImage.src = candidates[0]
+  panelMedium.style.display = artwork.medium ? '' : 'none'
+  const base = artwork.filename.replace(/\.[^.]+$/, '')
+  panelImage.src = `/posts/full/${encodeURI(base)}.webp`
   panelImage.alt = artwork.title
-
-  // Only show Instagram button if there's a specific post URL (not just profile)
-  const isSpecificPost = artwork.instagramUrl &&
-    artwork.instagramUrl !== ARTIST.instagramUrl &&
-    artwork.instagramUrl.includes('/p/')
-  if (isSpecificPost) {
-    panelInstagram.href = artwork.instagramUrl
-    panelInstagram.style.display = ''
-  } else {
-    panelInstagram.style.display = 'none'
-  }
-
+  panelInstagram.href = artwork.instagramUrl || ARTIST.instagramUrl
   paintingPanel.classList.remove('hidden')
+  if (panelScrim) panelScrim.classList.remove('hidden')
 }
 
 function hidePaintingPanel() {
   paintingPanel.classList.add('hidden')
+  if (panelScrim) panelScrim.classList.add('hidden')
 }
-
-// --- Tour controls ---
-function showTourControls() {
-  tourControls.classList.remove('hidden')
-  updateTourCounter()
-}
-
-function hideTourControls() {
-  tourControls.classList.add('hidden')
-}
-
+function showTourControls() { tourControls.classList.remove('hidden'); updateTourCounter() }
+function hideTourControls() { tourControls.classList.add('hidden') }
 function updateTourCounter() {
   const total = engine.paintingMeshes.length
   tourCounter.textContent = `${zoomIndex + 1} / ${total}`
@@ -254,8 +262,8 @@ function updateTourCounter() {
 tourPrev.addEventListener('click', () => navigateZoom(-1))
 tourNext.addEventListener('click', () => navigateZoom(1))
 tourExit.addEventListener('click', () => exitZoom())
+if (panelScrim) panelScrim.addEventListener('click', () => { if (!touring) exitZoom() })
 
-// --- Keyboard for tour ---
 document.addEventListener('keydown', (e) => {
   if (engine.zoomMode) {
     if (e.code === 'Escape') { exitZoom(); e.preventDefault() }
@@ -265,100 +273,128 @@ document.addEventListener('keydown', (e) => {
 })
 
 // ============================================================
-// Engine callbacks
+// Recorrido automático
 // ============================================================
-engine.onPaintingClicked = (artwork, mesh) => {
-  enterZoom(artwork, mesh)
+const tourBtn = document.getElementById('tour-btn')
+const tourStopBtn = document.getElementById('tour-auto-stop')
+let touring = false
+let tourTimer = null
+const TOUR_DWELL = 5200
+
+function tourAdvance() {
+  if (!touring) return
+  const total = engine.paintingMeshes.length
+  if (zoomIndex >= total - 1) { stopTour(); return }
+  navigateZoom(1)
+  tourTimer = setTimeout(tourAdvance, TOUR_DWELL)
 }
 
+function startTour() {
+  const meshes = engine.paintingMeshes
+  if (!meshes.length || touring) return
+  touring = true
+  museumEntered = true
+  overlay.classList.add('fade-out')
+  setTimeout(() => { overlay.style.display = 'none' }, 600)
+  hud.classList.remove('hidden')
+  if (isMobile) { engine.enableMobile(); mobileControls.classList.remove('hidden') }
+  if (tourStopBtn) tourStopBtn.classList.remove('hidden')
+  enterZoom(meshes[0].userData.artwork, meshes[0])
+  tourTimer = setTimeout(tourAdvance, TOUR_DWELL + 800)
+  pushIn()
+}
+
+function stopTour() {
+  if (!touring) return
+  touring = false
+  clearTimeout(tourTimer)
+  if (tourStopBtn) tourStopBtn.classList.add('hidden')
+  exitZoom()
+  if (!isMobile) {
+    setTimeout(() => {
+      if (!engine.locked && !engine.zoomMode) {
+        overlay.style.display = ''
+        overlay.classList.remove('fade-out')
+        hud.classList.add('hidden')
+      }
+    }, 1100)
+  }
+}
+
+function pushIn() {
+  if (!touring) return
+  if (engine.zoomMode && !engine.zoomAnimating) {
+    engine.camera.translateZ(-0.0009)
+  }
+  requestAnimationFrame(pushIn)
+}
+
+if (tourBtn) tourBtn.addEventListener('click', startTour)
+if (tourStopBtn) tourStopBtn.addEventListener('click', stopTour)
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'KeyT' && !touring && museumEntered) startTour()
+  else if (touring && (e.code === 'Escape' || e.code === 'KeyT')) stopTour()
+})
+
+// ============================================================
+// Callbacks del motor
+// ============================================================
+engine.onPaintingClicked = (artwork, mesh) => enterZoom(artwork, mesh)
 engine.onDoorClicked = (doorData) => {
-  playDoorSound()
-  transitionToRoom(doorData.target)
-}
-
-engine.onMovementChange = (isMoving) => {
-  if (isMoving) playFootsteps()
-  else stopFootsteps()
-}
-
-async function transitionToRoom(roomId) {
-  stopFootsteps()
-  // Fade to black, switch room, fade back (async to avoid blocking frames)
-  roomTransition.classList.add('active')
-  // Wait for fade-in to reach full opacity
-  await new Promise((res) => setTimeout(res, 420))
-  // Ensure browser had a frame to render the overlay
-  await new Promise(requestAnimationFrame)
-  // Load new room
-  await enterRoom(roomId)
-  // Re-lock pointer after transition
-  if (!isMobile && museumEntered) {
-    try { engine.requestLock() } catch (e) { /* ignore */ }
+  if (doorData.target === 'catalogo') {
+    if (!book) return
+    viewingBook = true
+    stopFootsteps()
+    engine.exitLock()
+    book.open()
+    return
   }
-  // Small delay to let scene settle, then fade back
-  await new Promise((res) => setTimeout(res, 120))
-  roomTransition.classList.remove('active')
+  transitionToSala(doorData.target)
 }
-
+engine.onMovementChange = (isMoving) => { if (isMoving) playFootsteps(); else stopFootsteps() }
 engine.onCrosshairChange = (state) => {
-  if (state === 'pointer-artwork') {
-    crosshair.className = 'clickable artwork'
-  } else if (state === 'pointer-door') {
-    crosshair.className = 'clickable door'
-  } else if (state === 'pointer') {
-    crosshair.className = 'clickable'
-  } else {
-    crosshair.className = ''
-  }
+  if (state === 'pointer-artwork') crosshair.className = 'clickable artwork'
+  else if (state === 'pointer-door') crosshair.className = 'clickable door'
+  else crosshair.className = ''
 }
 
 // ============================================================
-// Overlay / start
+// Overlay / inicio
 // ============================================================
 playBtn.addEventListener('click', () => {
   museumEntered = true
   overlay.classList.add('fade-out')
   hud.classList.remove('hidden')
-  if (isMobile) {
-    mobileControls.classList.remove('hidden')
-  }
-  // Start ambient music on user interaction
-  audioAmbient.play().catch(() => {})
+  if (isMobile) mobileControls.classList.remove('hidden')
   setTimeout(() => {
     overlay.style.display = 'none'
-    if (!isMobile) {
-      try { engine.requestLock() } catch (e) { /* ignore */ }
-    }
+    if (!isMobile) { try { engine.requestLock() } catch {} }
   }, 600)
 })
 
-// Re-show overlay when pointer lock lost (desktop only, not during zoom)
 document.addEventListener('pointerlockchange', () => {
   if (isMobile) return
+  if (viewingBook || touring) return
   if (!engine.locked && !engine.zoomMode && !engine.zoomAnimating) {
     if (museumEntered) {
       overlay.style.display = ''
       overlay.classList.remove('fade-out')
       hud.classList.add('hidden')
-      // Pause ambient sound
-      audioAmbient.pause()
       stopFootsteps()
     }
   } else if (engine.locked) {
     overlay.style.display = 'none'
     overlay.classList.add('fade-out')
     hud.classList.remove('hidden')
-    // Resume ambient sound
-    if (museumEntered) audioAmbient.play().catch(() => {})
   }
 })
 
 // ============================================================
-// Mobile virtual joystick
+// Joystick móvil (tracking por identificador de toque)
 // ============================================================
 if (isMobile) {
-  // Joystick con tracking por identificador de toque: el dedo del joystick y
-  // el dedo de la cámara son independientes (como en un juego móvil).
+  playBtn.addEventListener('click', () => engine.enableMobile())
+
   let joyTouchId = null
   let joystickStartX = 0, joystickStartY = 0
   const joystickRadius = 50
@@ -406,13 +442,11 @@ if (isMobile) {
   document.addEventListener('touchend', endJoystick)
   document.addEventListener('touchcancel', endJoystick)
 
-  // Mobile interact button
   mobileInteract.addEventListener('touchstart', (e) => {
     e.preventDefault()
     canvas.dispatchEvent(new MouseEvent('click'))
   }, { passive: false })
 
-  // Mobile: touch on canvas to look around
   let lookTouchId = null
   let lookStartX = 0, lookStartY = 0
 
@@ -436,10 +470,7 @@ if (isMobile) {
         const dy = touch.clientY - lookStartY
         lookStartX = touch.clientX
         lookStartY = touch.clientY
-        document.dispatchEvent(new MouseEvent('mousemove', {
-          movementX: dx * 2.2,
-          movementY: dy * 2.2,
-        }))
+        document.dispatchEvent(new MouseEvent('mousemove', { movementX: dx * 2.2, movementY: dy * 2.2 }))
         break
       }
     }
@@ -447,14 +478,10 @@ if (isMobile) {
 
   canvas.addEventListener('touchend', (e) => {
     for (const touch of e.changedTouches) {
-      if (touch.identifier === lookTouchId) {
-        lookTouchId = null
-        break
-      }
+      if (touch.identifier === lookTouchId) { lookTouchId = null; break }
     }
   }, { passive: true })
 
-  // Swipe gestures when in zoom mode
   let swipeStartX = 0, swipeStartY = 0
   canvas.addEventListener('touchstart', (e) => {
     if (!engine.zoomMode) return
@@ -469,22 +496,14 @@ if (isMobile) {
     const dx = touch.clientX - swipeStartX
     const dy = touch.clientY - swipeStartY
     if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
-      if (dx < 0) navigateZoom(1)
-      else navigateZoom(-1)
+      navigateZoom(dx < 0 ? 1 : -1)
     } else if (dy > 80) {
       exitZoom()
     }
   }, { passive: true })
 }
 
-// Mobile: enable mobile mode in engine
-if (isMobile) {
-  playBtn.addEventListener('click', () => {
-    engine.enableMobile()
-  })
-}
-
 // ============================================================
 // Init
 // ============================================================
-enterRoom('foyer')
+enterSala('sala1')

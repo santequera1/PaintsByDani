@@ -1,8 +1,13 @@
 export const ARTIST = {
-  name: 'Dani',
+  name: 'Danní',
   handle: '@paintsbydani',
   instagramUrl: 'https://www.instagram.com/paintsbydani/',
   profileImage: '/profile.jpg',
+  // Bios provisionales (reemplazar por las oficiales de Danní cuando lleguen)
+  bioEs:
+    'Soy Danní, artista visual. Pinto desde la emoción —óleo, acrílico y acuarela— obras que hablan del cuerpo, la memoria y lo que no se dice en voz alta. Cada pieza es una página de un diario abierto: esta galería reúne ese recorrido y sigue creciendo con él.',
+  bioEn:
+    "I'm Danní, a visual artist. I paint from emotion —oil, acrylic and watercolor— works that speak of the body, memory and the things we don't say out loud. Each piece is a page from an open diary: this gallery gathers that journey and keeps growing with it.",
 }
 
 export const ROOMS = [
@@ -16,6 +21,7 @@ export const ARTWORKS = [
   {
     id: 'pre-morte',
     filename: 'PRE MORTE - Óleo sobre lienzo - Septiembre_2025.jpg',
+    ratio: 1.250,
     title: 'PRE MORTE',
     medium: 'Óleo sobre lienzo · Septiembre 2025',
     instagramUrl: 'https://www.instagram.com/paintsbydani/p/DPxT9mfDLHe/',
@@ -24,6 +30,7 @@ export const ARTWORKS = [
   {
     id: 'dismorfia',
     filename: 'DISMORFIA - Óleo sobre lienzo - Septiembre_2025.jpg',
+    ratio: 1.000,
     title: 'DISMORFIA',
     medium: 'Óleo sobre lienzo · Septiembre 2025',
     instagramUrl: 'https://www.instagram.com/paintsbydani/p/DPxUP1tjFhR/',
@@ -32,6 +39,7 @@ export const ARTWORKS = [
   {
     id: 'muerte-rojo',
     filename: 'Muerte en rojo.jpg',
+    ratio: 0.749,
     title: 'Muerte en rojo',
     medium: '',
     instagramUrl: 'https://www.instagram.com/paintsbydani/p/DR5QsUlAQbk/',
@@ -40,6 +48,7 @@ export const ARTWORKS = [
   {
     id: 'el-sexo',
     filename: 'EL SEXO - Acrílico sobre papel - Agosto_2025.jpg',
+    ratio: 1.246,
     title: 'EL SEXO',
     medium: 'Acrílico sobre papel · Agosto 2025',
     instagramUrl: 'https://www.instagram.com/paintsbydani/p/DPxW_e8DLkk/',
@@ -48,6 +57,7 @@ export const ARTWORKS = [
   {
     id: 'strange-fruit',
     filename: 'Strange Fruit - Óleo sobre lienzo.jpg',
+    ratio: 1.089,
     title: 'Strange Fruit',
     medium: 'Óleo sobre lienzo',
     instagramUrl: 'https://www.instagram.com/paintsbydani/',
@@ -56,6 +66,7 @@ export const ARTWORKS = [
   {
     id: 'ojos-tristes',
     filename: 'OJOS TRISTES - Acuerela sobre papel - Agosto_2025.jpg',
+    ratio: 1.054,
     title: 'OJOS TRISTES',
     medium: 'Acuarela sobre papel · Agosto 2025',
     instagramUrl: 'https://www.instagram.com/paintsbydani/p/DPxTSU_DEX5/',
@@ -64,6 +75,7 @@ export const ARTWORKS = [
   {
     id: 'corazon',
     filename: 'CORAZÓN - Oleo sobre canva.jpg',
+    ratio: 1.288,
     title: 'CORAZÓN',
     medium: 'Óleo sobre canva',
     instagramUrl: 'https://www.instagram.com/paintsbydani/p/DS31glalRrs/',
@@ -74,6 +86,7 @@ export const ARTWORKS = [
   {
     id: 'encerrados',
     filename: 'ENCERRADOS EN UN CUADRO - Óleo sobre lienzo - Agosto_2025.jpg',
+    ratio: 1.221,
     title: 'ENCERRADOS EN UN CUADRO',
     medium: 'Óleo sobre lienzo · Agosto 2025',
     instagramUrl: 'https://www.instagram.com/paintsbydani/p/DPxWJlPjP2n/',
@@ -82,6 +95,7 @@ export const ARTWORKS = [
   {
     id: 'abstraccion',
     filename: 'ABSTRACCIÓN - Óleo sobre Canva - Agosto_2025.jpg',
+    ratio: 0.750,
     title: 'ABSTRACCIÓN',
     medium: 'Óleo sobre canva · Agosto 2025',
     instagramUrl: 'https://www.instagram.com/paintsbydani/p/DPxWk9OjH2O/',
@@ -90,6 +104,7 @@ export const ARTWORKS = [
   {
     id: 'ave',
     filename: 'AVE - Oleo sobre lienzo - Septiembre_25.jpg',
+    ratio: 1.333,
     title: 'AVE',
     medium: 'Óleo sobre lienzo · Septiembre 2025',
     instagramUrl: 'https://www.instagram.com/paintsbydani/p/DQ8MyBWjKzN/',
@@ -98,6 +113,7 @@ export const ARTWORKS = [
   {
     id: 'arbol',
     filename: 'ÁRBOL EN LA CIUDAD - Óleo sobre lienzo - Agosto_2025.jpg',
+    ratio: 0.815,
     title: 'ÁRBOL EN LA CIUDAD',
     medium: 'Óleo sobre lienzo · Agosto 2025',
     instagramUrl: 'https://www.instagram.com/paintsbydani/',
@@ -106,6 +122,7 @@ export const ARTWORKS = [
   {
     id: 'no-es-arte',
     filename: 'No es arte - Óleo sobre papel.jpg',
+    ratio: 1.250,
     title: 'No es arte?',
     medium: 'Óleo sobre papel',
     instagramUrl: 'https://www.instagram.com/paintsbydani/p/DPx-XtSDVbO/',
@@ -114,6 +131,7 @@ export const ARTWORKS = [
   {
     id: 'baile-amazonas',
     filename: 'El baile de las amazonas - Oleo sobre papel - agosto 2025.jpg',
+    ratio: 1.333,
     title: 'El baile de las amazonas',
     medium: 'Óleo sobre papel · Agosto 2025',
     instagramUrl: 'https://www.instagram.com/paintsbydani/p/DS31L_XlQmK/',
@@ -122,6 +140,7 @@ export const ARTWORKS = [
   {
     id: 'vacio',
     filename: 'Vacio - Óleo sobre canva.jpg',
+    ratio: 1.000,
     title: 'Vacío',
     medium: 'Óleo sobre canva',
     instagramUrl: 'https://www.instagram.com/paintsbydani/',
@@ -132,6 +151,7 @@ export const ARTWORKS = [
   {
     id: 'te-ame',
     filename: 'Te amé.jpg',
+    ratio: 1.000,
     title: 'Te amé',
     medium: '',
     instagramUrl: 'https://www.instagram.com/paintsbydani/p/DS31206lUS2/',
@@ -140,6 +160,7 @@ export const ARTWORKS = [
   {
     id: 'senor-d1',
     filename: 'Señor del d1.jpg',
+    ratio: 1.333,
     title: 'Señor del d1',
     medium: '',
     instagramUrl: 'https://www.instagram.com/paintsbydani/p/DROi_kuDX26/',
@@ -148,6 +169,7 @@ export const ARTWORKS = [
   {
     id: 'me',
     filename: 'Me.jpg',
+    ratio: 1.333,
     title: 'Me',
     medium: '',
     instagramUrl: 'https://www.instagram.com/paintsbydani/p/DRNZA7BAUfW/',
@@ -156,6 +178,7 @@ export const ARTWORKS = [
   {
     id: 'my-lady',
     filename: 'My lady.jpg',
+    ratio: 1.333,
     title: 'My lady',
     medium: '',
     instagramUrl: 'https://www.instagram.com/paintsbydani/p/DRNYc3VAc-5/',
@@ -166,6 +189,7 @@ export const ARTWORKS = [
   {
     id: 'little-dan',
     filename: 'Little Dan.jpg',
+    ratio: 1.229,
     title: 'Little Dan',
     medium: '',
     instagramUrl: 'https://www.instagram.com/paintsbydani/p/DQ8N7_ejOD5/',
@@ -174,6 +198,7 @@ export const ARTWORKS = [
   {
     id: 'retrato',
     filename: 'Retrato.jpg',
+    ratio: 1.333,
     title: 'Retrato',
     medium: '',
     instagramUrl: 'https://www.instagram.com/paintsbydani/p/DQ8LoKRDMP0/',
@@ -182,6 +207,7 @@ export const ARTWORKS = [
   {
     id: 'portiu',
     filename: 'PORTIU - 2025.jpg',
+    ratio: 1.333,
     title: 'PORTIU',
     medium: '2025',  // Only year available
     instagramUrl: 'https://www.instagram.com/paintsbydani/p/DQP6Y-1gdDG/',
@@ -190,6 +216,7 @@ export const ARTWORKS = [
   {
     id: 'expulsion',
     filename: 'Expulsión hacia la vida.jpg',
+    ratio: 1.000,
     title: 'Expulsión hacia la vida',
     medium: '',
     instagramUrl: 'https://www.instagram.com/paintsbydani/',
@@ -198,6 +225,7 @@ export const ARTWORKS = [
   {
     id: 'look-at-her',
     filename: 'Look at heR Dic_25.jpg',
+    ratio: 1.333,
     title: 'Look at heR',
     medium: 'Diciembre 2025',
     instagramUrl: 'https://www.instagram.com/paintsbydani/',
@@ -208,6 +236,7 @@ export const ARTWORKS = [
   {
     id: 'aborto',
     filename: 'ABORTO - Agosto_25.jpg',
+    ratio: 1.000,
     title: 'ABORTO',
     medium: 'Agosto 2025',
     instagramUrl: 'https://www.instagram.com/paintsbydani/p/DQ8L-ryDN8R/',
@@ -216,6 +245,7 @@ export const ARTWORKS = [
   {
     id: 'libertad',
     filename: 'LIBERTAD - Agosto_25.jpg',
+    ratio: 1.333,
     title: 'LIBERTAD',
     medium: 'Agosto 2025',
     instagramUrl: 'https://www.instagram.com/paintsbydani/p/DQ8MQtyDPpI/',
@@ -224,6 +254,7 @@ export const ARTWORKS = [
   {
     id: 'vida',
     filename: 'VIDA - Agosto_2025.jpg',
+    ratio: 1.250,
     title: 'VIDA',
     medium: 'Agosto 2025',
     instagramUrl: 'https://www.instagram.com/paintsbydani/p/DPx-JLjDaup/',
@@ -232,6 +263,7 @@ export const ARTWORKS = [
   {
     id: 'sol-lloroso',
     filename: 'SOL LLOROSO - Oleo sobre papel - Agosto_25.jpg',
+    ratio: 1.333,
     title: 'SOL LLOROSO',
     medium: 'Óleo sobre papel · Agosto 2025',
     instagramUrl: 'https://www.instagram.com/paintsbydani/p/DQ8NP2fDO6U/',
@@ -240,6 +272,7 @@ export const ARTWORKS = [
   {
     id: 'zorro',
     filename: 'ZORRO VESTIDO DE HOMBRE - Revisitas - Octobre_2025.jpg',
+    ratio: 1.250,
     title: 'ZORRO VESTIDO DE HOMBRE',
     medium: 'Revisitas · Octubre 2025',
     instagramUrl: 'https://www.instagram.com/paintsbydani/p/DPx9JshjezC/',
@@ -248,6 +281,7 @@ export const ARTWORKS = [
   {
     id: 'sucio',
     filename: 'sucio - Oleo-papel Dic_25.jpg',
+    ratio: 1.333,
     title: 'sucio',
     medium: 'Óleo sobre papel · Diciembre 2025',
     instagramUrl: 'https://www.instagram.com/paintsbydani/p/DS32zFTlQ9u/',
@@ -256,6 +290,7 @@ export const ARTWORKS = [
   {
     id: 'corazon-blanco',
     filename: '🤍.jpg',
+    ratio: 1.149,
     title: '\u{1F90D}',  // White heart emoji
     medium: '',
     instagramUrl: 'https://www.instagram.com/paintsbydani/p/DPx84b3jbP3/',
@@ -264,6 +299,7 @@ export const ARTWORKS = [
   {
     id: 'pre-morte-2',
     filename: 'PRE_MORTE.jpg',
+    ratio: 1.250,
     title: 'PRE MORTE (II)',
     medium: '',
     instagramUrl: 'https://www.instagram.com/paintsbydani/p/DPxT9mfDLHe/',
