@@ -66,7 +66,7 @@ body.museo-3d #artist-photo {
   border-radius: 50%;
   object-fit: cover;
 }
-/* Logo (wordmark) en vez de foto: centrado, sin recorte circular */
+/* Logo (wordmark) en vez de foto: centrado, sin recuadro ni sombra */
 body.museo-3d #artist-photo.artist-logo {
   border-radius: 0;
   object-fit: contain;
@@ -74,6 +74,9 @@ body.museo-3d #artist-photo.artist-logo {
   height: auto;
   display: block;
   margin: 0 auto;
+  border: none;
+  box-shadow: none;
+  background: transparent;
 }
 
 /* Precio en el panel de obra */
