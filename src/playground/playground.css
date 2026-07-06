@@ -901,6 +901,7 @@ body.pg-about-open #pg-nav { filter: blur(6px); opacity: 0.5; pointer-events: no
 .pg-intro-logo {
   width: min(250px, 62vw);
   height: auto;
+  margin-bottom: 22px;
 }
 :root[data-theme='dark'] .pg-intro-logo { filter: invert(1); }
 .pg-about-toggle img.pg-logo-sm {
