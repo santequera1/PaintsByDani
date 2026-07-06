@@ -14,9 +14,16 @@ body.museo-conexiones #panel-title {
 }
 
 body.museo-conexiones #overlay-brand h1 {
+  /* el #overlay-brand h1 de style.css (Playfair) gana por especificidad;
+     aquí forzamos la Helvetica que pidió Catalina */
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   letter-spacing: 0.32em;
   text-transform: uppercase;
   font-weight: 700;
+  font-size: 1.6rem;
+}
+body.museo-conexiones #overlay-brand .subtitle {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 /* Subtítulo del overlay: centrado y discreto */
