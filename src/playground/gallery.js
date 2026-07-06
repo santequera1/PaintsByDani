@@ -155,7 +155,9 @@ export function initGallery({ artworks, artist, imgBase = 'posts', scatter = fal
     world.appendChild(el)
     // Tilt 3D al pasar el cursor (vanilla-tilt) en el nodo EXTERNO para que el
     // área de hover siga a la caja transformada y no parpadee.
-    if (!REDUCE) {
+    // Solo en dispositivos con hover real: en táctil no aporta y provoca el
+    // "primer toque = hover" de iOS (había que tocar dos veces para abrir).
+    if (!REDUCE && window.matchMedia('(hover: hover)').matches) {
       VanillaTilt.init(el, {
         max: 11, speed: 500, scale: 1.04, perspective: 900,
         glare: true, 'max-glare': 0.22, gyroscope: false,
@@ -512,6 +514,15 @@ export function initGallery({ artworks, artist, imgBase = 'posts', scatter = fal
   stage.addEventListener('pointercancel', onUp)
   stage.addEventListener('dragstart', (e) => e.preventDefault())
   stage.addEventListener('wheel', onWheel, { passive: false })
+  // red de seguridad: si el flujo de pointer no abrió la obra (primer toque
+  // en algunos navegadores), el click sintético posterior la abre
+  stage.addEventListener('click', (e) => {
+    if (moved || !modal.classList.contains('hidden')) return
+    if (performance.now() - modalOpenedAt < 500) return
+    const under = document.elementFromPoint(e.clientX, e.clientY)
+    const card = under && under.closest('.pg-card')
+    if (card) openModal(card.dataset.id)
+  })
 
   // --- Giroscopio: inclinar = velocidad de desplazamiento ---
   function onOrient(e) {
@@ -900,6 +911,27 @@ export function initGallery({ artworks, artist, imgBase = 'posts', scatter = fal
       intro.classList.add('gone')
       intro.style.display = 'none'
     }
+  }
+
+  // --- Menú móvil: muestra/oculta la barra de botones ---
+  const menuBtn = document.getElementById('pg-menu')
+  const navEl = document.getElementById('pg-nav')
+  if (menuBtn && navEl) {
+    const setNav = (open) => {
+      navEl.classList.toggle('open', open)
+      menuBtn.classList.toggle('open', open)
+      menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false')
+    }
+    menuBtn.addEventListener('click', (e) => {
+      e.stopPropagation()
+      setNav(!navEl.classList.contains('open'))
+    })
+    // se cierra al tocar fuera
+    document.addEventListener('pointerdown', (e) => {
+      if (!navEl.classList.contains('open')) return
+      if (navEl.contains(e.target) || menuBtn.contains(e.target)) return
+      setNav(false)
+    })
   }
 
   // --- Botón "volver a colecciones": re-muestra la portada ---

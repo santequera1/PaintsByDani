@@ -936,6 +936,41 @@ body.pg-helvetica #pg-modal-title {
   font-weight: 700;
 }
 
+/* --- Menú móvil: la barra se colapsa tras un botón para no tapar las obras --- */
+#pg-menu { display: none; }
+#pg-menu .ic-close { display: none; }
+#pg-menu.open .ic-burger { display: none; }
+#pg-menu.open .ic-close { display: block; }
+
+@media (pointer: coarse), (max-width: 760px) {
+  #pg-menu { display: inline-flex; }
+  #pg-nav {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px);
+    right: clamp(14px, 3vw, 28px);
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  #pg-nav.open { display: flex; }
+  #pg-nav .pg-btn { justify-content: flex-start; }
+
+  /* giroscopio: solo icono, en la columna derecha de controles */
+  #pg-gyro {
+    left: auto;
+    right: clamp(14px, 3vw, 28px);
+    bottom: 132px;
+    transform: none;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 50%;
+  }
+  #pg-gyro .pg-gyro-label { display: none; }
+}
+
 /* --- Responsive --- */
 @media (max-width: 760px) {
   .pg-brand-text { display: none; }
