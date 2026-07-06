@@ -95,8 +95,8 @@ export const ARTWORKS = [
     filename: 'Oui Oui Baguette, 2022.webp',
     ratio: 0.750,
     title: 'Oui Oui Baguette, 2022',
-    medium: '',
-    price: '',
+    medium: 'Óleo sobre lienzo',
+    price: '1.000.000 COP',
     instagramUrl: ARTIST.instagramUrl,
   },
   {

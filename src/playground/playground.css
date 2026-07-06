@@ -884,6 +884,34 @@ body.pg-about-open #pg-nav { filter: blur(6px); opacity: 0.5; pointer-events: no
   .pg-spinner { animation: pgSpin 1.2s linear infinite; } /* el spinner sí gira */
 }
 
+/* --- Catalina: modo oscuro "negro bien oscuro" (solo sus 2 galerías) --- */
+:root[data-theme='dark'] body.pg-helvetica {
+  --paper: #070708;
+  --paper-2: #040405;
+  --dot: rgba(150, 158, 172, 0.10);
+  --pill-bg: rgba(16, 16, 18, 0.85);
+  --pill-solid: #151517;
+  --panel-bg: rgba(12, 12, 14, 0.96);
+  --modal-bg: #0e0e10;
+  --modal-side: #121214;
+  --card-ph: #131316;
+}
+
+/* --- Logo de Catalina (reemplaza su foto en la interfaz) --- */
+.pg-intro-logo {
+  width: min(250px, 62vw);
+  height: auto;
+}
+:root[data-theme='dark'] .pg-intro-logo { filter: invert(1); }
+.pg-about-toggle img.pg-logo-sm {
+  width: auto;
+  height: 17px;
+  border-radius: 0;
+  border: none;
+  margin-left: 8px;
+}
+:root[data-theme='dark'] .pg-about-toggle img.pg-logo-sm { filter: invert(1); }
+
 /* --- Tipografía Helvetica (pedido de Catalina, para sus 2 galerías) --- */
 body.pg-helvetica,
 body.pg-helvetica button,

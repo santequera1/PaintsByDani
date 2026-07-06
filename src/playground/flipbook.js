@@ -22,6 +22,7 @@ export function initFlipbook({
   artworks = [],
   imgBase,
   pdfUrl,
+  logo = null, // wordmark que sustituye la foto en portada/contraportada
   onClose = null,
 }) {
   const triggerEl = typeof trigger === 'string' ? document.querySelector(trigger) : trigger
@@ -33,7 +34,9 @@ export function initFlipbook({
   const faces = []
   faces.push(`
     <div class="fb-face fb-cover">
-      <img class="fb-cover-photo" src="${esc(photo)}" alt="" />
+      ${logo
+        ? `<img class="fb-logo" src="${esc(logo)}" alt="" />`
+        : `<img class="fb-cover-photo" src="${esc(photo)}" alt="" />`}
       <p class="fb-kicker">Exposición</p>
       <h2 class="fb-cover-title">${esc(title)}</h2>
       <p class="fb-cover-artist">${esc(artist)}</p>
@@ -55,7 +58,9 @@ export function initFlipbook({
   }
   faces.push(`
     <div class="fb-face fb-end">
-      <img class="fb-end-photo" src="${esc(photo)}" alt="" />
+      ${logo
+        ? `<img class="fb-logo" src="${esc(logo)}" alt="" />`
+        : `<img class="fb-end-photo" src="${esc(photo)}" alt="" />`}
       <p class="fb-end-name">${esc(artist)}</p>
       <p class="fb-end-handle">${esc(handle)}</p>
       ${pdfUrl ? `<a class="fb-pdf" href="${esc(pdfUrl)}" target="_blank" rel="noopener noreferrer">Descargar catálogo (PDF)</a>` : ''}

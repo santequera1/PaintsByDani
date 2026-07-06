@@ -127,6 +127,12 @@
   text-transform: uppercase;
   color: #8a7f6e;
 }
+.fb-logo {
+  width: 62%;
+  max-width: 230px;
+  height: auto;
+  margin-bottom: 6px;
+}
 .fb-cover-photo {
   width: 64px; height: 64px;
   border-radius: 50%;

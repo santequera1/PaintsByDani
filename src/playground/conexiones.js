@@ -8,7 +8,7 @@ initGallery({
   imgBase: 'conexiones-posts',
   scatter: true,
   sound: true,
-  watermark: 'Conexiones',
+  defaultTheme: 'dark', // pedido de Catalina: fondo negro, sin marca de agua
   // obras en orientación mixta → ratios variados por defecto
 })
 
@@ -23,4 +23,5 @@ initFlipbook({
   artworks: ARTWORKS,
   imgBase: 'conexiones-posts',
   pdfUrl: COLLECTION.pdfUrl,
+  logo: '/cat-logo-negro.svg',
 })

@@ -12,7 +12,7 @@ const clamp = (v, a, b) => (v < a ? a : v > b ? b : v)
 const baseName = (f) => f.replace(/\.[^.]+$/, '')
 const RATIOS = [1.18, 0.82, 1.34, 0.95, 1.0, 1.46, 0.78, 1.12, 1.28, 0.88]
 
-export function initGallery({ artworks, artist, imgBase = 'posts', scatter = false, sound = false, ratios = RATIOS, watermark = null }) {
+export function initGallery({ artworks, artist, imgBase = 'posts', scatter = false, sound = false, ratios = RATIOS, watermark = null, defaultTheme = null }) {
   // Rutas de imagen: WebP (miniatura para tarjetas, grande para el modal) con
   // fallback a los originales (varias codificaciones por nombres raros).
   function candidates(filename, kind) {
@@ -850,7 +850,7 @@ export function initGallery({ artworks, artist, imgBase = 'posts', scatter = fal
   try { savedTheme = localStorage.getItem('pg-theme') } catch {}
   setTheme(savedTheme === 'dark' || savedTheme === 'light'
     ? savedTheme
-    : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'))
+    : defaultTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'))
 
   if (themeBtn) {
     themeBtn.hidden = false

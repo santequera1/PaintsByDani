@@ -145,6 +145,7 @@ const book = initFlipbook({
   artworks: ARTWORKS,
   imgBase: 'conexiones-posts',
   pdfUrl: COLLECTION.pdfUrl,
+  logo: '/cat-logo-negro.svg',
   onClose: () => {
     viewingBook = false
     if (!isMobile && museumEntered) {
