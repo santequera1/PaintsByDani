@@ -699,30 +699,35 @@ export async function buildSalaPremium(config, renderer) {
     group.add(sh)
   }
 
-  try {
-    const gltf = await new Promise((resolve, reject) =>
-      gltfLoader.load('/models/metal_bench.glb', resolve, undefined, reject))
-    const benchBase = gltf.scene
-    const benchZ = [-L * 0.19, L * 0.19]
-    for (const bz of benchZ) {
-      const bench = benchBase.clone()
-      bench.scale.set(0.45, 0.5, 0.4)
-      bench.position.set(0, 0, bz)
-      bench.rotation.y = Math.PI / 2
-      bench.traverse((child) => {
-        if (child.isMesh) {
-          child.position.y = 1.21
-          child.material = child.material.clone()
-          child.material.side = THREE.DoubleSide
-          child.material.envMapIntensity = 1.2
-          child.material.needsUpdate = true
-        }
-      })
-      group.add(bench)
-      addShadow(0, bz, 2.4, 1.3)
-      obstacles.push({ type: 'box', minX: -0.95, maxX: 0.95, minZ: bz - 0.42, maxZ: bz + 0.42 })
-    }
-  } catch { /* sin banca si falla el modelo */ }
+  // Las bancas se cargan SIN bloquear la sala: si el GLB tarda o se cuelga
+  // (webviews de Instagram/Facebook en datos móviles), la sala aparece igual.
+  gltfLoader.load(
+    '/models/metal_bench.glb',
+    (gltf) => {
+      const benchBase = gltf.scene
+      const benchZ = [-L * 0.19, L * 0.19]
+      for (const bz of benchZ) {
+        const bench = benchBase.clone()
+        bench.scale.set(0.45, 0.5, 0.4)
+        bench.position.set(0, 0, bz)
+        bench.rotation.y = Math.PI / 2
+        bench.traverse((child) => {
+          if (child.isMesh) {
+            child.position.y = 1.21
+            child.material = child.material.clone()
+            child.material.side = THREE.DoubleSide
+            child.material.envMapIntensity = 1.2
+            child.material.needsUpdate = true
+          }
+        })
+        group.add(bench)
+        addShadow(0, bz, 2.4, 1.3)
+        obstacles.push({ type: 'box', minX: -0.95, maxX: 0.95, minZ: bz - 0.42, maxZ: bz + 0.42 })
+      }
+    },
+    undefined,
+    () => { /* sin bancas si falla el modelo */ }
+  )
 
   // ---------- modo "luces apagadas" ----------
   function setDark(dark) {

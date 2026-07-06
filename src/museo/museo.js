@@ -83,6 +83,7 @@ const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0
 // ============================================================
 let sala = null
 async function enterSala() {
+  try {
   sala = await buildSalaConexiones(
     {
       artworks: OBRAS,
@@ -94,6 +95,11 @@ async function enterSala() {
   )
   engine.setRoom(sala)
   applyLights()
+  } catch (e) {
+    console.error("Error construyendo la sala:", e)
+    roomNameEl.textContent = "Error al cargar — recarga la página"
+    return
+  }
   roomNameEl.textContent = COLLECTION.name
   artworkCounterEl.textContent = `${OBRAS.length} obras`
 }

@@ -111,6 +111,7 @@ async function enterSala(id) {
   hidePaintingPanel()
   hideTourControls()
   const cfg = SALAS[id]
+  try {
   sala = await buildSalaPremium(
     {
       artworks: cfg.artworks,
@@ -130,6 +131,11 @@ async function enterSala(id) {
   )
   engine.setRoom(sala)
   applyLights()
+  } catch (e) {
+    console.error("Error construyendo la sala:", e)
+    roomNameEl.textContent = "Error al cargar — recarga la página"
+    return
+  }
   roomNameEl.textContent = cfg.name
   artworkCounterEl.textContent = `${cfg.artworks.length} obras`
 }
