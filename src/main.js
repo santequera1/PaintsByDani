@@ -379,12 +379,31 @@ playBtn.addEventListener('click', () => {
 })
 if (howtoStart) howtoStart.addEventListener('click', enterMuseum)
 
+
+// Gestos animados al aparecer en la sala (solo móvil): se ocultan al primer
+// toque o a los 8 segundos — para quien no lee las instrucciones.
+const gestureHints = document.getElementById('gesture-hints')
+function showGestureHints() {
+  if (!gestureHints || !isMobile) return
+  gestureHints.classList.add('show')
+  let hideTimer = setTimeout(hideGestureHints, 8000)
+  function hideGestureHints() {
+    clearTimeout(hideTimer)
+    gestureHints.classList.remove('show')
+    canvas.removeEventListener('touchstart', hideGestureHints)
+    joystickZone.removeEventListener('touchstart', hideGestureHints)
+  }
+  canvas.addEventListener('touchstart', hideGestureHints, { passive: true })
+  joystickZone.addEventListener('touchstart', hideGestureHints, { passive: true })
+}
+
 function enterMuseum() {
   if (howto) howto.classList.add('hidden')
   museumEntered = true
   hud.classList.remove('hidden')
   if (isMobile) mobileControls.classList.remove('hidden')
   if (!isMobile) { try { engine.requestLock() } catch {} }
+  showGestureHints()
 }
 
 document.addEventListener('pointerlockchange', () => {
