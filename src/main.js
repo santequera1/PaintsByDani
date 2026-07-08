@@ -367,16 +367,25 @@ engine.onCrosshairChange = (state) => {
 // ============================================================
 // Overlay / inicio
 // ============================================================
+// "Entrar" muestra primero las instrucciones; "¡Listo, entrar!" arranca
+const howto = document.getElementById('howto')
+const howtoStart = document.getElementById('howto-start')
+
 playBtn.addEventListener('click', () => {
-  museumEntered = true
   overlay.classList.add('fade-out')
+  setTimeout(() => { overlay.style.display = 'none' }, 600)
+  if (howto) howto.classList.remove('hidden')
+  else enterMuseum()
+})
+if (howtoStart) howtoStart.addEventListener('click', enterMuseum)
+
+function enterMuseum() {
+  if (howto) howto.classList.add('hidden')
+  museumEntered = true
   hud.classList.remove('hidden')
   if (isMobile) mobileControls.classList.remove('hidden')
-  setTimeout(() => {
-    overlay.style.display = 'none'
-    if (!isMobile) { try { engine.requestLock() } catch {} }
-  }, 600)
-})
+  if (!isMobile) { try { engine.requestLock() } catch {} }
+}
 
 document.addEventListener('pointerlockchange', () => {
   if (isMobile) return

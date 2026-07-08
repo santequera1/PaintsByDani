@@ -164,7 +164,7 @@ body.museo-3d #panel-image {
   /* usabilidad móvil: controles de navegación abajo (zona del pulgar)
      y el panel de obra un poco más arriba para dejarles sitio */
   body.museo-3d #tour-controls { top: auto; bottom: 16px; }
-  body.museo-3d #painting-panel { bottom: 88px; }
+  body.museo-3d #painting-panel { bottom: 100px; }
 
   /* bien separado del botón de interactuar */
   #lights-btn { top: auto; bottom: 190px; right: 14px; }
@@ -179,6 +179,103 @@ body.museo-3d #panel-image {
 }
 
 /* (los botones del overlay se unifican arriba) */
+
+/* --- Instrucciones antes de entrar --- */
+#howto {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(8, 7, 6, 0.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+#howto.hidden { display: none; }
+.howto-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 26px 24px 22px;
+  background: rgba(22, 20, 18, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 18px;
+  color: #f0ece4;
+  box-shadow: 0 30px 70px -25px rgba(0, 0, 0, 0.8);
+  animation: howtoIn 0.5s cubic-bezier(.2,.8,.2,1);
+}
+@keyframes howtoIn {
+  from { opacity: 0; transform: translateY(16px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+.howto-card h2 {
+  margin: 0 0 20px;
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+.howto-step {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 15px;
+}
+.howto-ico {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #f0ece4;
+}
+.howto-keys { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; }
+.howto-step p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: #cfc9be;
+}
+.howto-step p strong { color: #f0ece4; }
+.howto-extra {
+  margin: 4px 0 0;
+  text-align: center;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: #8d857a;
+}
+#howto-start {
+  display: block;
+  width: 100%;
+  margin-top: 18px;
+  padding: 14px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #211e1a;
+  background: #f0ece4;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.2s ease;
+}
+#howto-start:hover { background: #fff; }
+#howto-start:active { transform: scale(0.98); }
+
+/* pasos según dispositivo */
+.howto-desktop { display: none; }
+.howto-mobile { display: block; }
+@media (hover: hover) and (pointer: fine) {
+  .howto-desktop { display: block; }
+  .howto-mobile { display: none; }
+}
 
 /* Pill para detener el recorrido */
 #tour-auto-stop {
