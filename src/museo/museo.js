@@ -368,8 +368,15 @@ const howtoStart = document.getElementById('howto-start')
 playBtn.addEventListener('click', () => {
   overlay.classList.add('fade-out')
   setTimeout(() => { overlay.style.display = 'none' }, 600)
-  if (howto) howto.classList.remove('hidden')
-  else enterMuseum()
+  // las instrucciones se muestran máximo 2 veces por dispositivo
+  let seen = 0
+  try { seen = parseInt(localStorage.getItem('howto-count') || '0', 10) } catch {}
+  if (howto && seen < 2) {
+    try { localStorage.setItem('howto-count', String(seen + 1)) } catch {}
+    howto.classList.remove('hidden')
+  } else {
+    enterMuseum()
+  }
 })
 if (howtoStart) howtoStart.addEventListener('click', enterMuseum)
 
