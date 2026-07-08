@@ -12,6 +12,10 @@ fs.mkdirSync(DATA_DIR, { recursive: true })
 
 let data = { total: 0, paginas: {}, dias: {} }
 try { data = JSON.parse(fs.readFileSync(FILE, 'utf8')) } catch {}
+// migración: días como número → desglose por página
+for (const d of Object.keys(data.dias || {})) {
+  if (typeof data.dias[d] === 'number') data.dias[d] = { otros: data.dias[d] }
+}
 
 let dirty = false
 setInterval(() => {
@@ -28,7 +32,8 @@ const server = http.createServer((req, res) => {
     data.total += 1
     data.paginas[p] = (data.paginas[p] || 0) + 1
     const dia = new Date().toISOString().slice(0, 10)
-    data.dias[dia] = (data.dias[dia] || 0) + 1
+    if (!data.dias[dia] || typeof data.dias[dia] === 'number') data.dias[dia] = {}
+    data.dias[dia][p] = (data.dias[dia][p] || 0) + 1
     dirty = true
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' })
     res.end(JSON.stringify({ ok: true, total: data.total }))

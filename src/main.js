@@ -550,3 +550,17 @@ if (isMobile) {
 // ============================================================
 enterSala('sala1')
 contarVisita('museo-danni')
+
+// contador de visitas visible en el HUD (tras registrar la propia)
+const visitsHud = document.getElementById('visits-hud')
+if (visitsHud) {
+  setTimeout(() => {
+    fetch('/api/visitas')
+      .then((r) => r.json())
+      .then((d) => {
+        const n = (d.paginas && d.paginas['museo-danni']) || 0
+        if (n > 0) visitsHud.textContent = n.toLocaleString('es-CO') + (n === 1 ? ' visita' : ' visitas')
+      })
+      .catch(() => {})
+  }, 900)
+}

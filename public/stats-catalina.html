@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Visitas · Museo Virtual</title>
+  <title>Visitas · Catalina Olivero</title>
   <meta name="robots" content="noindex" />
   <style>
     * { box-sizing: border-box; }
@@ -31,17 +31,17 @@
 </head>
 <body>
   <div class="card">
-    <h1>Museo Virtual · Todas las visitas</h1>
+    <h1>Catalina Olivero · Visitas</h1>
     <p class="total" id="total">…</p>
     <p class="sub">visitas (una por pestaña y página)</p>
     <h2>Por página</h2>
     <table id="paginas"></table>
     <h2>Últimos días</h2>
     <table id="dias"></table>
-    <div class="links"><a href="/stats-danni.html">Ver solo Danní &rarr;</a><a href="/stats-catalina.html">Ver solo Catalina &rarr;</a></div>
+    <div class="links"><a href="/stats.html">&larr; Todas</a><a href="/stats-danni.html">Danní &rarr;</a></div>
   </div>
   <script>
-    const FILTRO = null // null = todas
+    const FILTRO = ['rumiaciones','conexiones','museo-conexiones'] // null = todas
     const NOMBRES = {
       'museo-danni': 'Museo 3D · Danní',
       'galeria-danni': 'Galería · Danní',

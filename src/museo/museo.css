@@ -131,6 +131,17 @@ body.museo-3d #panel-image {
   body.museo-3d #panel-image { height: 260px; }
 }
 
+/* Contador de visitas en el HUD (bajo el nombre de la sala) */
+#visits-hud {
+  position: absolute;
+  top: 48px;
+  left: 20px;
+  font-size: 0.66rem;
+  font-weight: 300;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.28);
+}
+
 /* Interruptor de luces */
 #lights-btn {
   pointer-events: auto; /* el HUD tiene pointer-events:none; el botón debe recibir toques */
