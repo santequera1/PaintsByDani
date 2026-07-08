@@ -2,9 +2,9 @@
 // Corre con pm2 en el VPS: pm2 start server/contador.js --name museo-contador
 // nginx proxya /api/ → 127.0.0.1:3999
 // Datos en ~/apps/museo-stats/counts.json (fuera del repo: sobrevive deploys)
-const http = require('http')
-const fs = require('fs')
-const path = require('path')
+import http from 'node:http'
+import fs from 'node:fs'
+import path from 'node:path'
 
 const DATA_DIR = process.env.CONTADOR_DIR || path.join(process.env.HOME || '/home/ubuntu', 'apps', 'museo-stats')
 const FILE = path.join(DATA_DIR, 'counts.json')
