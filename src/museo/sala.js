@@ -427,7 +427,8 @@ export async function buildSalaPremium(config, renderer) {
 
     const fw = 0.06, fd = 0.05, mw = 0.11
 
-    const imgMat = new THREE.MeshBasicMaterial({ color: 0x4a4a4a })
+    // toneMapped:false → la obra conserva los colores exactos de la foto
+    const imgMat = new THREE.MeshBasicMaterial({ color: 0x4a4a4a, toneMapped: false })
     const imgMesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), imgMat)
     imgMesh.position.z = fd / 2 - 0.002
     imgMesh.userData.artwork = p.art

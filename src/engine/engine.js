@@ -30,7 +30,7 @@ export function createEngine(canvas) {
   composer.addPass(new RenderPass(scene, camera))
   const bloom = new UnrealBloomPass(
     new THREE.Vector2(window.innerWidth, window.innerHeight),
-    0.1, 0.4, 0.92
+    0.05, 0.3, 0.985
   )
   composer.addPass(bloom)
   composer.addPass(new OutputPass())
