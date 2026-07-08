@@ -1,4 +1,5 @@
 import { createEngine } from '../engine/engine.js'
+import { contarVisita } from '../misc/visitas.js'
 import * as THREE from 'three'
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 import { buildSalaConexiones } from './sala.js'
@@ -546,3 +547,4 @@ if (isMobile) {
 // Init
 // ============================================================
 enterSala()
+contarVisita('museo-conexiones')

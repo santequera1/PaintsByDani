@@ -1,4 +1,5 @@
 import { initGallery } from './gallery.js'
+import { contarVisita } from '../misc/visitas.js'
 import { initFlipbook } from './flipbook.js'
 import { ARTWORKS, ARTIST } from '../data/artworks.js'
 
@@ -24,3 +25,4 @@ initFlipbook({
   imgBase: 'posts',
   pdfUrl: null,
 })
+contarVisita('galeria-danni')

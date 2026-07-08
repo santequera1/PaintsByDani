@@ -1,4 +1,5 @@
 import { initGallery } from './gallery.js'
+import { contarVisita } from '../misc/visitas.js'
 import { initFlipbook } from './flipbook.js'
 import { ARTWORKS, ARTIST, COLLECTION } from '../data/conexiones.js'
 
@@ -25,3 +26,4 @@ initFlipbook({
   pdfUrl: COLLECTION.pdfUrl,
   logo: '/cat-logo-negro.svg',
 })
+contarVisita('conexiones')
