@@ -1,8 +1,4 @@
 import * as THREE from 'three'
-import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js'
-import { RenderPass } from 'three/addons/postprocessing/RenderPass.js'
-import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
-import { OutputPass } from 'three/addons/postprocessing/OutputPass.js'
 import { clamp, smoothDamp } from '../misc/helper.js'
 
 export function createEngine(canvas) {
@@ -25,15 +21,8 @@ export function createEngine(canvas) {
   camera.rotation.order = 'YXZ'
   scene.add(camera)
 
-  // --- Post-processing ---
-  const composer = new EffectComposer(renderer)
-  composer.addPass(new RenderPass(scene, camera))
-  const bloom = new UnrealBloomPass(
-    new THREE.Vector2(window.innerWidth, window.innerHeight),
-    0.05, 0.3, 0.985
-  )
-  composer.addPass(bloom)
-  composer.addPass(new OutputPass())
+  // Render directo (sin post-procesado): el tone mapping se aplica por
+  // material, así las obras con toneMapped:false conservan su color exacto.
 
   // --- Raycaster ---
   const raycaster = new THREE.Raycaster()
@@ -429,7 +418,6 @@ export function createEngine(canvas) {
     const w = canvas.clientWidth, h = canvas.clientHeight
     if (canvas.width !== w || canvas.height !== h) {
       renderer.setSize(w, h, false)
-      composer.setSize(w, h)
       camera.aspect = w / h
       camera.updateProjectionMatrix()
     }
@@ -454,7 +442,7 @@ export function createEngine(canvas) {
       if (onCrosshairChange) onCrosshairChange(newState)
     }
 
-    composer.render()
+    renderer.render(scene, camera)
   }
 
   // --- Room management ---
