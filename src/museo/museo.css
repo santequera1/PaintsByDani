@@ -161,6 +161,11 @@ body.museo-3d #panel-image {
   border-color: rgba(255, 255, 255, 0.4);
 }
 @media (max-width: 640px) {
+  /* usabilidad móvil: controles de navegación abajo (zona del pulgar)
+     y el panel de obra un poco más arriba para dejarles sitio */
+  body.museo-3d #tour-controls { top: auto; bottom: 16px; }
+  body.museo-3d #painting-panel { bottom: 88px; }
+
   /* bien separado del botón de interactuar */
   #lights-btn { top: auto; bottom: 190px; right: 14px; }
 
