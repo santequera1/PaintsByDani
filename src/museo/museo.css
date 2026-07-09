@@ -112,6 +112,23 @@ body.museo-3d #panel-image {
   background: #0c0b0a;
 }
 
+/* Zoom dentro del panel de obra (rueda / pinch / arrastre / doble toque).
+   El contenedor recorta la imagen escalada para no tapar la ficha. */
+body.museo-3d #panel-zoom {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  overflow: hidden;
+  touch-action: none;
+  cursor: zoom-in;
+}
+body.museo-3d #panel-zoom.zoomed { cursor: grab; }
+body.museo-3d #panel-zoom #panel-image {
+  display: block;
+  transform-origin: center;
+  will-change: transform;
+}
+
 /* Fondo difuminado tras el panel de obra — SOLO móvil: en desktop la obra
    grande es la del 3D y no debe difuminarse */
 #panel-scrim { display: none; }
@@ -167,6 +184,32 @@ body.museo-3d #panel-image {
 }
 #lights-btn:hover { background: rgba(18, 16, 14, 0.8); }
 #lights-btn.off {
+  background: rgba(240, 236, 228, 0.88);
+  color: #211e1a;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Botón de giroscopio (solo aparece en táctil con sensor) */
+#gyro-btn {
+  pointer-events: auto;
+  position: fixed;
+  right: 14px;
+  bottom: 248px;
+  z-index: 20;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  color: #f0ece4;
+  background: rgba(18, 16, 14, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 50%;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  transition: background 0.2s ease, color 0.2s ease;
+}
+#gyro-btn[hidden] { display: none; }
+#gyro-btn.on {
   background: rgba(240, 236, 228, 0.88);
   color: #211e1a;
   border-color: rgba(255, 255, 255, 0.4);

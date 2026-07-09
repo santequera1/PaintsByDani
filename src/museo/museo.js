@@ -3,6 +3,7 @@ import { contarVisita } from '../misc/visitas.js'
 import * as THREE from 'three'
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 import { buildSalaConexiones } from './sala.js'
+import { initPanelZoom, initGyroLook, revealSala } from './usabilidad.js'
 import { initFlipbook } from '../playground/flipbook.js'
 import { ARTWORKS, ARTIST, COLLECTION } from '../data/conexiones.js'
 import '../style.css'
@@ -45,6 +46,11 @@ const joystickZone = document.getElementById('joystick-zone')
 const joystickBase = document.getElementById('joystick-base')
 const joystickThumb = document.getElementById('joystick-thumb')
 const mobileInteract = document.getElementById('mobile-interact')
+const roomTransition = document.getElementById('room-transition')
+
+// Zoom en la imagen del panel + mirar con giroscopio (móvil)
+const panelZoom = initPanelZoom(panelImage)
+initGyroLook(document.getElementById('gyro-btn'))
 
 // --- Engine + environment (reflejos premium en piso/marcos) ---
 const engine = createEngine(canvas)
@@ -102,7 +108,16 @@ async function enterSala() {
     return
   }
   roomNameEl.textContent = COLLECTION.name
-  artworkCounterEl.textContent = `${OBRAS.length} obras`
+  updateArtworkCounter()
+}
+
+// --- Obras vistas: "5 de 8 vistas" para incentivar completar la sala ---
+const seenObras = new Set()
+function updateArtworkCounter() {
+  const seen = OBRAS.filter((a) => seenObras.has(a.id)).length
+  artworkCounterEl.textContent = seen > 0
+    ? `${seen} de ${OBRAS.length} obras vistas`
+    : `${OBRAS.length} obras`
 }
 
 // ============================================================
@@ -187,6 +202,7 @@ function startTour() {
   museumEntered = true
   overlay.classList.add('fade-out')
   setTimeout(() => { overlay.style.display = 'none' }, 600)
+  revealSala(roomTransition)
   hud.classList.remove('hidden')
   if (isMobile) { engine.enableMobile(); mobileControls.classList.remove('hidden') }
   if (tourStopBtn) tourStopBtn.classList.remove('hidden')
@@ -306,6 +322,7 @@ function navigateZoom(delta) {
 }
 
 function showPaintingPanel(artwork) {
+  panelZoom.reset()
   panelTitle.textContent = artwork.title
   panelMedium.textContent = artwork.medium || ''
   panelMedium.style.display = artwork.medium ? '' : 'none'
@@ -320,9 +337,12 @@ function showPaintingPanel(artwork) {
   panelInstagram.href = artwork.instagramUrl || ARTIST.instagramUrl
   paintingPanel.classList.remove('hidden')
   if (panelScrim) panelScrim.classList.remove('hidden')
+  seenObras.add(artwork.id)
+  updateArtworkCounter()
 }
 
 function hidePaintingPanel() {
+  panelZoom.reset()
   paintingPanel.classList.add('hidden')
   if (panelScrim) panelScrim.classList.add('hidden')
 }
@@ -403,6 +423,7 @@ function enterMuseum() {
   if (howto) howto.classList.add('hidden')
   museumEntered = true
   startRoomTone()
+  revealSala(roomTransition) // fade desde negro: disimula la carga de texturas
   hud.classList.remove('hidden')
   if (isMobile) mobileControls.classList.remove('hidden')
   if (!isMobile) { try { engine.requestLock() } catch {} }

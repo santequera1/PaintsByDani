@@ -905,11 +905,20 @@ export function initGallery({ artworks, artist, imgBase = 'posts', scatter = fal
       })
     })
 
-    if (new URLSearchParams(location.search).has('entrar')) {
-      // viene del selector de la otra colección → entrar directo
+    // La portada se muestra máximo 2 veces por dispositivo (como las
+    // instrucciones del museo); después se entra directo al lienzo.
+    // El botón "Colecciones" siempre puede reabrirla.
+    const introKey = 'pg-intro-count:' + location.pathname
+    let introSeen = 0
+    try { introSeen = parseInt(localStorage.getItem(introKey) || '0', 10) } catch {}
+
+    if (new URLSearchParams(location.search).has('entrar') || introSeen >= 2) {
+      // viene del selector de la otra colección, o ya la vio 2 veces → directo
       // (.gone permite que "volver a colecciones" reaparezca con fade)
       intro.classList.add('gone')
       intro.style.display = 'none'
+    } else {
+      try { localStorage.setItem(introKey, String(introSeen + 1)) } catch {}
     }
   }
 

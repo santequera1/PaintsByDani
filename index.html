@@ -51,6 +51,11 @@
         <span>Apagar luces</span>
       </button>
 
+      <!-- Mirar con el giroscopio (solo móvil; JS lo muestra si hay sensor) -->
+      <button id="gyro-btn" hidden title="Mirar moviendo el teléfono">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="3" width="8" height="18" rx="2"/><path d="M4.5 8.5A9 9 0 0 1 8 4.6"/><path d="M19.5 15.5A9 9 0 0 1 16 19.4"/><polyline points="4 4.6 4.5 8.5 8.2 7.6"/><polyline points="20 19.4 19.5 15.5 15.8 16.4"/></svg>
+      </button>
+
       <!-- Control hints (desktop only) -->
       <div id="control-hints" class="desktop-only">
         <div class="hint-group">
@@ -175,7 +180,9 @@
     <!-- Painting Panel (info + image when zoomed) -->
     <div id="painting-panel" class="hidden">
       <div class="panel-content">
-        <img id="panel-image" src="" alt="" />
+        <div id="panel-zoom" title="Rueda / pellizca para acercar">
+          <img id="panel-image" src="" alt="" />
+        </div>
         <div class="panel-info">
           <h2 id="panel-title"></h2>
           <p id="panel-medium"></p>
