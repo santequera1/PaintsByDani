@@ -146,6 +146,49 @@ export function initGyroLook(btn) {
   btn.addEventListener('click', toggle)
 }
 
+// Barra de tiempo del recorrido automático: se llena durante la pausa en
+// cada obra para que se sepa cuándo va a cambiar.
+export function createTourProgress(el) {
+  const bar = el ? el.querySelector('i') : null
+  return {
+    show() { if (el) el.classList.remove('hidden') },
+    hide() {
+      if (!el) return
+      el.classList.add('hidden')
+      if (bar) { bar.style.transition = 'none'; bar.style.transform = 'scaleX(0)' }
+    },
+    restart(ms) {
+      if (!bar) return
+      bar.style.transition = 'none'
+      bar.style.transform = 'scaleX(0)'
+      void bar.offsetWidth
+      bar.style.transition = `transform ${ms}ms linear`
+      bar.style.transform = 'scaleX(1)'
+    },
+  }
+}
+
+// Samsung Internet / iOS bloquean audio.play() fuera de un gesto del usuario.
+// Esto "desbloquea" los audios durante el clic de entrada (play mudo + pausa)
+// para que los pasos suenen después, al caminar.
+export function unlockAudios(list) {
+  let done = false
+  return function unlock() {
+    if (done) return
+    done = true
+    for (const a of list) {
+      a.muted = true
+      const p = a.play()
+      if (p && p.then) {
+        p.then(() => { a.pause(); a.currentTime = 0; a.muted = false })
+          .catch(() => { a.muted = false; done = false })
+      } else {
+        a.pause(); a.currentTime = 0; a.muted = false
+      }
+    }
+  }
+}
+
 export function revealSala(roomTransition) {
   if (!roomTransition) return
   // negro instantáneo → pausa breve (cargan las texturas) → fade de 0.9s

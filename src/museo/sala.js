@@ -308,7 +308,9 @@ export async function buildSalaPremium(config, renderer) {
   const lights = []
 
   // ---------- materiales base ----------
-  const wallMat = new THREE.MeshStandardMaterial({ color: 0xefece5, roughness: 0.94, metalness: 0 })
+  // dithering:true en las superficies grandes: elimina las bandas visibles
+  // en los degradados de luz (muy notorias en pantallas de móvil)
+  const wallMat = new THREE.MeshStandardMaterial({ color: 0xefece5, roughness: 0.94, metalness: 0, dithering: true })
   const floorTex = makeWalnutFloor()
   floorTex.repeat.set(Math.round(W / 2.4), Math.round(L / 2.4))
   const floorMat = new THREE.MeshStandardMaterial({
@@ -317,9 +319,10 @@ export async function buildSalaPremium(config, renderer) {
     roughness: 0.24,
     metalness: 0.0,
     envMapIntensity: 1.15,
+    dithering: true,
   })
-  const ceilMat = new THREE.MeshStandardMaterial({ color: 0xf4f1ea, roughness: 0.96 })
-  const baseMat = new THREE.MeshStandardMaterial({ color: 0x211e1b, roughness: 0.5, metalness: 0.1 })
+  const ceilMat = new THREE.MeshStandardMaterial({ color: 0xf4f1ea, roughness: 0.96, dithering: true })
+  const baseMat = new THREE.MeshStandardMaterial({ color: 0x211e1b, roughness: 0.5, metalness: 0.1, dithering: true })
 
   // ---------- suelo / techo / paredes ----------
   if (reflect) {
@@ -493,7 +496,9 @@ export async function buildSalaPremium(config, renderer) {
     })
 
     const dir = new THREE.Vector3(Math.sin(p.rotY), 0, Math.cos(p.rotY))
-    const spot = new THREE.SpotLight(0xfff2dd, 5.5, 6, 0.4, 0.6, 2)
+    // distance 4.6: ilumina la obra completa pero se apaga antes de llegar
+    // al piso (evita los charcos de luz con bandas)
+    const spot = new THREE.SpotLight(0xfff2dd, 5.5, 4.6, 0.4, 0.6, 2)
     spot.position.set(p.x + dir.x * 1.7, H - 0.25, p.z + dir.z * 1.7)
     spot.target.position.set(p.x, 1.62, p.z)
     lights.push(spot)

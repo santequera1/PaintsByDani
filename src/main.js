@@ -3,7 +3,7 @@ import { contarVisita } from './misc/visitas.js'
 import * as THREE from 'three'
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 import { buildSalaPremium } from './museo/sala.js'
-import { initPanelZoom, initGyroLook, revealSala } from './museo/usabilidad.js'
+import { initPanelZoom, initGyroLook, revealSala, createTourProgress, unlockAudios } from './museo/usabilidad.js'
 import { initFlipbook } from './playground/flipbook.js'
 import { ARTWORKS, ARTIST } from './data/artworks.js'
 import './style.css'
@@ -87,6 +87,9 @@ audioFootsteps.loop = true
 audioFootsteps.volume = 0.35
 const audioDoor = new Audio('/sonidos/abrir-puerta.mp3')
 audioDoor.volume = 0.6
+
+// Samsung/iOS bloquean audio fuera de un gesto → desbloquear al entrar
+const unlockAudio = unlockAudios([audioFootsteps, audioDoor])
 
 function playFootsteps() {
   if (audioFootsteps.paused) {
@@ -303,6 +306,7 @@ document.addEventListener('keydown', (e) => {
 // ============================================================
 const tourBtn = document.getElementById('tour-btn')
 const tourStopBtn = document.getElementById('tour-auto-stop')
+const tourProgress = createTourProgress(document.getElementById('tour-progress'))
 let touring = false
 let tourTimer = null
 const TOUR_DWELL = 5200
@@ -312,6 +316,7 @@ function tourAdvance() {
   const total = engine.paintingMeshes.length
   if (zoomIndex >= total - 1) { stopTour(); return }
   navigateZoom(1)
+  tourProgress.restart(TOUR_DWELL)
   tourTimer = setTimeout(tourAdvance, TOUR_DWELL)
 }
 
@@ -326,6 +331,8 @@ function startTour() {
   hud.classList.remove('hidden')
   if (isMobile) { engine.enableMobile(); mobileControls.classList.remove('hidden') }
   if (tourStopBtn) tourStopBtn.classList.remove('hidden')
+  tourProgress.show()
+  tourProgress.restart(TOUR_DWELL + 800)
   enterZoom(meshes[0].userData.artwork, meshes[0])
   tourTimer = setTimeout(tourAdvance, TOUR_DWELL + 800)
   pushIn()
@@ -336,6 +343,7 @@ function stopTour() {
   touring = false
   clearTimeout(tourTimer)
   if (tourStopBtn) tourStopBtn.classList.add('hidden')
+  tourProgress.hide()
   exitZoom()
   if (!isMobile) {
     setTimeout(() => {
@@ -356,7 +364,7 @@ function pushIn() {
   requestAnimationFrame(pushIn)
 }
 
-if (tourBtn) tourBtn.addEventListener('click', startTour)
+if (tourBtn) tourBtn.addEventListener('click', () => { unlockAudio(); startTour() })
 if (tourStopBtn) tourStopBtn.addEventListener('click', stopTour)
 document.addEventListener('keydown', (e) => {
   if (e.code === 'KeyT' && !touring && museumEntered) startTour()
@@ -393,6 +401,7 @@ const howto = document.getElementById('howto')
 const howtoStart = document.getElementById('howto-start')
 
 playBtn.addEventListener('click', () => {
+  unlockAudio()
   overlay.classList.add('fade-out')
   setTimeout(() => { overlay.style.display = 'none' }, 600)
   // las instrucciones se muestran máximo 2 veces por dispositivo
@@ -407,6 +416,16 @@ playBtn.addEventListener('click', () => {
 })
 if (howtoStart) howtoStart.addEventListener('click', enterMuseum)
 
+// Botón "volver" del HUD (móvil): regresa a la pantalla de inicio, desde
+// donde se puede reentrar, lanzar el recorrido o irse a la galería.
+const backBtn = document.getElementById('back-btn')
+if (backBtn) backBtn.addEventListener('click', () => {
+  stopFootsteps()
+  overlay.style.display = ''
+  overlay.classList.remove('fade-out')
+  hud.classList.add('hidden')
+  if (isMobile) mobileControls.classList.add('hidden')
+})
 
 // Gestos animados al aparecer en la sala (solo móvil): se ocultan al primer
 // toque o a los 8 segundos — para quien no lee las instrucciones.

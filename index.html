@@ -40,6 +40,10 @@
     <!-- HUD (while walking) -->
     <div id="hud" class="hidden">
       <div id="crosshair"></div>
+      <!-- Volver a la pantalla de inicio (móvil: no hay tecla ESC) -->
+      <button id="back-btn" title="Volver al inicio">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      </button>
       <div id="room-name"></div>
       <div id="artwork-counter"></div>
       <div id="visits-hud"></div>
@@ -159,6 +163,8 @@
       <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>
       Detener recorrido
     </button>
+    <!-- Barra de tiempo del recorrido: se llena antes de pasar a la siguiente obra -->
+    <div id="tour-progress" class="hidden"><i></i></div>
 
     <!-- Zoom/Tour Controls (when zoomed into a painting) -->
     <div id="tour-controls" class="hidden">
