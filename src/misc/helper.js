@@ -19,7 +19,8 @@ export function configureArtworkTexture(tex, renderer) {
   tex.minFilter = THREE.LinearMipmapLinearFilter
   tex.magFilter = THREE.LinearFilter
   if (renderer) {
-    tex.anisotropy = renderer.capabilities.getMaxAnisotropy()
+    // 8 basta visualmente; el máximo (16) encarece el sampleo en móviles
+    tex.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 8)
   }
   tex.colorSpace = THREE.SRGBColorSpace
   tex.needsUpdate = true

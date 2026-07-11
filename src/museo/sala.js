@@ -16,6 +16,11 @@ const texLoader = new THREE.TextureLoader()
 const gltfLoader = new GLTFLoader()
 let rectInit = false
 
+// Móvil: textura mediana (820px) en las paredes. Cargar 18 obras a 1600px
+// satura la memoria gráfica de muchos Android (Chrome mata el WebGL y la
+// página queda en blanco). El panel/modal sigue mostrando la grande.
+const LOW_TEX = 'ontouchstart' in window || navigator.maxTouchPoints > 0
+
 const DEFAULT_FONT = 'Helvetica, Arial, sans-serif'
 
 // --- util: aleatorio con semilla (para el piso) ---
@@ -481,7 +486,7 @@ export async function buildSalaPremium(config, renderer) {
     sizeFrame(usedRatio)
 
     const base = p.art.filename.replace(/\.[^.]+$/, '')
-    texLoader.load(`/${imgBase}/full/${encodeURI(base)}.webp`, (tex) => {
+    texLoader.load(`/${imgBase}/${LOW_TEX ? 'thumb' : 'full'}/${encodeURI(base)}.webp`, (tex) => {
       configureArtworkTexture(tex, renderer)
       imgMat.map = tex
       imgMat.color.set(0xffffff)

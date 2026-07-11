@@ -3,8 +3,10 @@ import { clamp, smoothDamp } from '../misc/helper.js'
 
 export function createEngine(canvas) {
   // --- Renderer ---
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false })
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: 'high-performance' })
+  // en táctil, limitar el pixel ratio: menos carga de GPU en teléfonos flojos
+  const touchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, touchDevice ? 1.75 : 2))
   renderer.outputColorSpace = THREE.SRGBColorSpace
   renderer.toneMapping = THREE.ACESFilmicToneMapping
   renderer.toneMappingExposure = 1.2

@@ -9,6 +9,45 @@
 
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v)
 
+// Pantalla de error legible (estilos inline: funciona aunque el CSS falle).
+// Sustituye la "página en blanco" cuando el WebGL muere o la sala no carga.
+export function mostrarErrorFatal(mensaje) {
+  if (document.getElementById('fatal-msg')) return
+  const d = document.createElement('div')
+  d.id = 'fatal-msg'
+  d.style.cssText = 'position:fixed;inset:0;z-index:99998;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;background:#0a0a0c;color:#f0ece4;font-family:Helvetica,Arial,sans-serif;text-align:center;padding:32px'
+  const p = document.createElement('p')
+  p.style.cssText = 'margin:0;font-size:15px;line-height:1.65;max-width:420px;color:#f0ece4'
+  p.textContent = mensaje
+  const b = document.createElement('button')
+  b.textContent = 'Recargar'
+  b.style.cssText = 'padding:12px 36px;font-size:14px;letter-spacing:.08em;text-transform:uppercase;border:1px solid rgba(255,255,255,.4);background:transparent;color:#fff;border-radius:999px;cursor:pointer'
+  b.addEventListener('click', () => location.reload())
+  d.appendChild(p)
+  d.appendChild(b)
+  document.body.appendChild(d)
+}
+
+// Consola visible en pantalla con ?debug en la URL: para diagnosticar
+// errores en teléfonos donde no hay DevTools.
+export function initDebugConsole() {
+  if (!new URLSearchParams(location.search).has('debug')) return
+  const box = document.createElement('div')
+  box.style.cssText = 'position:fixed;left:0;right:0;bottom:0;max-height:45vh;overflow:auto;z-index:99999;background:rgba(0,0,0,.88);color:#7cfc9a;font:11px/1.55 monospace;padding:8px 10px;white-space:pre-wrap;word-break:break-all'
+  box.textContent = '[debug] ' + navigator.userAgent + '\n'
+  document.body.appendChild(box)
+  const log = (m) => { box.textContent += m + '\n'; box.scrollTop = box.scrollHeight }
+  window.addEventListener('error', (e) =>
+    log('[error] ' + (e.message || '?') + ' @ ' + String(e.filename || '').split('/').pop() + ':' + e.lineno))
+  window.addEventListener('unhandledrejection', (e) =>
+    log('[promise] ' + (e.reason && (e.reason.message || e.reason))))
+  const ce = console.error.bind(console)
+  console.error = (...a) => { log('[console.error] ' + a.map(String).join(' ')); ce(...a) }
+  const cw = console.warn.bind(console)
+  console.warn = (...a) => { log('[console.warn] ' + a.map(String).join(' ')); cw(...a) }
+  log('[debug] listo — esperando errores')
+}
+
 export function initPanelZoom(img) {
   const frame = img ? img.parentElement : null
   if (!img || !frame || frame.id !== 'panel-zoom') return { reset() {} }

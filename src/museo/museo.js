@@ -3,7 +3,7 @@ import { contarVisita } from '../misc/visitas.js'
 import * as THREE from 'three'
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 import { buildSalaConexiones } from './sala.js'
-import { initPanelZoom, initGyroLook, revealSala, createTourProgress, unlockAudios } from './usabilidad.js'
+import { initPanelZoom, initGyroLook, revealSala, createTourProgress, unlockAudios, mostrarErrorFatal, initDebugConsole } from './usabilidad.js'
 import { initFlipbook } from '../playground/flipbook.js'
 import { ARTWORKS, ARTIST, COLLECTION } from '../data/conexiones.js'
 import '../style.css'
@@ -53,7 +53,20 @@ const panelZoom = initPanelZoom(panelImage)
 initGyroLook(document.getElementById('gyro-btn'))
 
 // --- Engine + environment (reflejos premium en piso/marcos) ---
-const engine = createEngine(canvas)
+initDebugConsole() // consola en pantalla con ?debug (diagnóstico en móviles)
+
+let engine
+try {
+  engine = createEngine(canvas)
+} catch (e) {
+  mostrarErrorFatal('Tu navegador no pudo iniciar el visor 3D. Prueba a recargar o abre el enlace en otro navegador (Chrome actualizado o Samsung Internet).')
+  throw e
+}
+// si el teléfono se queda sin memoria gráfica, avisar en vez de página blanca
+canvas.addEventListener('webglcontextlost', (e) => {
+  e.preventDefault()
+  mostrarErrorFatal('El dispositivo se quedó sin memoria gráfica. Cierra otras pestañas y recarga.')
+})
 {
   const pmrem = new THREE.PMREMGenerator(engine.renderer)
   engine.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
@@ -108,7 +121,7 @@ async function enterSala() {
   applyLights()
   } catch (e) {
     console.error("Error construyendo la sala:", e)
-    roomNameEl.textContent = "Error al cargar — recarga la página"
+    mostrarErrorFatal('No se pudo cargar la sala. Revisa tu conexión y recarga la página.')
     return
   }
   roomNameEl.textContent = COLLECTION.name
