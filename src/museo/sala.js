@@ -350,7 +350,7 @@ export async function buildSalaPremium(config, renderer) {
   // paleta según estilo (los valores "encendidos"; setDark usa los oscuros)
   // minimal = white cube real: blanco puro, concreto pulido, luz neutra
   const PAL = minimal
-    ? { wall: 0xfaf9f6, ceil: 0xffffff, floor: 0xffffff, floorDark: 0x55555a, base: 0xefeeea, sky: 0xffffff, frame: 0xe9e6df, mat: 0xffffff, spot: 4.2, spotCol: 0xffffff, amb: 0.4, hemi: 0.42, rectI: 1.6, refOp: 0.9 }
+    ? { wall: 0xfaf9f6, ceil: 0xffffff, floor: 0xffffff, floorDark: 0x55555a, base: 0x141416, sky: 0xffffff, frame: 0xe9e6df, mat: 0xffffff, spot: 4.2, spotCol: 0xffffff, amb: 0.4, hemi: 0.42, rectI: 1.6, refOp: 0.9 }
     : { wall: 0xefece5, ceil: 0xf4f1ea, floor: 0xd8c9b4, floorDark: 0x8a7a68, base: 0x211e1b, sky: 0xf5efdd, frame: 0x362b21, mat: 0xffffff, spot: 5.5, spotCol: 0xfff2dd, amb: 0.22, hemi: 0.28, rectI: 1.4, refOp: 0.86 }
 
   if (!rectInit) { RectAreaLightUniformsLib.init(); rectInit = true }
@@ -454,9 +454,13 @@ export async function buildSalaPremium(config, renderer) {
   mkWall(L, halfW - 0.01, 0, -Math.PI / 2)
   mkWall(L, -halfW + 0.01, 0, Math.PI / 2)
 
+  // minimal: "shadow gap" — línea oscura fina y casi a ras entre pared y
+  // piso (como en galerías reales), en vez de zócalo saliente
+  const baseH = minimal ? 0.055 : 0.14
+  const baseD = minimal ? 0.012 : 0.03
   const mkBase = (w, x, z, rotY) => {
-    const b = new THREE.Mesh(new THREE.BoxGeometry(w, 0.14, 0.03), baseMat)
-    b.position.set(x, 0.07, z)
+    const b = new THREE.Mesh(new THREE.BoxGeometry(w, baseH, baseD), baseMat)
+    b.position.set(x, baseH / 2, z)
     b.rotation.y = rotY
     group.add(b)
   }
@@ -481,7 +485,12 @@ export async function buildSalaPremium(config, renderer) {
   skyGlow.rotation.x = Math.PI / 2
   skyGlow.position.y = H - 0.02
   group.add(skyGlow)
-  const skyFrame = new THREE.Mesh(new THREE.BoxGeometry(skyW + 0.24, 0.1, skyL + 0.24), baseMat)
+  // marco del lucernario: material propio (el zócalo minimal es negro
+  // "shadow gap" y aquí teñiría de negro todo el cielo)
+  const skyFrameMat = minimal
+    ? new THREE.MeshStandardMaterial({ color: 0xe9e8e4, roughness: 0.9, dithering: true })
+    : baseMat
+  const skyFrame = new THREE.Mesh(new THREE.BoxGeometry(skyW + 0.24, 0.1, skyL + 0.24), skyFrameMat)
   skyFrame.position.y = H - 0.04
   group.add(skyFrame)
 
@@ -865,6 +874,7 @@ export async function buildSalaPremium(config, renderer) {
     ceilMat.color.set(dark ? 0x18171b : PAL.ceil)
     floorMat.color.set(dark ? PAL.floorDark : PAL.floor)
     baseMat.color.set(dark ? 0x0f0e11 : PAL.base)
+    if (skyFrameMat !== baseMat) skyFrameMat.color.set(dark ? 0x18171b : 0xe9e8e4)
     skyGlowMat.color.set(dark ? 0x2e2b26 : PAL.sky)
     ambient.intensity = dark ? 0.06 : PAL.amb
     hemi.intensity = dark ? 0.08 : PAL.hemi
