@@ -309,7 +309,7 @@ export async function buildSalaPremium(config, renderer) {
   const westN = Math.ceil(sideTotal / 2)
   const eastN = sideTotal - westN
   const W = 15
-  const L = Math.max(20, Math.max(westN, eastN) * 3.35 + 5)
+  const L = Math.max(16, Math.max(westN, eastN) * 3.35 + 5)
   const H = 4.3
   const halfW = W / 2, halfL = L / 2
 
@@ -409,10 +409,14 @@ export async function buildSalaPremium(config, renderer) {
     const m = 2.7
     const span = halfL - m
     if (count === 1) return [0]
+    // separación máxima ~3.6 m: con pocas obras se agrupan hacia el centro
+    // de la pared en vez de quedar regadas de punta a punta
+    const step = Math.min((span * 2) / (count - 1), 3.6)
+    const half = (step * (count - 1)) / 2
     const zs = []
     for (let i = 0; i < count; i++) {
-      const t = i / (count - 1)
-      zs.push(fromSouth ? span - t * span * 2 : -span + t * span * 2)
+      const z = -half + i * step
+      zs.push(fromSouth ? -z : z)
     }
     return zs
   }
@@ -725,12 +729,12 @@ export async function buildSalaPremium(config, renderer) {
 
   // Las bancas se cargan SIN bloquear la sala: si el GLB tarda o se cuelga
   // (webviews de Instagram/Facebook en datos móviles), la sala aparece igual.
-  // En minimal no hay bancas: la sala queda despejada.
-  if (!minimal) gltfLoader.load(
+  // En minimal: una sola banca al centro (pieza de contraste).
+  gltfLoader.load(
     '/models/metal_bench.glb',
     (gltf) => {
       const benchBase = gltf.scene
-      const benchZ = [-L * 0.19, L * 0.19]
+      const benchZ = minimal ? [0] : [-L * 0.19, L * 0.19]
       for (const bz of benchZ) {
         const bench = benchBase.clone()
         bench.scale.set(0.45, 0.5, 0.4)
@@ -738,7 +742,9 @@ export async function buildSalaPremium(config, renderer) {
         bench.rotation.y = Math.PI / 2
         bench.traverse((child) => {
           if (child.isMesh) {
-            child.position.y = 1.21
+            // 0.8 asienta las patas en el piso (con 1.21 quedaba flotando;
+            // se notaba en el piso claro de la sala minimal)
+            child.position.y = 0.8
             child.material = child.material.clone()
             child.material.side = THREE.DoubleSide
             child.material.envMapIntensity = 1.2
@@ -746,7 +752,8 @@ export async function buildSalaPremium(config, renderer) {
           }
         })
         group.add(bench)
-        addShadow(0, bz, 2.4, 1.3)
+        // en el piso claro la sombra grande se veía como un charco: más ceñida
+        addShadow(0, bz, minimal ? 2.0 : 2.4, minimal ? 0.9 : 1.3)
         obstacles.push({ type: 'box', minX: -0.95, maxX: 0.95, minZ: bz - 0.42, maxZ: bz + 0.42 })
       }
     },

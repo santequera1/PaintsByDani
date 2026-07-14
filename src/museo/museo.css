@@ -38,10 +38,11 @@ body.museo-3d #overlay-brand .subtitle {
   margin-right: auto;
 }
 
-/* Los 3 botones del overlay: mismos estilos, todo en mayúsculas */
+/* Los botones del overlay: mismos estilos, todo en mayúsculas */
 body.museo-3d #play-btn,
 body.museo-3d #tour-btn,
-body.museo-3d #gallery-link {
+body.museo-3d #gallery-link,
+body.museo-3d .overlay-link {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -63,7 +64,8 @@ body.museo-3d #gallery-link {
 }
 body.museo-3d #play-btn:hover,
 body.museo-3d #tour-btn:hover,
-body.museo-3d #gallery-link:hover {
+body.museo-3d #gallery-link:hover,
+body.museo-3d .overlay-link:hover {
   color: #fff;
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.5);
