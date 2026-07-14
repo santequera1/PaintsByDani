@@ -81,6 +81,59 @@ function makeWalnutFloor(size = 1024, pale = false) {
   return tex
 }
 
+// --- piso: concreto pulido gris (sala minimal, estilo white cube real) ---
+function makeConcreteFloor(size = 1024) {
+  const rand = seededRand(0x5eedc0de)
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const ctx = canvas.getContext('2d')
+
+  ctx.fillStyle = '#98989b'
+  ctx.fillRect(0, 0, size, size)
+
+  // manchas anchas y suaves (el moteado natural de la losa)
+  for (let i = 0; i < 110; i++) {
+    const x = rand() * size, y = rand() * size
+    const r = size * (0.04 + rand() * 0.18)
+    const l = 56 + (rand() - 0.5) * 18
+    const g = ctx.createRadialGradient(x, y, r * 0.1, x, y, r)
+    g.addColorStop(0, `hsla(228, 3%, ${l}%, ${0.08 + rand() * 0.1})`)
+    g.addColorStop(1, 'hsla(228, 3%, 60%, 0)')
+    ctx.fillStyle = g
+    ctx.beginPath()
+    ctx.arc(x, y, r, 0, Math.PI * 2)
+    ctx.fill()
+  }
+  // poros y granitos
+  for (let i = 0; i < 2600; i++) {
+    const l = 38 + rand() * 36
+    const s = 0.6 + rand() * 1.8
+    ctx.fillStyle = `hsla(228, 4%, ${l}%, ${0.06 + rand() * 0.1})`
+    ctx.fillRect(rand() * size, rand() * size, s, s)
+  }
+  // vetas de llana muy tenues
+  for (let i = 0; i < 26; i++) {
+    ctx.strokeStyle = `hsla(228, 3%, ${52 + rand() * 16}%, ${0.03 + rand() * 0.03})`
+    ctx.lineWidth = 6 + rand() * 26
+    ctx.beginPath()
+    const y0 = rand() * size
+    ctx.moveTo(-40, y0)
+    ctx.bezierCurveTo(
+      size * 0.3, y0 + (rand() - 0.5) * 160,
+      size * 0.7, y0 + (rand() - 0.5) * 160,
+      size + 40, y0 + (rand() - 0.5) * 120
+    )
+    ctx.stroke()
+  }
+
+  const tex = new THREE.CanvasTexture(canvas)
+  tex.colorSpace = THREE.SRGBColorSpace
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping
+  tex.anisotropy = 8
+  return tex
+}
+
 // --- texto envuelto en canvas ---
 function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
   const words = text.split(' ')
@@ -296,9 +349,10 @@ export async function buildSalaPremium(config, renderer) {
   } = config
 
   // paleta según estilo (los valores "encendidos"; setDark usa los oscuros)
+  // minimal = white cube real: blanco puro, concreto pulido, luz neutra
   const PAL = minimal
-    ? { wall: 0xf7f6f3, ceil: 0xfbfaf7, floor: 0xffffff, base: 0xd9d6cf, sky: 0xfbf7ec, frame: 0xe9e6df, mat: 0xffffff, spot: 4.4 }
-    : { wall: 0xefece5, ceil: 0xf4f1ea, floor: 0xd8c9b4, base: 0x211e1b, sky: 0xf5efdd, frame: 0x362b21, mat: 0xffffff, spot: 5.5 }
+    ? { wall: 0xfaf9f6, ceil: 0xffffff, floor: 0xffffff, floorDark: 0x55555a, base: 0xefeeea, sky: 0xffffff, frame: 0xe9e6df, mat: 0xffffff, spot: 4.2, spotCol: 0xffffff, amb: 0.4, hemi: 0.42, rectI: 1.6, refOp: 0.93 }
+    : { wall: 0xefece5, ceil: 0xf4f1ea, floor: 0xd8c9b4, floorDark: 0x8a7a68, base: 0x211e1b, sky: 0xf5efdd, frame: 0x362b21, mat: 0xffffff, spot: 5.5, spotCol: 0xfff2dd, amb: 0.22, hemi: 0.28, rectI: 1.4, refOp: 0.86 }
 
   if (!rectInit) { RectAreaLightUniformsLib.init(); rectInit = true }
 
@@ -323,14 +377,15 @@ export async function buildSalaPremium(config, renderer) {
   // dithering:true en las superficies grandes: elimina las bandas visibles
   // en los degradados de luz (muy notorias en pantallas de móvil)
   const wallMat = new THREE.MeshStandardMaterial({ color: PAL.wall, roughness: 0.94, metalness: 0, dithering: true })
-  const floorTex = makeWalnutFloor(1024, minimal)
-  floorTex.repeat.set(Math.round(W / 2.4), Math.round(L / 2.4))
+  const floorTex = minimal ? makeConcreteFloor() : makeWalnutFloor()
+  if (minimal) floorTex.repeat.set(Math.max(1, Math.round(W / 8)), Math.max(1, Math.round(L / 8)))
+  else floorTex.repeat.set(Math.round(W / 2.4), Math.round(L / 2.4))
   const floorMat = new THREE.MeshStandardMaterial({
     map: floorTex,
     color: PAL.floor,
-    roughness: minimal ? 0.5 : 0.24, // minimal: mate, sin brillo de espejo
+    roughness: minimal ? 0.55 : 0.24, // concreto: mate con leve satinado
     metalness: 0.0,
-    envMapIntensity: minimal ? 0.55 : 1.15,
+    envMapIntensity: minimal ? 0.5 : 1.15,
     dithering: true,
   })
   const ceilMat = new THREE.MeshStandardMaterial({ color: PAL.ceil, roughness: 0.96, dithering: true })
@@ -345,7 +400,7 @@ export async function buildSalaPremium(config, renderer) {
     mirror.position.y = -0.012
     group.add(mirror)
     floorMat.transparent = true
-    floorMat.opacity = 0.86
+    floorMat.opacity = PAL.refOp // minimal: reflejo apenas insinuado (satinado)
   }
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(W + 0.4, L + 0.4), floorMat)
   floor.rotation.x = -Math.PI / 2
@@ -381,9 +436,13 @@ export async function buildSalaPremium(config, renderer) {
   mkBase(L, -halfW + 0.03, 0, Math.PI / 2)
 
   // ---------- iluminación ----------
-  const ambient = new THREE.AmbientLight(0xfff8ee, 0.22)
+  const ambient = new THREE.AmbientLight(minimal ? 0xffffff : 0xfff8ee, PAL.amb)
   group.add(ambient)
-  const hemi = new THREE.HemisphereLight(0xfff6e8, 0x59504a, 0.28)
+  const hemi = new THREE.HemisphereLight(
+    minimal ? 0xffffff : 0xfff6e8,
+    minimal ? 0x9a9aa0 : 0x59504a,
+    PAL.hemi
+  )
   group.add(hemi)
 
   const skyW = 2.6, skyL = L - 7
@@ -396,7 +455,7 @@ export async function buildSalaPremium(config, renderer) {
   skyFrame.position.y = H - 0.04
   group.add(skyFrame)
 
-  const rect = new THREE.RectAreaLight(0xfff6e6, 1.4, skyW, skyL)
+  const rect = new THREE.RectAreaLight(minimal ? 0xffffff : 0xfff6e6, PAL.rectI, skyW, skyL)
   rect.position.set(0, H - 0.06, 0)
   rect.rotation.x = -Math.PI / 2
   group.add(rect)
@@ -518,7 +577,7 @@ export async function buildSalaPremium(config, renderer) {
     const dir = new THREE.Vector3(Math.sin(p.rotY), 0, Math.cos(p.rotY))
     // distance 4.6: ilumina la obra completa pero se apaga antes de llegar
     // al piso (evita los charcos de luz con bandas)
-    const spot = new THREE.SpotLight(0xfff2dd, PAL.spot, 4.6, 0.4, 0.6, 2)
+    const spot = new THREE.SpotLight(PAL.spotCol, PAL.spot, 4.6, 0.4, 0.6, 2)
     spot.position.set(p.x + dir.x * 1.7, H - 0.25, p.z + dir.z * 1.7)
     spot.target.position.set(p.x, 1.62, p.z)
     lights.push(spot)
@@ -544,7 +603,7 @@ export async function buildSalaPremium(config, renderer) {
   titleMesh.position.set(0, 2.75, -halfL + 0.06)
   group.add(titleMesh)
 
-  const titleSpot = new THREE.SpotLight(0xfff2dd, 4, 4.2, 0.5, 0.65, 2)
+  const titleSpot = new THREE.SpotLight(PAL.spotCol, 4, 4.2, 0.5, 0.65, 2)
   titleSpot.position.set(0, H - 0.25, -halfL + 2.4)
   titleSpot.target.position.set(0, 2.6, -halfL)
   lights.push(titleSpot)
@@ -772,12 +831,12 @@ export async function buildSalaPremium(config, renderer) {
   function setDark(dark) {
     wallMat.color.set(dark ? 0x232126 : PAL.wall)
     ceilMat.color.set(dark ? 0x18171b : PAL.ceil)
-    floorMat.color.set(dark ? 0x8a7a68 : PAL.floor)
+    floorMat.color.set(dark ? PAL.floorDark : PAL.floor)
     baseMat.color.set(dark ? 0x0f0e11 : PAL.base)
     skyGlowMat.color.set(dark ? 0x2e2b26 : PAL.sky)
-    ambient.intensity = dark ? 0.06 : 0.22
-    hemi.intensity = dark ? 0.08 : 0.28
-    rect.intensity = dark ? 0.3 : 1.4
+    ambient.intensity = dark ? 0.06 : PAL.amb
+    hemi.intensity = dark ? 0.08 : PAL.hemi
+    rect.intensity = dark ? 0.3 : PAL.rectI
     for (const s of obraSpots) s.intensity = dark ? 7 : PAL.spot
     titleSpot.intensity = dark ? 5 : 4
     if (stSpot) stSpot.intensity = dark ? 4 : 3.2
@@ -790,7 +849,7 @@ export async function buildSalaPremium(config, renderer) {
     matWhite.color.set(dark ? 0x050505 : PAL.mat)
     frameMat.color.set(dark ? 0x141210 : PAL.frame)
     dustMat.opacity = dark ? 0.4 : 0.22
-    if (reflect) floorMat.opacity = dark ? 0.78 : 0.86
+    if (reflect) floorMat.opacity = dark ? 0.78 : PAL.refOp
   }
 
   return {
