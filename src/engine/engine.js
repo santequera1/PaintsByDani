@@ -80,11 +80,25 @@ export function createEngine(canvas) {
   }
 
   // --- Pointer lock ---
+  // Chrome exige ~1.3 s entre salir del lock y volver a pedirlo; si se pide
+  // antes lanza SecurityError (promesa rechazada) y la página queda "muerta".
+  // Capturamos el error y reintentamos una sola vez pasado el cooldown.
+  let relockTimer = null
   function requestLock() {
     if (zoomMode) return
     if (mobileMode) { locked = true; return }
     try {
-      canvas.requestPointerLock()
+      const p = canvas.requestPointerLock()
+      if (p && p.catch) p.catch(() => {
+        clearTimeout(relockTimer)
+        relockTimer = setTimeout(() => {
+          if (locked || zoomMode || mobileMode) return
+          try {
+            const q = canvas.requestPointerLock()
+            if (q && q.catch) q.catch(() => {})
+          } catch {}
+        }, 1400)
+      })
     } catch (e) { /* ignore SecurityError */ }
   }
 
@@ -121,7 +135,12 @@ export function createEngine(canvas) {
   // --- Click (raycast) ---
   canvas.addEventListener('click', () => {
     if (zoomAnimating) return
-    if (!locked && !mobileMode) return
+    if (!locked && !mobileMode) {
+      // red de seguridad: si el lock se perdió (cooldown de Chrome),
+      // un click sobre la escena lo recupera
+      if (!zoomMode) requestLock()
+      return
+    }
     if (zoomMode) return
 
     raycaster.setFromCamera(new THREE.Vector2(0, 0), camera)

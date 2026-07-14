@@ -742,15 +742,22 @@ export async function buildSalaPremium(config, renderer) {
         bench.rotation.y = Math.PI / 2
         bench.traverse((child) => {
           if (child.isMesh) {
-            // 0.8 asienta las patas en el piso (con 1.21 quedaba flotando;
-            // se notaba en el piso claro de la sala minimal)
-            child.position.y = 0.8
+            child.position.y = 1.21
             child.material = child.material.clone()
             child.material.side = THREE.DoubleSide
             child.material.envMapIntensity = 1.2
             child.material.needsUpdate = true
           }
         })
+        // El pivote del GLB está corrido ~0.9 m: centrar la banca en su
+        // posición real (si no, la sombra queda a un lado) y asentar las
+        // patas exactamente en el piso con su caja medida.
+        bench.updateMatrixWorld(true)
+        const bb = new THREE.Box3().setFromObject(bench)
+        const c = bb.getCenter(new THREE.Vector3())
+        bench.position.x -= c.x
+        bench.position.z += bz - c.z
+        bench.position.y -= bb.min.y
         group.add(bench)
         // en el piso claro la sombra grande se veía como un charco: más ceñida
         addShadow(0, bz, minimal ? 2.0 : 2.4, minimal ? 0.9 : 1.3)
