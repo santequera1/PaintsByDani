@@ -416,15 +416,32 @@ export async function buildSalaPremium(config, renderer) {
       floorMat.map = t
       floorMat.needsUpdate = true
     })
-    // estuco con llana en las paredes: un tile cubre toda la altura
-    texLoader.load(`/texturas/pared-rumiaciones-${kind}.webp`, (t) => {
-      t.colorSpace = THREE.SRGBColorSpace
-      t.wrapS = t.wrapT = THREE.MirroredRepeatWrapping
+    // paredes: yeso pintado PBR (Poliigon PlasterPainted 7664, tileable);
+    // cada tile cubre ~2.15 m, relieve y brillo reales solo en desktop
+    const wallTexSetup = (t, srgb) => {
+      if (srgb) t.colorSpace = THREE.SRGBColorSpace
+      t.wrapS = t.wrapT = THREE.RepeatWrapping
       t.anisotropy = 8
-      t.repeat.set(3, 1)
+      t.repeat.set(7, 2)
+    }
+    texLoader.load(`/texturas/pared-rumiaciones-${kind}.webp`, (t) => {
+      wallTexSetup(t, true)
       wallMat.map = t
       wallMat.needsUpdate = true
     })
+    if (!LOW_TEX) {
+      texLoader.load('/texturas/pared-rumiaciones-normal.webp', (t) => {
+        wallTexSetup(t, false)
+        wallMat.normalMap = t
+        wallMat.normalScale = new THREE.Vector2(0.55, 0.55)
+        wallMat.needsUpdate = true
+      })
+      texLoader.load('/texturas/pared-rumiaciones-rough.webp', (t) => {
+        wallTexSetup(t, false)
+        wallMat.roughnessMap = t
+        wallMat.needsUpdate = true
+      })
+    }
     // techo: el mismo estuco de la pared, aún más claro (casi blanco)
     texLoader.load('/texturas/techo-rumiaciones-color.webp', (t) => {
       t.colorSpace = THREE.SRGBColorSpace
