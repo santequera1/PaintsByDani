@@ -389,15 +389,25 @@ export async function buildSalaPremium(config, renderer) {
     dithering: true,
   })
   if (minimal) {
-    // textura fotográfica real del concreto (la procedural queda de respaldo
-    // mientras carga o si falla). MirroredRepeat oculta las costuras.
-    texLoader.load(`/texturas/piso-rumiaciones-${LOW_TEX ? '1k' : '2k'}.webp`, (t) => {
+    // texturas fotográficas reales (las procedurales quedan de respaldo
+    // mientras cargan o si fallan). MirroredRepeat oculta las costuras.
+    const kind = LOW_TEX ? '1k' : '2k'
+    texLoader.load(`/texturas/piso-rumiaciones-${kind}.webp`, (t) => {
       t.colorSpace = THREE.SRGBColorSpace
       t.wrapS = t.wrapT = THREE.MirroredRepeatWrapping
       t.anisotropy = 8
       t.repeat.set(Math.max(1, Math.round(W / 6)), Math.max(1, Math.round(L / 6)))
       floorMat.map = t
       floorMat.needsUpdate = true
+    })
+    // estuco con llana en las paredes: un tile cubre toda la altura
+    texLoader.load(`/texturas/pared-rumiaciones-${kind}.webp`, (t) => {
+      t.colorSpace = THREE.SRGBColorSpace
+      t.wrapS = t.wrapT = THREE.MirroredRepeatWrapping
+      t.anisotropy = 8
+      t.repeat.set(3, 1)
+      wallMat.map = t
+      wallMat.needsUpdate = true
     })
   }
   const ceilMat = new THREE.MeshStandardMaterial({ color: PAL.ceil, roughness: 0.96, dithering: true })
