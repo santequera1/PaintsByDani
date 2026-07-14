@@ -351,7 +351,7 @@ export async function buildSalaPremium(config, renderer) {
   // paleta según estilo (los valores "encendidos"; setDark usa los oscuros)
   // minimal = white cube real: blanco puro, concreto pulido, luz neutra
   const PAL = minimal
-    ? { wall: 0xfaf9f6, ceil: 0xffffff, floor: 0xffffff, floorDark: 0x55555a, base: 0xefeeea, sky: 0xffffff, frame: 0xe9e6df, mat: 0xffffff, spot: 4.2, spotCol: 0xffffff, amb: 0.4, hemi: 0.42, rectI: 1.6, refOp: 0.93 }
+    ? { wall: 0xfaf9f6, ceil: 0xffffff, floor: 0xffffff, floorDark: 0x55555a, base: 0xefeeea, sky: 0xffffff, frame: 0xe9e6df, mat: 0xffffff, spot: 4.2, spotCol: 0xffffff, amb: 0.4, hemi: 0.42, rectI: 1.6, refOp: 0.9 }
     : { wall: 0xefece5, ceil: 0xf4f1ea, floor: 0xd8c9b4, floorDark: 0x8a7a68, base: 0x211e1b, sky: 0xf5efdd, frame: 0x362b21, mat: 0xffffff, spot: 5.5, spotCol: 0xfff2dd, amb: 0.22, hemi: 0.28, rectI: 1.4, refOp: 0.86 }
 
   if (!rectInit) { RectAreaLightUniformsLib.init(); rectInit = true }
@@ -383,11 +383,23 @@ export async function buildSalaPremium(config, renderer) {
   const floorMat = new THREE.MeshStandardMaterial({
     map: floorTex,
     color: PAL.floor,
-    roughness: minimal ? 0.55 : 0.24, // concreto: mate con leve satinado
+    roughness: minimal ? 0.38 : 0.24, // concreto pulido: satinado, refleja la luz
     metalness: 0.0,
-    envMapIntensity: minimal ? 0.5 : 1.15,
+    envMapIntensity: minimal ? 0.85 : 1.15,
     dithering: true,
   })
+  if (minimal) {
+    // textura fotográfica real del concreto (la procedural queda de respaldo
+    // mientras carga o si falla). MirroredRepeat oculta las costuras.
+    texLoader.load(`/texturas/piso-rumiaciones-${LOW_TEX ? '1k' : '2k'}.webp`, (t) => {
+      t.colorSpace = THREE.SRGBColorSpace
+      t.wrapS = t.wrapT = THREE.MirroredRepeatWrapping
+      t.anisotropy = 8
+      t.repeat.set(Math.max(1, Math.round(W / 6)), Math.max(1, Math.round(L / 6)))
+      floorMat.map = t
+      floorMat.needsUpdate = true
+    })
+  }
   const ceilMat = new THREE.MeshStandardMaterial({ color: PAL.ceil, roughness: 0.96, dithering: true })
   const baseMat = new THREE.MeshStandardMaterial({ color: PAL.base, roughness: 0.5, metalness: 0.1, dithering: true })
 

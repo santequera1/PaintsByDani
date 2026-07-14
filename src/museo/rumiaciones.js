@@ -108,7 +108,7 @@ async function enterSala() {
       {
         artworks: OBRAS,
         imgBase: 'cat-posts',
-        reflect: false, // concreto mate como las galerías reales, sin espejo
+        reflect: !isMobile, // concreto pulido: reflejo sutil de luz (solo desktop)
         title: 'Rumiaciones',
         subtitle: 'Catalina Olivero · 2026',
         statement: null,
