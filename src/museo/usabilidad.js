@@ -230,6 +230,8 @@ export function unlockAudios(list) {
 
 export function revealSala(roomTransition) {
   if (!roomTransition) return
+  // accesibilidad: sin fundido si el sistema pide menos movimiento
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
   // negro instantáneo → pausa breve (cargan las texturas) → fade de 0.9s
   roomTransition.style.transition = 'none'
   roomTransition.classList.add('active')
