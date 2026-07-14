@@ -14,6 +14,7 @@ export default defineConfig({
         catalina: resolve(__dirname, 'catalina.html'),
         conexiones: resolve(__dirname, 'conexiones.html'),
         museo: resolve(__dirname, 'museo.html'),
+        museoRumiaciones: resolve(__dirname, 'museo-rumiaciones.html'),
       },
     },
   },

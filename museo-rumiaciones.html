@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <!-- evita que el "oscurecimiento automático" de Chrome Android invierta la página a blanco -->
+  <meta name="color-scheme" content="dark" />
+  <title>Museo Virtual · Rumiaciones | Catalina Olivero</title>
+  <link rel="icon" type="image/jpeg" href="/cat-profile.jpg" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Catalina Olivero" />
+  <meta property="og:title" content="Museo Virtual · Rumiaciones — Catalina Olivero" />
+  <meta property="og:description" content="Camina por Rumiaciones en un museo 3D minimalista: recorrido automático y obras a la venta." />
+  <meta property="og:image" content="https://museo.wailus.co/cat-og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:url" content="https://museo.wailus.co/museo-rumiaciones.html" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://museo.wailus.co/cat-og.png" />
+</head>
+<body class="museo-conexiones museo-3d">
+  <div id="app">
+    <!-- 3D Canvas -->
+    <div id="scene-container">
+      <canvas id="scene"></canvas>
+    </div>
+
+    <!-- Welcome Overlay -->
+    <div id="overlay">
+      <div id="overlay-brand">
+        <img src="/cat-logo-blanco.svg" id="artist-photo" class="artist-logo" alt="Catalina Olivero" />
+        <h1>Rumiaciones</h1>
+        <p class="subtitle">Museo Virtual · 2026</p>
+      </div>
+      <div id="overlay-cta">
+        <button id="play-btn">Entrar al Museo</button>
+        <button id="tour-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21"/></svg>
+          Recorrido automático
+        </button>
+        <a id="gallery-link" href="./catalina.html?entrar">Ver galería en lienzo &rarr;</a>
+        <p class="controls-hint">
+          <span class="desktop-only">WASD / Flechas mover &middot; Mouse mirar &middot; Click interactuar</span>
+          <span class="mobile-only">Usa el joystick para moverte &middot; Toca para interactuar</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- HUD -->
+    <div id="hud" class="hidden">
+      <div id="crosshair"></div>
+      <!-- Volver a la pantalla de inicio (móvil: no hay tecla ESC) -->
+      <button id="back-btn" title="Volver al inicio">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      </button>
+      <div id="room-name"></div>
+      <div id="artwork-counter"></div>
+      <div id="visits-hud"></div>
+      <div id="watermark">@catalinaoliveroart</div>
+
+      <!-- Interruptor de luces (tecla L en escritorio) -->
+      <button id="lights-btn" title="Apagar/encender luces (L)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.4 1 2.3h6c0-.9.4-1.8 1-2.3A7 7 0 0 0 12 2z"/></svg>
+        <span>Apagar luces</span>
+      </button>
+
+      <!-- Mirar con el giroscopio (solo móvil; JS lo muestra si hay sensor) -->
+      <button id="gyro-btn" hidden title="Mirar moviendo el teléfono">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="3" width="8" height="18" rx="2"/><path d="M4.5 8.5A9 9 0 0 1 8 4.6"/><path d="M19.5 15.5A9 9 0 0 1 16 19.4"/><polyline points="4 4.6 4.5 8.5 8.2 7.6"/><polyline points="20 19.4 19.5 15.5 15.8 16.4"/></svg>
+      </button>
+
+      <div id="control-hints" class="desktop-only">
+        <div class="hint-group">
+          <div class="hint-keys">
+            <span class="key">W</span>
+            <div class="key-row">
+              <span class="key">A</span>
+              <span class="key">S</span>
+              <span class="key">D</span>
+            </div>
+          </div>
+          <span class="hint-label">Mover</span>
+        </div>
+        <div class="hint-group">
+          <svg class="hint-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="6" y="2" width="12" height="20" rx="6"/>
+            <line x1="12" y1="7" x2="12" y2="11"/>
+          </svg>
+          <span class="hint-label">Mirar</span>
+        </div>
+        <div class="hint-group">
+          <svg class="hint-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M12 9V2m0 0L9 5m3-3l3 3"/>
+            <path d="M5 14a7 7 0 0014 0"/>
+            <circle cx="12" cy="14" r="3"/>
+          </svg>
+          <span class="hint-label">Click interactuar</span>
+        </div>
+        <div class="hint-group">
+          <span class="key">L</span>
+          <span class="hint-label">Luces</span>
+        </div>
+        <div class="hint-group">
+          <span class="key key-wide">ESC</span>
+          <span class="hint-label">Pausar</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gestos animados al entrar (móvil): joystick + deslizar para mirar -->
+    <div id="gesture-hints">
+      <div class="gh gh-move">
+        <span class="gh-label">Mover</span>
+        <span class="gh-ring"><span class="gh-dot"></span></span>
+      </div>
+      <div class="gh gh-look">
+        <span class="gh-chev gh-chev-l">&#8249;</span>
+        <span class="gh-hand">
+          <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11.5V5.5a1.5 1.5 0 0 1 3 0v5"/><path d="M12 10.5V4.5a1.5 1.5 0 0 1 3 0v6"/><path d="M15 11V6.5a1.5 1.5 0 0 1 3 0v7c0 4-2.5 6.5-6 6.5s-5.5-2-6.5-5L4 12.2a1.4 1.4 0 0 1 2.4-1.4L8 13"/></svg>
+        </span>
+        <span class="gh-chev gh-chev-r">&#8250;</span>
+        <span class="gh-label gh-label-look">Mirar</span>
+      </div>
+    </div>
+
+    <!-- Instrucciones antes de entrar -->
+    <div id="howto" class="hidden">
+      <div class="howto-card">
+        <h2>Cómo se usa</h2>
+
+        <div class="howto-mobile">
+          <div class="howto-step">
+            <span class="howto-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5" fill="currentColor" stroke="none"/></svg></span>
+            <p><strong>Muévete</strong> con el joystick de la esquina inferior izquierda.</p>
+          </div>
+          <div class="howto-step">
+            <span class="howto-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11.5V5.5a1.5 1.5 0 0 1 3 0v5"/><path d="M12 10.5V4.5a1.5 1.5 0 0 1 3 0v6"/><path d="M15 11V6.5a1.5 1.5 0 0 1 3 0v7c0 4-2.5 6.5-6 6.5s-5.5-2-6.5-5L4 12.2a1.4 1.4 0 0 1 2.4-1.4L8 13"/></svg></span>
+            <p><strong>Mira alrededor</strong> arrastrando el dedo por la pantalla (lado derecho).</p>
+          </div>
+          <div class="howto-step">
+            <span class="howto-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg></span>
+            <p><strong>Apunta a una obra</strong> y toca el botón <strong>◎</strong> para verla de cerca.</p>
+          </div>
+        </div>
+
+        <div class="howto-desktop">
+          <div class="howto-step">
+            <span class="howto-ico howto-keys">WASD</span>
+            <p><strong>Muévete</strong> con las teclas WASD o las flechas.</p>
+          </div>
+          <div class="howto-step">
+            <span class="howto-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="2" width="12" height="20" rx="6"/><line x1="12" y1="6" x2="12" y2="10"/></svg></span>
+            <p><strong>Mira alrededor</strong> moviendo el mouse.</p>
+          </div>
+          <div class="howto-step">
+            <span class="howto-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 9l10.5 3.5-4.5 1.5-1.5 4.5z"/><path d="M4 4l3 3"/></svg></span>
+            <p><strong>Haz clic</strong> sobre una obra para verla de cerca.</p>
+          </div>
+          <p class="howto-extra">L · luces &nbsp;&middot;&nbsp; T · recorrido automático &nbsp;&middot;&nbsp; ESC · pausa</p>
+        </div>
+
+        <button id="howto-start">¡Listo, entrar!</button>
+      </div>
+    </div>
+
+    <!-- Detener recorrido automático -->
+    <button id="tour-auto-stop" class="hidden">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>
+      Detener recorrido
+    </button>
+    <!-- Barra de tiempo del recorrido: se llena antes de pasar a la siguiente obra -->
+    <div id="tour-progress" class="hidden"><i></i></div>
+
+    <!-- Zoom/Tour Controls -->
+    <div id="tour-controls" class="hidden">
+      <button id="tour-prev" title="Anterior">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <span id="tour-counter">1 / 7</span>
+      <button id="tour-next" title="Siguiente">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <button id="tour-exit" title="Volver (ESC)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- Fondo difuminado tras el panel de obra -->
+    <div id="panel-scrim" class="hidden"></div>
+
+    <!-- Painting Panel -->
+    <div id="painting-panel" class="hidden">
+      <div class="panel-content">
+        <div id="panel-zoom" title="Rueda / pellizca para acercar">
+          <img id="panel-image" src="" alt="" />
+        </div>
+        <div class="panel-info">
+          <h2 id="panel-title"></h2>
+          <p id="panel-medium"></p>
+          <p id="panel-price"></p>
+          <a id="panel-instagram" href="#" target="_blank" rel="noopener noreferrer">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+            </svg>
+            Ver Instagram
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Room transition fade -->
+    <div id="room-transition"></div>
+
+    <!-- Mobile Virtual Joystick -->
+    <div id="mobile-controls" class="hidden">
+      <div id="joystick-zone">
+        <div id="joystick-base">
+          <div id="joystick-thumb"></div>
+        </div>
+      </div>
+      <button id="mobile-interact" title="Interactuar">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+    </div>
+  </div>
+  <script type="module" src="/src/museo/rumiaciones.js"></script>
+</body>
+</html>

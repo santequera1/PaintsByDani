@@ -34,15 +34,15 @@ function seededRand(seed) {
   }
 }
 
-// --- piso: nogal oscuro pulido ---
-function makeWalnutFloor(size = 1024) {
+// --- piso: nogal oscuro pulido (o roble claro si pale=true) ---
+function makeWalnutFloor(size = 1024, pale = false) {
   const rand = seededRand(0xc0ffee)
   const canvas = document.createElement('canvas')
   canvas.width = size
   canvas.height = size
   const ctx = canvas.getContext('2d')
 
-  ctx.fillStyle = '#241812'
+  ctx.fillStyle = pale ? '#cfc8bc' : '#241812'
   ctx.fillRect(0, 0, size, size)
 
   const plankW = Math.floor(size * 0.11)
@@ -50,9 +50,9 @@ function makeWalnutFloor(size = 1024) {
   let x = 0
   while (x < size) {
     const pw = plankW + Math.floor((rand() - 0.5) * plankW * 0.25)
-    const hue = 20 + rand() * 8
-    const sat = 26 + rand() * 10
-    const light = 11 + rand() * 7
+    const hue = pale ? 36 + rand() * 6 : 20 + rand() * 8
+    const sat = pale ? 16 + rand() * 8 : 26 + rand() * 10
+    const light = pale ? 64 + rand() * 7 : 11 + rand() * 7
     ctx.fillStyle = `hsl(${hue}, ${sat}%, ${light}%)`
     ctx.fillRect(x, 0, pw - gap, size)
 
@@ -200,35 +200,36 @@ function makeStatementVinyl(heading, paragraphs, credit, lightText, font = DEFAU
 }
 
 // --- placa: título / técnica / precio (precio opcional) ---
-function makePlaque(title, medium, price, font = DEFAULT_FONT) {
+// light=true → etiqueta clara estilo galería white-cube (sala minimal)
+function makePlaque(title, medium, price, font = DEFAULT_FONT, light = false) {
   const canvas = document.createElement('canvas')
   canvas.width = 1024
   canvas.height = 340
   const ctx = canvas.getContext('2d')
 
-  ctx.fillStyle = '#171614'
+  ctx.fillStyle = light ? '#f8f6f1' : '#171614'
   ctx.fillRect(0, 0, 1024, 340)
-  ctx.strokeStyle = '#7c6f5c'
+  ctx.strokeStyle = light ? '#c9c2b3' : '#7c6f5c'
   ctx.lineWidth = 3
   ctx.strokeRect(5, 5, 1014, 330)
 
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  ctx.fillStyle = '#f0ece4'
+  ctx.fillStyle = light ? '#26221d' : '#f0ece4'
   ctx.font = `700 46px ${font}`
   let t = title || ''
   while (ctx.measureText(t).width > 920 && t.length > 3) t = t.slice(0, -4) + '…'
   ctx.fillText(t, 512, medium || price ? 84 : 170)
 
   if (medium) {
-    ctx.fillStyle = '#a29a8a'
+    ctx.fillStyle = light ? '#6d6459' : '#a29a8a'
     ctx.font = `italic 400 32px ${font}`
     let m = medium
     while (ctx.measureText(m).width > 940 && m.length > 3) m = m.slice(0, -4) + '…'
     ctx.fillText(m, 512, price ? 168 : 190)
   }
   if (price) {
-    ctx.fillStyle = price === 'Vendido' ? '#8d857a' : '#d98a6a'
+    ctx.fillStyle = price === 'Vendido' ? '#8d857a' : (light ? '#b4452f' : '#d98a6a')
     ctx.font = `${price === 'Vendido' ? 'italic 400' : '700'} 34px ${font}`
     ctx.fillText(price, 512, 248)
   }
@@ -291,7 +292,13 @@ export async function buildSalaPremium(config, renderer) {
     vitrina = null,          // { title, sub } → pedestal clickeable (target 'catalogo')
     doors = [],              // [{ x, target, label }] en la pared sur
     spawnX = 0,
+    minimal = false,         // white cube: paredes blancas, marcos finos, sin bancas/polvo
   } = config
+
+  // paleta según estilo (los valores "encendidos"; setDark usa los oscuros)
+  const PAL = minimal
+    ? { wall: 0xf7f6f3, ceil: 0xfbfaf7, floor: 0xffffff, base: 0xd9d6cf, sky: 0xfbf7ec, frame: 0xe9e6df, mat: 0xffffff, spot: 4.4 }
+    : { wall: 0xefece5, ceil: 0xf4f1ea, floor: 0xd8c9b4, base: 0x211e1b, sky: 0xf5efdd, frame: 0x362b21, mat: 0xffffff, spot: 5.5 }
 
   if (!rectInit) { RectAreaLightUniformsLib.init(); rectInit = true }
 
@@ -315,19 +322,19 @@ export async function buildSalaPremium(config, renderer) {
   // ---------- materiales base ----------
   // dithering:true en las superficies grandes: elimina las bandas visibles
   // en los degradados de luz (muy notorias en pantallas de móvil)
-  const wallMat = new THREE.MeshStandardMaterial({ color: 0xefece5, roughness: 0.94, metalness: 0, dithering: true })
-  const floorTex = makeWalnutFloor()
+  const wallMat = new THREE.MeshStandardMaterial({ color: PAL.wall, roughness: 0.94, metalness: 0, dithering: true })
+  const floorTex = makeWalnutFloor(1024, minimal)
   floorTex.repeat.set(Math.round(W / 2.4), Math.round(L / 2.4))
   const floorMat = new THREE.MeshStandardMaterial({
     map: floorTex,
-    color: 0xd8c9b4,
-    roughness: 0.24,
+    color: PAL.floor,
+    roughness: minimal ? 0.5 : 0.24, // minimal: mate, sin brillo de espejo
     metalness: 0.0,
-    envMapIntensity: 1.15,
+    envMapIntensity: minimal ? 0.55 : 1.15,
     dithering: true,
   })
-  const ceilMat = new THREE.MeshStandardMaterial({ color: 0xf4f1ea, roughness: 0.96, dithering: true })
-  const baseMat = new THREE.MeshStandardMaterial({ color: 0x211e1b, roughness: 0.5, metalness: 0.1, dithering: true })
+  const ceilMat = new THREE.MeshStandardMaterial({ color: PAL.ceil, roughness: 0.96, dithering: true })
+  const baseMat = new THREE.MeshStandardMaterial({ color: PAL.base, roughness: 0.5, metalness: 0.1, dithering: true })
 
   // ---------- suelo / techo / paredes ----------
   if (reflect) {
@@ -380,7 +387,7 @@ export async function buildSalaPremium(config, renderer) {
   group.add(hemi)
 
   const skyW = 2.6, skyL = L - 7
-  const skyGlowMat = new THREE.MeshBasicMaterial({ color: 0xf5efdd })
+  const skyGlowMat = new THREE.MeshBasicMaterial({ color: PAL.sky })
   const skyGlow = new THREE.Mesh(new THREE.PlaneGeometry(skyW, skyL), skyGlowMat)
   skyGlow.rotation.x = Math.PI / 2
   skyGlow.position.y = H - 0.02
@@ -422,9 +429,12 @@ export async function buildSalaPremium(config, renderer) {
   }
 
   const frameMat = new THREE.MeshStandardMaterial({
-    color: 0x362b21, roughness: 0.34, metalness: 0.12, envMapIntensity: 0.7,
+    color: PAL.frame,
+    roughness: minimal ? 0.55 : 0.34,
+    metalness: minimal ? 0 : 0.12,
+    envMapIntensity: 0.7,
   })
-  const matWhite = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9 })
+  const matWhite = new THREE.MeshStandardMaterial({ color: PAL.mat, roughness: 0.9 })
   const obraSpots = []
 
   for (const p of layout) {
@@ -433,7 +443,8 @@ export async function buildSalaPremium(config, renderer) {
     fg.position.set(p.x, 1.62, p.z)
     fg.rotation.y = p.rotY
 
-    const fw = 0.06, fd = 0.05, mw = 0.11
+    // minimal: marco fino y paspartú estrecho (estilo white cube)
+    const fw = minimal ? 0.03 : 0.06, fd = minimal ? 0.04 : 0.05, mw = minimal ? 0.06 : 0.11
 
     // toneMapped:false → la obra conserva los colores exactos de la foto
     const imgMat = new THREE.MeshBasicMaterial({ color: 0x4a4a4a, toneMapped: false })
@@ -445,7 +456,7 @@ export async function buildSalaPremium(config, renderer) {
 
     const plaque = new THREE.Mesh(
       new THREE.PlaneGeometry(0.92, 0.3),
-      new THREE.MeshBasicMaterial({ map: makePlaque(p.art.title, p.art.medium, p.art.price, font) })
+      new THREE.MeshBasicMaterial({ map: makePlaque(p.art.title, p.art.medium, p.art.price, font, minimal) })
     )
     fg.add(plaque)
 
@@ -503,7 +514,7 @@ export async function buildSalaPremium(config, renderer) {
     const dir = new THREE.Vector3(Math.sin(p.rotY), 0, Math.cos(p.rotY))
     // distance 4.6: ilumina la obra completa pero se apaga antes de llegar
     // al piso (evita los charcos de luz con bandas)
-    const spot = new THREE.SpotLight(0xfff2dd, 5.5, 4.6, 0.4, 0.6, 2)
+    const spot = new THREE.SpotLight(0xfff2dd, PAL.spot, 4.6, 0.4, 0.6, 2)
     spot.position.set(p.x + dir.x * 1.7, H - 0.25, p.z + dir.z * 1.7)
     spot.target.position.set(p.x, 1.62, p.z)
     lights.push(spot)
@@ -601,8 +612,8 @@ export async function buildSalaPremium(config, renderer) {
     group.add(dg)
   }
 
-  // ---------- polvo flotando ----------
-  const DUST_N = 320
+  // ---------- polvo flotando (no en minimal: aire limpio) ----------
+  const DUST_N = minimal ? 0 : 320
   const dustPos = new Float32Array(DUST_N * 3)
   const dustSpeed = new Float32Array(DUST_N)
   const dustPhase = new Float32Array(DUST_N)
@@ -620,21 +631,23 @@ export async function buildSalaPremium(config, renderer) {
     transparent: true, opacity: 0.22,
     blending: THREE.AdditiveBlending, depthWrite: false,
   })
-  const dust = new THREE.Points(dustGeo, dustMat)
-  dust.frustumCulled = false
-  const dustClock = new THREE.Clock()
-  dust.onBeforeRender = () => {
-    const dt = Math.min(dustClock.getDelta(), 0.1)
-    const t = dustClock.elapsedTime
-    const arr = dustGeo.attributes.position.array
-    for (let i = 0; i < DUST_N; i++) {
-      arr[i * 3 + 1] -= dustSpeed[i] * dt
-      arr[i * 3] += Math.sin(t * 0.4 + dustPhase[i]) * 0.0006
-      if (arr[i * 3 + 1] < 0.15) arr[i * 3 + 1] = H - 0.3
+  if (DUST_N > 0) {
+    const dust = new THREE.Points(dustGeo, dustMat)
+    dust.frustumCulled = false
+    const dustClock = new THREE.Clock()
+    dust.onBeforeRender = () => {
+      const dt = Math.min(dustClock.getDelta(), 0.1)
+      const t = dustClock.elapsedTime
+      const arr = dustGeo.attributes.position.array
+      for (let i = 0; i < DUST_N; i++) {
+        arr[i * 3 + 1] -= dustSpeed[i] * dt
+        arr[i * 3] += Math.sin(t * 0.4 + dustPhase[i]) * 0.0006
+        if (arr[i * 3 + 1] < 0.15) arr[i * 3 + 1] = H - 0.3
+      }
+      dustGeo.attributes.position.needsUpdate = true
     }
-    dustGeo.attributes.position.needsUpdate = true
+    group.add(dust)
   }
-  group.add(dust)
 
   // ---------- vitrina central (opcional) ----------
   if (vitrina) {
@@ -712,7 +725,8 @@ export async function buildSalaPremium(config, renderer) {
 
   // Las bancas se cargan SIN bloquear la sala: si el GLB tarda o se cuelga
   // (webviews de Instagram/Facebook en datos móviles), la sala aparece igual.
-  gltfLoader.load(
+  // En minimal no hay bancas: la sala queda despejada.
+  if (!minimal) gltfLoader.load(
     '/models/metal_bench.glb',
     (gltf) => {
       const benchBase = gltf.scene
@@ -742,15 +756,15 @@ export async function buildSalaPremium(config, renderer) {
 
   // ---------- modo "luces apagadas" ----------
   function setDark(dark) {
-    wallMat.color.set(dark ? 0x232126 : 0xefece5)
-    ceilMat.color.set(dark ? 0x18171b : 0xf4f1ea)
-    floorMat.color.set(dark ? 0x8a7a68 : 0xd8c9b4)
-    baseMat.color.set(dark ? 0x0f0e11 : 0x211e1b)
-    skyGlowMat.color.set(dark ? 0x2e2b26 : 0xf5efdd)
+    wallMat.color.set(dark ? 0x232126 : PAL.wall)
+    ceilMat.color.set(dark ? 0x18171b : PAL.ceil)
+    floorMat.color.set(dark ? 0x8a7a68 : PAL.floor)
+    baseMat.color.set(dark ? 0x0f0e11 : PAL.base)
+    skyGlowMat.color.set(dark ? 0x2e2b26 : PAL.sky)
     ambient.intensity = dark ? 0.06 : 0.22
     hemi.intensity = dark ? 0.08 : 0.28
     rect.intensity = dark ? 0.3 : 1.4
-    for (const s of obraSpots) s.intensity = dark ? 7 : 5.5
+    for (const s of obraSpots) s.intensity = dark ? 7 : PAL.spot
     titleSpot.intensity = dark ? 5 : 4
     if (stSpot) stSpot.intensity = dark ? 4 : 3.2
     titleMat.map = dark ? titleTexDark : titleTexLight
@@ -759,8 +773,8 @@ export async function buildSalaPremium(config, renderer) {
       stMat.map = dark ? stTexDark : stTexLight
       stMat.needsUpdate = true
     }
-    matWhite.color.set(dark ? 0x050505 : 0xffffff)
-    frameMat.color.set(dark ? 0x141210 : 0x362b21)
+    matWhite.color.set(dark ? 0x050505 : PAL.mat)
+    frameMat.color.set(dark ? 0x141210 : PAL.frame)
     dustMat.opacity = dark ? 0.4 : 0.22
     if (reflect) floorMat.opacity = dark ? 0.78 : 0.86
   }
