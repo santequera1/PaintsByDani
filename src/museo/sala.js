@@ -329,6 +329,21 @@ function makeArtShadow() {
   return new THREE.CanvasTexture(c)
 }
 
+// --- halo de luz (radial blanco → transparente, para las lámparas) ---
+function makeGlowTex() {
+  const c = document.createElement('canvas')
+  c.width = 256
+  c.height = 256
+  const ctx = c.getContext('2d')
+  const g = ctx.createRadialGradient(128, 128, 10, 128, 128, 126)
+  g.addColorStop(0, 'rgba(255,255,255,0.9)')
+  g.addColorStop(0.4, 'rgba(255,255,255,0.35)')
+  g.addColorStop(1, 'rgba(255,255,255,0)')
+  ctx.fillStyle = g
+  ctx.fillRect(0, 0, 256, 256)
+  return new THREE.CanvasTexture(c)
+}
+
 // --- sombra de contacto (radial) ---
 function makeContactShadow() {
   const canvas = document.createElement('canvas')
@@ -533,23 +548,34 @@ export async function buildSalaPremium(config, renderer) {
   rect.rotation.x = -Math.PI / 2
   group.add(rect)
 
-  // luces empotradas en el techo (minimal): hileras de paneles luminosos
-  // sobre las obras, como en las galerías de referencia
+  // lámparas de panel LED cuadradas montadas en el techo (minimal):
+  // cuerpo blanco en superficie + difusor luminoso + halo suave
   const cofferGlowMat = new THREE.MeshBasicMaterial({ color: 0xffffff })
+  const lampHaloMat = new THREE.MeshBasicMaterial({
+    map: makeGlowTex(), transparent: true, opacity: 0.35,
+    blending: THREE.AdditiveBlending, depthWrite: false,
+  })
   if (minimal) {
-    const rimMat = new THREE.MeshStandardMaterial({ color: 0xe4e3df, roughness: 0.9, dithering: true })
-    const coffW = 1.5, coffL = 0.85
+    const bodyMat = new THREE.MeshStandardMaterial({ color: 0xf6f6f4, roughness: 0.5, dithering: true })
+    const S = 0.62, D = 0.055 // panel de ~62 cm, sobresale 5.5 cm
     const nz = Math.max(2, Math.round(L / 4.5))
     for (let i = 0; i < nz; i++) {
       const z = -halfL + (i + 0.5) * (L / nz)
       for (const x of [-(halfW - 2.9), halfW - 2.9]) {
-        const glow = new THREE.Mesh(new THREE.PlaneGeometry(coffW, coffL), cofferGlowMat)
-        glow.rotation.x = Math.PI / 2
-        glow.position.set(x, H - 0.02, z)
-        group.add(glow)
-        const rim = new THREE.Mesh(new THREE.BoxGeometry(coffW + 0.16, 0.1, coffL + 0.16), rimMat)
-        rim.position.set(x, H - 0.04, z)
-        group.add(rim)
+        const lamp = new THREE.Group()
+        const body = new THREE.Mesh(new THREE.BoxGeometry(S, D, S), bodyMat)
+        body.position.y = -D / 2
+        lamp.add(body)
+        const diff = new THREE.Mesh(new THREE.PlaneGeometry(S * 0.84, S * 0.84), cofferGlowMat)
+        diff.rotation.x = Math.PI / 2
+        diff.position.y = -D - 0.002
+        lamp.add(diff)
+        const halo = new THREE.Mesh(new THREE.PlaneGeometry(S * 2.6, S * 2.6), lampHaloMat)
+        halo.rotation.x = Math.PI / 2
+        halo.position.y = -D - 0.03
+        lamp.add(halo)
+        lamp.position.set(x, H, z)
+        group.add(lamp)
       }
     }
   }
@@ -957,6 +983,7 @@ export async function buildSalaPremium(config, renderer) {
     // modo claro: sombras bajo las obras; modo oscuro: resplandor de focos
     artShadowMat.opacity = dark ? 0 : 1
     cofferGlowMat.color.set(dark ? 0x2e2b26 : 0xffffff)
+    lampHaloMat.opacity = dark ? 0.08 : 0.35
     titleMat.map = dark ? titleTexDark : titleTexLight
     titleMat.needsUpdate = true
     if (stMat) {
