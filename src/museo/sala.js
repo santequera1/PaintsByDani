@@ -408,33 +408,15 @@ export async function buildSalaPremium(config, renderer) {
       wallMat.map = t
       wallMat.needsUpdate = true
     })
-    // techo: concreto PBR (Concrete034, ambientCG) — ya viene tileable
-    const ceilRep = [Math.max(2, Math.round(W / 4)), Math.max(2, Math.round(L / 4))]
-    const ceilTexSetup = (t, srgb) => {
-      if (srgb) t.colorSpace = THREE.SRGBColorSpace
-      t.wrapS = t.wrapT = THREE.RepeatWrapping
-      t.anisotropy = 8
-      t.repeat.set(ceilRep[0], ceilRep[1])
-    }
+    // techo: el mismo estuco de la pared, aún más claro (casi blanco)
     texLoader.load('/texturas/techo-rumiaciones-color.webp', (t) => {
-      ceilTexSetup(t, true)
+      t.colorSpace = THREE.SRGBColorSpace
+      t.wrapS = t.wrapT = THREE.MirroredRepeatWrapping
+      t.anisotropy = 8
+      t.repeat.set(Math.max(2, Math.round(W / 5)), Math.max(2, Math.round(L / 5)))
       ceilMat.map = t
       ceilMat.needsUpdate = true
     })
-    if (!LOW_TEX) {
-      // relieve y brillo reales solo en desktop (memoria en móviles)
-      texLoader.load('/texturas/techo-rumiaciones-normal.webp', (t) => {
-        ceilTexSetup(t, false)
-        ceilMat.normalMap = t
-        ceilMat.normalScale = new THREE.Vector2(0.6, 0.6)
-        ceilMat.needsUpdate = true
-      })
-      texLoader.load('/texturas/techo-rumiaciones-rough.webp', (t) => {
-        ceilTexSetup(t, false)
-        ceilMat.roughnessMap = t
-        ceilMat.needsUpdate = true
-      })
-    }
   }
   const ceilMat = new THREE.MeshStandardMaterial({ color: PAL.ceil, roughness: 0.96, dithering: true })
   const baseMat = new THREE.MeshStandardMaterial({ color: PAL.base, roughness: 0.5, metalness: 0.1, dithering: true })
