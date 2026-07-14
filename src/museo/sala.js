@@ -153,7 +153,7 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
 }
 
 // --- vinilo del título (fondo transparente) ---
-function makeTitleVinyl(title, subtitle, lightText, font = DEFAULT_FONT) {
+function makeTitleVinyl(title, subtitle, lightText, font = DEFAULT_FONT, spacing = 34) {
   const canvas = document.createElement('canvas')
   canvas.width = 2048
   canvas.height = 640
@@ -165,7 +165,6 @@ function makeTitleVinyl(title, subtitle, lightText, font = DEFAULT_FONT) {
   ctx.textBaseline = 'middle'
   ctx.font = `700 190px ${font}`
   const word = title.toUpperCase()
-  const spacing = 34
   let total = 0
   for (const ch of word) total += ctx.measureText(ch).width + spacing
   total -= spacing
@@ -618,8 +617,10 @@ export async function buildSalaPremium(config, renderer) {
   }
 
   // ---------- vinilo del título (pared norte) ----------
-  const titleTexLight = makeTitleVinyl(title, subtitle, false, font)
-  const titleTexDark = makeTitleVinyl(title, subtitle, true, font)
+  // minimal: tracking normal ("RUMIACIONES", no "R U M I A C I O N E S")
+  const titleTracking = minimal ? 4 : 34
+  const titleTexLight = makeTitleVinyl(title, subtitle, false, font, titleTracking)
+  const titleTexDark = makeTitleVinyl(title, subtitle, true, font, titleTracking)
   const titleMat = new THREE.MeshBasicMaterial({ map: titleTexLight, transparent: true })
   const titleMesh = new THREE.Mesh(new THREE.PlaneGeometry(5.6, 1.75), titleMat)
   titleMesh.position.set(0, 2.75, -halfL + 0.06)
