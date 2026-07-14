@@ -344,6 +344,67 @@ function makeGlowTex() {
   return new THREE.CanvasTexture(c)
 }
 
+// --- oclusión ambiental horneada para paredes (minimal): gradiente hacia
+// el piso, esquinas sombreadas y línea de sombra bajo el techo. Es lo que
+// separa una pared real de un plano de color. ---
+function makeWallAO() {
+  const c = document.createElement('canvas')
+  c.width = 512
+  c.height = 256
+  const ctx = c.getContext('2d')
+  ctx.fillStyle = '#ffffff'
+  ctx.fillRect(0, 0, 512, 256)
+  // más sombra hacia la base de la pared
+  const g = ctx.createLinearGradient(0, 0, 0, 256)
+  g.addColorStop(0, 'rgba(0,0,0,0)')
+  g.addColorStop(0.55, 'rgba(0,0,0,0.05)')
+  g.addColorStop(1, 'rgba(0,0,0,0.16)')
+  ctx.fillStyle = g
+  ctx.fillRect(0, 0, 512, 256)
+  // oclusión en las esquinas de la sala (bordes laterales del plano)
+  let gg = ctx.createLinearGradient(0, 0, 46, 0)
+  gg.addColorStop(0, 'rgba(0,0,0,0.16)')
+  gg.addColorStop(1, 'rgba(0,0,0,0)')
+  ctx.fillStyle = gg
+  ctx.fillRect(0, 0, 46, 256)
+  gg = ctx.createLinearGradient(512, 0, 466, 0)
+  gg.addColorStop(0, 'rgba(0,0,0,0.16)')
+  gg.addColorStop(1, 'rgba(0,0,0,0)')
+  ctx.fillStyle = gg
+  ctx.fillRect(466, 0, 46, 256)
+  // línea de sombra en la unión con el techo
+  const gt = ctx.createLinearGradient(0, 0, 0, 16)
+  gt.addColorStop(0, 'rgba(0,0,0,0.13)')
+  gt.addColorStop(1, 'rgba(0,0,0,0)')
+  ctx.fillStyle = gt
+  ctx.fillRect(0, 0, 512, 16)
+  return new THREE.CanvasTexture(c)
+}
+
+// --- oclusión del techo: bordes y esquinas levemente sombreados ---
+function makeCeilAO() {
+  const c = document.createElement('canvas')
+  c.width = 512
+  c.height = 512
+  const ctx = c.getContext('2d')
+  ctx.fillStyle = '#ffffff'
+  ctx.fillRect(0, 0, 512, 512)
+  const edge = 52
+  const dirs = [
+    [0, 0, edge, 0], [512, 0, 512 - edge, 0],
+    [0, 0, 0, edge], [0, 512, 0, 512 - edge],
+  ]
+  for (const [x0, y0, x1, y1] of dirs) {
+    const g = ctx.createLinearGradient(x0, y0, x1, y1)
+    g.addColorStop(0, 'rgba(0,0,0,0.14)')
+    g.addColorStop(1, 'rgba(0,0,0,0)')
+    ctx.fillStyle = g
+    if (x0 !== x1) ctx.fillRect(Math.min(x0, x1), 0, edge, 512)
+    else ctx.fillRect(0, Math.min(y0, y1), 512, edge)
+  }
+  return new THREE.CanvasTexture(c)
+}
+
 // --- sombra de contacto (radial) ---
 function makeContactShadow() {
   const canvas = document.createElement('canvas')
@@ -408,6 +469,12 @@ export async function buildSalaPremium(config, renderer) {
   // dithering:true en las superficies grandes: elimina las bandas visibles
   // en los degradados de luz (muy notorias en pantallas de móvil)
   const wallMat = new THREE.MeshStandardMaterial({ color: PAL.wall, roughness: 0.94, metalness: 0, dithering: true })
+  if (minimal) {
+    // oclusión horneada: gradientes de luz que hacen creíbles los planos
+    wallMat.aoMap = makeWallAO()
+    wallMat.aoMap.channel = 0
+    wallMat.aoMapIntensity = 1
+  }
   const floorTex = minimal ? makeConcreteFloor() : makeWalnutFloor()
   if (minimal) floorTex.repeat.set(Math.max(1, Math.round(W / 8)), Math.max(1, Math.round(L / 8)))
   else floorTex.repeat.set(Math.round(W / 2.4), Math.round(L / 2.4))
@@ -448,7 +515,7 @@ export async function buildSalaPremium(config, renderer) {
       texLoader.load('/texturas/pared-rumiaciones-normal.webp', (t) => {
         wallTexSetup(t, false)
         wallMat.normalMap = t
-        wallMat.normalScale = new THREE.Vector2(0.55, 0.55)
+        wallMat.normalScale = new THREE.Vector2(0.85, 0.85)
         wallMat.needsUpdate = true
       })
       texLoader.load('/texturas/pared-rumiaciones-rough.webp', (t) => {
@@ -468,6 +535,11 @@ export async function buildSalaPremium(config, renderer) {
     })
   }
   const ceilMat = new THREE.MeshStandardMaterial({ color: PAL.ceil, roughness: 0.96, dithering: true })
+  if (minimal) {
+    ceilMat.aoMap = makeCeilAO()
+    ceilMat.aoMap.channel = 0
+    ceilMat.aoMapIntensity = 1
+  }
   const baseMat = new THREE.MeshStandardMaterial({ color: PAL.base, roughness: 0.5, metalness: 0.1, dithering: true })
 
   // ---------- suelo / techo / paredes ----------
