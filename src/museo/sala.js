@@ -350,7 +350,7 @@ export async function buildSalaPremium(config, renderer) {
   // paleta según estilo (los valores "encendidos"; setDark usa los oscuros)
   // minimal = white cube real: blanco puro, concreto pulido, luz neutra
   const PAL = minimal
-    ? { wall: 0xfaf9f6, ceil: 0xffffff, floor: 0xffffff, floorDark: 0x55555a, base: 0x141416, sky: 0xffffff, frame: 0xe9e6df, mat: 0xffffff, spot: 4.2, spotCol: 0xffffff, amb: 0.4, hemi: 0.42, rectI: 1.6, refOp: 0.9 }
+    ? { wall: 0xffffff, ceil: 0xffffff, floor: 0xffffff, floorDark: 0x55555a, base: 0x141416, sky: 0xffffff, frame: 0xe9e6df, mat: 0xffffff, spot: 4.2, spotCol: 0xffffff, amb: 0.45, hemi: 0.46, rectI: 1.6, refOp: 0.9 }
     : { wall: 0xefece5, ceil: 0xf4f1ea, floor: 0xd8c9b4, floorDark: 0x8a7a68, base: 0x211e1b, sky: 0xf5efdd, frame: 0x362b21, mat: 0xffffff, spot: 5.5, spotCol: 0xfff2dd, amb: 0.22, hemi: 0.28, rectI: 1.4, refOp: 0.86 }
 
   if (!rectInit) { RectAreaLightUniformsLib.init(); rectInit = true }
