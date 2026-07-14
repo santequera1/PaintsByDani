@@ -26,6 +26,12 @@ body.museo-conexiones #overlay-brand .subtitle {
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
+/* Rumiaciones (minimal): título compacto, sin tracking exagerado */
+body.museo-rumiaciones #overlay-brand h1 {
+  letter-spacing: 0.05em;
+  font-size: 1.9rem;
+}
+
 /* Subtítulo del overlay: centrado y discreto */
 body.museo-3d #overlay-brand .subtitle {
   text-align: center;
