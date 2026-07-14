@@ -348,47 +348,90 @@ function makeGlowTex() {
 // el piso, esquinas sombreadas y línea de sombra bajo el techo. Es lo que
 // separa una pared real de un plano de color. ---
 function makeWallAO() {
+  const rand = seededRand(0xfacade)
   const c = document.createElement('canvas')
-  c.width = 512
-  c.height = 256
+  c.width = 1024
+  c.height = 512
   const ctx = c.getContext('2d')
   ctx.fillStyle = '#ffffff'
-  ctx.fillRect(0, 0, 512, 256)
+  ctx.fillRect(0, 0, 1024, 512)
+
+  // manchas anchas de luz desigual: lo que hace "real" una pared pintada
+  // (cubren toda la pared sin repetirse, a diferencia del map)
+  for (let i = 0; i < 26; i++) {
+    const x = rand() * 1024, y = rand() * 512
+    const r = 120 + rand() * 260
+    const a = 0.015 + rand() * 0.035
+    const g = ctx.createRadialGradient(x, y, r * 0.15, x, y, r)
+    g.addColorStop(0, `rgba(0,0,0,${a.toFixed(3)})`)
+    g.addColorStop(1, 'rgba(0,0,0,0)')
+    ctx.fillStyle = g
+    ctx.beginPath()
+    ctx.arc(x, y, r, 0, Math.PI * 2)
+    ctx.fill()
+  }
+  // vetas verticales muy tenues (pasadas de rodillo)
+  for (let i = 0; i < 18; i++) {
+    const x = rand() * 1024
+    const w = 24 + rand() * 60
+    const a = 0.008 + rand() * 0.016
+    const g = ctx.createLinearGradient(x, 0, x + w, 0)
+    g.addColorStop(0, 'rgba(0,0,0,0)')
+    g.addColorStop(0.5, `rgba(0,0,0,${a.toFixed(3)})`)
+    g.addColorStop(1, 'rgba(0,0,0,0)')
+    ctx.fillStyle = g
+    ctx.fillRect(x, 0, w, 512)
+  }
+
   // más sombra hacia la base de la pared
-  const g = ctx.createLinearGradient(0, 0, 0, 256)
+  const g = ctx.createLinearGradient(0, 0, 0, 512)
   g.addColorStop(0, 'rgba(0,0,0,0)')
   g.addColorStop(0.55, 'rgba(0,0,0,0.05)')
   g.addColorStop(1, 'rgba(0,0,0,0.16)')
   ctx.fillStyle = g
-  ctx.fillRect(0, 0, 512, 256)
+  ctx.fillRect(0, 0, 1024, 512)
   // oclusión en las esquinas de la sala (bordes laterales del plano)
-  let gg = ctx.createLinearGradient(0, 0, 46, 0)
+  let gg = ctx.createLinearGradient(0, 0, 92, 0)
   gg.addColorStop(0, 'rgba(0,0,0,0.16)')
   gg.addColorStop(1, 'rgba(0,0,0,0)')
   ctx.fillStyle = gg
-  ctx.fillRect(0, 0, 46, 256)
-  gg = ctx.createLinearGradient(512, 0, 466, 0)
+  ctx.fillRect(0, 0, 92, 512)
+  gg = ctx.createLinearGradient(1024, 0, 932, 0)
   gg.addColorStop(0, 'rgba(0,0,0,0.16)')
   gg.addColorStop(1, 'rgba(0,0,0,0)')
   ctx.fillStyle = gg
-  ctx.fillRect(466, 0, 46, 256)
+  ctx.fillRect(932, 0, 92, 512)
   // línea de sombra en la unión con el techo
-  const gt = ctx.createLinearGradient(0, 0, 0, 16)
+  const gt = ctx.createLinearGradient(0, 0, 0, 32)
   gt.addColorStop(0, 'rgba(0,0,0,0.13)')
   gt.addColorStop(1, 'rgba(0,0,0,0)')
   ctx.fillStyle = gt
-  ctx.fillRect(0, 0, 512, 16)
+  ctx.fillRect(0, 0, 1024, 32)
   return new THREE.CanvasTexture(c)
 }
 
 // --- oclusión del techo: bordes y esquinas levemente sombreados ---
 function makeCeilAO() {
+  const rand = seededRand(0xcafe77)
   const c = document.createElement('canvas')
   c.width = 512
   c.height = 512
   const ctx = c.getContext('2d')
   ctx.fillStyle = '#ffffff'
   ctx.fillRect(0, 0, 512, 512)
+  // luz desigual sutil también en el techo
+  for (let i = 0; i < 14; i++) {
+    const x = rand() * 512, y = rand() * 512
+    const r = 70 + rand() * 150
+    const a = 0.012 + rand() * 0.028
+    const g = ctx.createRadialGradient(x, y, r * 0.15, x, y, r)
+    g.addColorStop(0, `rgba(0,0,0,${a.toFixed(3)})`)
+    g.addColorStop(1, 'rgba(0,0,0,0)')
+    ctx.fillStyle = g
+    ctx.beginPath()
+    ctx.arc(x, y, r, 0, Math.PI * 2)
+    ctx.fill()
+  }
   const edge = 52
   const dirs = [
     [0, 0, edge, 0], [512, 0, 512 - edge, 0],
