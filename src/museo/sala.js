@@ -312,6 +312,23 @@ function makeDoorLabel(label, font = DEFAULT_FONT) {
   return tex
 }
 
+// --- sombra suave de cuadro (solo el halo, el centro queda transparente) ---
+function makeArtShadow() {
+  const c = document.createElement('canvas')
+  c.width = 256
+  c.height = 256
+  const ctx = c.getContext('2d')
+  ctx.shadowColor = 'rgba(0,0,0,0.5)'
+  ctx.shadowBlur = 22
+  ctx.shadowOffsetY = 10
+  ctx.fillStyle = '#000'
+  ctx.fillRect(44, 40, 168, 168)
+  ctx.shadowColor = 'transparent'
+  ctx.globalCompositeOperation = 'destination-out'
+  ctx.fillRect(44, 40, 168, 168)
+  return new THREE.CanvasTexture(c)
+}
+
 // --- sombra de contacto (radial) ---
 function makeContactShadow() {
   const canvas = document.createElement('canvas')
@@ -350,8 +367,8 @@ export async function buildSalaPremium(config, renderer) {
   // paleta según estilo (los valores "encendidos"; setDark usa los oscuros)
   // minimal = white cube real: blanco puro, concreto pulido, luz neutra
   const PAL = minimal
-    ? { wall: 0xffffff, ceil: 0xffffff, floor: 0xffffff, floorDark: 0x55555a, base: 0x141416, sky: 0xffffff, frame: 0xe9e6df, mat: 0xffffff, spot: 4.2, spotCol: 0xffffff, amb: 0.45, hemi: 0.46, rectI: 1.6, refOp: 0.9 }
-    : { wall: 0xefece5, ceil: 0xf4f1ea, floor: 0xd8c9b4, floorDark: 0x8a7a68, base: 0x211e1b, sky: 0xf5efdd, frame: 0x362b21, mat: 0xffffff, spot: 5.5, spotCol: 0xfff2dd, amb: 0.22, hemi: 0.28, rectI: 1.4, refOp: 0.86 }
+    ? { wall: 0xffffff, ceil: 0xffffff, floor: 0xffffff, floorDark: 0x55555a, base: 0x141416, sky: 0xffffff, frame: 0x4a3423, mat: 0xffffff, spot: 1.2, tSpot: 1.4, spotCol: 0xffffff, amb: 0.5, hemi: 0.5, rectI: 1.6, refOp: 0.9 }
+    : { wall: 0xefece5, ceil: 0xf4f1ea, floor: 0xd8c9b4, floorDark: 0x8a7a68, base: 0x211e1b, sky: 0xf5efdd, frame: 0x362b21, mat: 0xffffff, spot: 5.5, tSpot: 4, spotCol: 0xfff2dd, amb: 0.22, hemi: 0.28, rectI: 1.4, refOp: 0.86 }
 
   if (!rectInit) { RectAreaLightUniformsLib.init(); rectInit = true }
 
@@ -499,6 +516,27 @@ export async function buildSalaPremium(config, renderer) {
   rect.rotation.x = -Math.PI / 2
   group.add(rect)
 
+  // luces empotradas en el techo (minimal): hileras de paneles luminosos
+  // sobre las obras, como en las galerías de referencia
+  const cofferGlowMat = new THREE.MeshBasicMaterial({ color: 0xffffff })
+  if (minimal) {
+    const rimMat = new THREE.MeshStandardMaterial({ color: 0xe4e3df, roughness: 0.9, dithering: true })
+    const coffW = 1.5, coffL = 0.85
+    const nz = Math.max(2, Math.round(L / 4.5))
+    for (let i = 0; i < nz; i++) {
+      const z = -halfL + (i + 0.5) * (L / nz)
+      for (const x of [-(halfW - 2.9), halfW - 2.9]) {
+        const glow = new THREE.Mesh(new THREE.PlaneGeometry(coffW, coffL), cofferGlowMat)
+        glow.rotation.x = Math.PI / 2
+        glow.position.set(x, H - 0.02, z)
+        group.add(glow)
+        const rim = new THREE.Mesh(new THREE.BoxGeometry(coffW + 0.16, 0.1, coffL + 0.16), rimMat)
+        rim.position.set(x, H - 0.04, z)
+        group.add(rim)
+      }
+    }
+  }
+
   // ---------- colocación de obras ----------
   // recorrido: oeste (S→N) → norte (izq→der) → este (N→S)
   const layout = []
@@ -537,6 +575,11 @@ export async function buildSalaPremium(config, renderer) {
     envMapIntensity: 0.7,
   })
   const matWhite = new THREE.MeshStandardMaterial({ color: PAL.mat, roughness: 0.9 })
+  // sombra suave tras cada obra (modo claro, como en galerías reales);
+  // en modo oscuro se apaga y mandan los resplandores de los focos
+  const artShadowMat = new THREE.MeshBasicMaterial({
+    map: makeArtShadow(), transparent: true, depthWrite: false, toneMapped: false,
+  })
   const obraSpots = []
 
   for (const p of layout) {
@@ -589,6 +632,18 @@ export async function buildSalaPremium(config, renderer) {
       matMesh.position.z = fd / 2 - 0.006
       matMesh.userData.framePart = true
       fg.add(matMesh)
+
+      if (minimal) {
+        // la sombra ocupa el 65.6% del canvas → escalar el plano para que
+        // el hueco coincida con el marco y el halo quede alrededor
+        const sh = new THREE.Mesh(
+          new THREE.PlaneGeometry(outW / 0.656, outH / 0.656),
+          artShadowMat
+        )
+        sh.position.z = -0.045
+        sh.userData.framePart = true
+        fg.add(sh)
+      }
 
       imgMesh.geometry.dispose()
       imgMesh.geometry = new THREE.PlaneGeometry(iw, ih)
@@ -644,7 +699,7 @@ export async function buildSalaPremium(config, renderer) {
   titleMesh.position.set(0, 2.75, -halfL + 0.06)
   group.add(titleMesh)
 
-  const titleSpot = new THREE.SpotLight(PAL.spotCol, 4, 4.2, 0.5, 0.65, 2)
+  const titleSpot = new THREE.SpotLight(PAL.spotCol, PAL.tSpot, 4.2, 0.5, 0.65, 2)
   titleSpot.position.set(0, H - 0.25, -halfL + 2.4)
   titleSpot.target.position.set(0, 2.6, -halfL)
   lights.push(titleSpot)
@@ -880,8 +935,11 @@ export async function buildSalaPremium(config, renderer) {
     hemi.intensity = dark ? 0.08 : PAL.hemi
     rect.intensity = dark ? 0.3 : PAL.rectI
     for (const s of obraSpots) s.intensity = dark ? 7 : PAL.spot
-    titleSpot.intensity = dark ? 5 : 4
+    titleSpot.intensity = dark ? 5 : PAL.tSpot
     if (stSpot) stSpot.intensity = dark ? 4 : 3.2
+    // modo claro: sombras bajo las obras; modo oscuro: resplandor de focos
+    artShadowMat.opacity = dark ? 0 : 1
+    cofferGlowMat.color.set(dark ? 0x2e2b26 : 0xffffff)
     titleMat.map = dark ? titleTexDark : titleTexLight
     titleMat.needsUpdate = true
     if (stMat) {
