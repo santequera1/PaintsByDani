@@ -3,6 +3,7 @@ import { contarVisita } from '../misc/visitas.js'
 import * as THREE from 'three'
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 import { buildSalaPremium } from './sala.js'
+import { initFlipbook } from '../playground/flipbook.js'
 import { initPanelZoom, initGyroLook, revealSala, createTourProgress, unlockAudios, mostrarErrorFatal, initDebugConsole } from './usabilidad.js'
 import { ARTWORKS, ARTIST } from '../data/catalina.js'
 import '../style.css'
@@ -120,7 +121,7 @@ async function enterSala() {
         statement: STATEMENT,
         statementTitle: 'Rumiaciones',
         statementCredit: '— Catalina Olivero',
-        vitrina: null,
+        vitrina: { title: 'RUMIACIONES', sub: 'Catálogo · 2026' },
         doors: [],
         minimal: true,
       },
@@ -326,12 +327,45 @@ document.addEventListener('keydown', (e) => {
 })
 
 // ============================================================
+// Vitrina central → catálogo (flipbook)
+// ============================================================
+let viewingBook = false
+const book = initFlipbook({
+  trigger: null,
+  title: 'Rumiaciones',
+  years: '2026',
+  artist: ARTIST.name,
+  handle: ARTIST.handle,
+  photo: ARTIST.profileImage,
+  statementTitle: 'Rumiaciones',
+  statement: STATEMENT,
+  artworks: ARTWORKS,
+  imgBase: 'cat-posts',
+  pdfUrl: null,
+  logo: '/cat-logo-negro.svg',
+  onClose: () => {
+    viewingBook = false
+    if (!isMobile && museumEntered) {
+      setTimeout(() => { try { engine.requestLock() } catch {} }, 150)
+    }
+  },
+})
+
+// ============================================================
 // Callbacks del motor
 // ============================================================
 engine.onPaintingClicked = (artwork, mesh) => enterZoom(artwork, mesh)
+engine.onDoorClicked = () => {
+  if (!book) return
+  viewingBook = true
+  stopFootsteps()
+  engine.exitLock()
+  book.open()
+}
 engine.onMovementChange = (isMoving) => { if (isMoving) playFootsteps(); else stopFootsteps() }
 engine.onCrosshairChange = (state) => {
   if (state === 'pointer-artwork') crosshair.className = 'clickable artwork'
+  else if (state === 'pointer-door') crosshair.className = 'clickable door'
   else crosshair.className = ''
 }
 
@@ -395,7 +429,7 @@ function enterMuseum() {
 
 document.addEventListener('pointerlockchange', () => {
   if (isMobile) return
-  if (touring) return
+  if (viewingBook || touring) return // el catálogo/recorrido gestionan su propio estado
   if (!engine.locked && !engine.zoomMode && !engine.zoomAnimating) {
     if (museumEntered) {
       overlay.style.display = ''

@@ -268,23 +268,23 @@ function makePlaque(title, medium, price, font = DEFAULT_FONT, light = false) {
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
   ctx.fillStyle = light ? '#26221d' : '#f0ece4'
-  ctx.font = `700 46px ${font}`
+  ctx.font = `700 54px ${font}`
   let t = title || ''
-  while (ctx.measureText(t).width > 920 && t.length > 3) t = t.slice(0, -4) + '…'
-  ctx.fillText(t, 512, medium || price ? 84 : 170)
+  while (ctx.measureText(t).width > 930 && t.length > 3) t = t.slice(0, -4) + '…'
+  ctx.fillText(t, 512, medium || price ? 86 : 170)
 
   if (medium) {
     // más contraste: la línea de técnica/medidas se leía muy clarita
     ctx.fillStyle = light ? '#3f3a33' : '#c0b7a8'
-    ctx.font = `italic 400 33px ${font}`
+    ctx.font = `italic 400 38px ${font}`
     let m = medium
-    while (ctx.measureText(m).width > 940 && m.length > 3) m = m.slice(0, -4) + '…'
-    ctx.fillText(m, 512, price ? 168 : 190)
+    while (ctx.measureText(m).width > 950 && m.length > 3) m = m.slice(0, -4) + '…'
+    ctx.fillText(m, 512, price ? 172 : 190)
   }
   if (price) {
     ctx.fillStyle = price === 'Vendido' ? '#8d857a' : (light ? '#b4452f' : '#d98a6a')
-    ctx.font = `${price === 'Vendido' ? 'italic 400' : '700'} 34px ${font}`
-    ctx.fillText(price, 512, 248)
+    ctx.font = `${price === 'Vendido' ? 'italic 400' : '700'} 40px ${font}`
+    ctx.fillText(price, 512, 256)
   }
 
   const tex = new THREE.CanvasTexture(canvas)
@@ -1050,7 +1050,8 @@ export async function buildSalaPremium(config, renderer) {
     '/models/metal_bench.glb',
     (gltf) => {
       const benchBase = gltf.scene
-      const benchZ = minimal ? [0] : [-L * 0.19, L * 0.19]
+      // si hay vitrina al centro, la banca se corre hacia la pared del título
+      const benchZ = minimal ? [vitrina ? -L * 0.16 : 0] : [-L * 0.19, L * 0.19]
       for (const bz of benchZ) {
         const bench = benchBase.clone()
         bench.scale.set(0.45, 0.5, 0.4)
