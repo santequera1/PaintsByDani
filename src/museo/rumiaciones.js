@@ -30,6 +30,7 @@ try {
   }
 } catch {}
 const EN = LANG === 'en'
+const TITULO = EN ? 'Ruminations' : 'Rumiaciones'
 
 // Statement de la serie (texto de Catalina) — vinilo en la pared sur
 const STATEMENT_ES = [
@@ -160,12 +161,12 @@ async function enterSala() {
         artworks: OBRAS,
         imgBase: 'cat-posts',
         reflect: !isMobile, // concreto pulido: reflejo sutil de luz (solo desktop)
-        title: 'Rumiaciones',
+        title: TITULO,
         subtitle: 'Catalina Olivero · 2026',
         statement: STATEMENT,
-        statementTitle: 'Rumiaciones',
+        statementTitle: TITULO,
         statementCredit: '— Catalina Olivero',
-        vitrina: { title: 'RUMIACIONES', sub: EN ? 'Catalogue · 2026' : 'Catálogo · 2026' },
+        vitrina: { title: TITULO.toUpperCase(), sub: EN ? 'Catalogue · 2026' : 'Catálogo · 2026' },
         doors: [],
         minimal: true,
       },
@@ -178,7 +179,7 @@ async function enterSala() {
     mostrarErrorFatal('No se pudo cargar la sala. Revisa tu conexión y recarga la página.')
     return
   }
-  roomNameEl.textContent = 'Rumiaciones'
+  roomNameEl.textContent = TITULO
   updateArtworkCounter()
 }
 
@@ -378,12 +379,12 @@ document.addEventListener('keydown', (e) => {
 let viewingBook = false
 const book = initFlipbook({
   trigger: null,
-  title: 'Rumiaciones',
+  title: TITULO,
   years: '2026',
   artist: ARTIST.name,
   handle: ARTIST.handle,
   photo: ARTIST.profileImage,
-  statementTitle: 'Rumiaciones',
+  statementTitle: TITULO,
   statement: STATEMENT,
   artworks: OBRAS, // en EN el catálogo también muestra títulos/medidas traducidos
   imgBase: 'cat-posts',
