@@ -625,6 +625,8 @@ if (EN) {
     const el = document.querySelector(sel)
     if (el && el.lastChild) el.lastChild.textContent = ' ' + txt
   }
+  T('#overlay-brand h1', 'Ruminations')
+  document.title = 'Virtual Museum · Ruminations | Catalina Olivero'
   T('#play-btn', 'Enter the Museum')
   lastText('#tour-btn', 'Auto Tour')
   T('#gallery-link', 'View canvas gallery →')
