@@ -869,8 +869,10 @@ export async function buildSalaPremium(config, renderer) {
     stTexLight = makeStatementVinyl(statementTitle, statement, statementCredit, false, font)
     stTexDark = makeStatementVinyl(statementTitle, statement, statementCredit, true, font)
     stMat = new THREE.MeshBasicMaterial({ map: stTexLight, transparent: true })
-    const stMesh = new THREE.Mesh(new THREE.PlaneGeometry(4.0, 3.2), stMat)
-    stMesh.position.set(statementX, 2.15, halfL - 0.06)
+    // minimal: vinilo ~12% más grande (mejor lectura a distancia)
+    const stW = minimal ? 4.5 : 4.0
+    const stMesh = new THREE.Mesh(new THREE.PlaneGeometry(stW, stW * 0.8), stMat)
+    stMesh.position.set(statementX, minimal ? 2.2 : 2.15, halfL - 0.06)
     stMesh.rotation.y = Math.PI
     group.add(stMesh)
 
