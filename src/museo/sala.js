@@ -278,16 +278,16 @@ function makePlaque(title, medium, price, font = DEFAULT_FONT, light = false) {
   }
   ctx.fillText(title || '', 512, medium || price ? 86 : 200)
 
-  // técnica y medidas: dos renglones, grandes y bien oscuros
+  // técnica y medidas: dos renglones, negro y semi-bold (pedido de Catalina)
   if (medium) {
-    ctx.fillStyle = light ? '#2b2723' : '#d8d0c2'
+    ctx.fillStyle = light ? '#0e0d0b' : '#f0ece4'
     const parts = medium.split('·').map((s) => s.trim()).filter(Boolean)
     const lines = parts.length >= 2 ? [parts[0], parts.slice(1).join(' · ')] : [medium]
     let ms = 44
-    ctx.font = `italic 400 ${ms}px ${font}`
+    ctx.font = `italic 600 ${ms}px ${font}`
     while (lines.some((l) => ctx.measureText(l).width > 950) && ms > 30) {
       ms -= 2
-      ctx.font = `italic 400 ${ms}px ${font}`
+      ctx.font = `italic 600 ${ms}px ${font}`
     }
     const y0 = price ? 178 : 205
     if (lines.length === 2) {
