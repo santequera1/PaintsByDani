@@ -16,6 +16,12 @@ import './museo.css'
 
 const OBRAS = ARTWORKS // las 7 rumiaciones
 
+// Statement de la serie (texto de Catalina) — vinilo en la pared sur
+const STATEMENT = [
+  'La serie de pinturas acrílicas sobre lienzo de Catalina Olivero refleja la anatomía del pensamiento repetitivo, donde la abstracción opera como un medio para procesar la inestabilidad de los vínculos afectivos. Al prescindir de una imprimación que proteja el soporte, la tela cruda absorbe el pigmento de manera irreversible, transformándose en un registro textil del tránsito de las relaciones, una inmersión donde lavados ligeros y tonos vibrantes coexisten junto a texturas de carácter terroso.',
+  'Estas obras, cuyos títulos recuperan fragmentos de diálogos personales, articulan un lenguaje visual de trazos que asemejan laberintos, espacios negativos que dan respiración al plano y un salpicado visceral que irrumpe como clausura mental. Así, a través de composiciones asimétricas que equilibran la tensión entre el control y la resistencia, la muestra invita a presenciar una liturgia del desahogo donde la rumiación de las ideas se convierte en un acto de liberación.',
+]
+
 // --- DOM ---
 const canvas = document.getElementById('scene')
 const overlay = document.getElementById('overlay')
@@ -111,7 +117,9 @@ async function enterSala() {
         reflect: !isMobile, // concreto pulido: reflejo sutil de luz (solo desktop)
         title: 'Rumiaciones',
         subtitle: 'Catalina Olivero · 2026',
-        statement: null,
+        statement: STATEMENT,
+        statementTitle: 'Rumiaciones',
+        statementCredit: '— Catalina Olivero',
         vitrina: null,
         doors: [],
         minimal: true,

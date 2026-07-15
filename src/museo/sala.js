@@ -274,8 +274,9 @@ function makePlaque(title, medium, price, font = DEFAULT_FONT, light = false) {
   ctx.fillText(t, 512, medium || price ? 84 : 170)
 
   if (medium) {
-    ctx.fillStyle = light ? '#6d6459' : '#a29a8a'
-    ctx.font = `italic 400 32px ${font}`
+    // más contraste: la línea de técnica/medidas se leía muy clarita
+    ctx.fillStyle = light ? '#3f3a33' : '#c0b7a8'
+    ctx.font = `italic 400 33px ${font}`
     let m = medium
     while (ctx.measureText(m).width > 940 && m.length > 3) m = m.slice(0, -4) + '…'
     ctx.fillText(m, 512, price ? 168 : 190)
@@ -1094,7 +1095,7 @@ export async function buildSalaPremium(config, renderer) {
     rect.intensity = dark ? 0.3 : PAL.rectI
     for (const s of obraSpots) s.intensity = dark ? 7 : PAL.spot
     titleSpot.intensity = dark ? 5 : PAL.tSpot
-    if (stSpot) stSpot.intensity = dark ? 4 : 3.2
+    if (stSpot) stSpot.intensity = dark ? 4 : (minimal ? 1.4 : 3.2)
     // modo claro: sombras bajo las obras; modo oscuro: resplandor de focos
     artShadowMat.opacity = dark ? 0 : 1
     cofferGlowMat.color.set(dark ? 0x2e2b26 : 0xffffff)
