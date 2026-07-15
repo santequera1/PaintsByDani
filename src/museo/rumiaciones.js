@@ -42,11 +42,28 @@ const STATEMENT_EN = [
 ]
 const STATEMENT = EN ? STATEMENT_EN : STATEMENT_ES
 
-// las 7 rumiaciones (en EN se traduce la técnica de la ficha)
+// Títulos oficiales en inglés (enviados por Catalina).
+// OJO: 'I Wish You the Best' (Te deseo lo mejor) es traducción provisional —
+// no venía en su lista.
+const TITULOS_EN = {
+  'llegaste-bien': 'Did You Get Home Safely? 2026',
+  'helado': 'I Like Watching You Eat Ice Cream, 2026',
+  'parque': 'I Feel Connected to This Park, 2026',
+  'santuario': 'My Home Is My Sanctuary, 2026',
+  'oceano': 'Lost in the Ocean, 2026',
+  'te-deseo': 'I Wish You the Best, 2026',
+  'distancia': 'I Saw You from a Distance, 2026',
+}
+
+// las 7 rumiaciones (en EN: título, técnica y medidas en pulgadas)
 const OBRAS = EN
   ? ARTWORKS.map((a) => ({
       ...a,
-      medium: (a.medium || '').replace('Acrílico sobre lienzo sin imprimar', 'Acrylic on unprimed canvas'),
+      title: TITULOS_EN[a.id] || a.title,
+      medium: (a.medium || '')
+        .replace('Acrílico sobre lienzo sin imprimar', 'Acrylic on unprimed canvas')
+        .replace('54 × 94 cm', '21.3 × 37 in')
+        .replace('60 × 94 cm', '23.6 × 37 in'),
     }))
   : ARTWORKS
 
@@ -368,7 +385,7 @@ const book = initFlipbook({
   photo: ARTIST.profileImage,
   statementTitle: 'Rumiaciones',
   statement: STATEMENT,
-  artworks: ARTWORKS,
+  artworks: OBRAS, // en EN el catálogo también muestra títulos/medidas traducidos
   imgBase: 'cat-posts',
   pdfUrl: null,
   logo: '/cat-logo-negro.svg',
