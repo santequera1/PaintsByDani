@@ -251,40 +251,57 @@ function makeStatementVinyl(heading, paragraphs, credit, lightText, font = DEFAU
   return tex
 }
 
-// --- placa: título / técnica / precio (precio opcional) ---
+// --- placa: título / técnica (2 renglones) / precio ---
 // light=true → etiqueta clara estilo galería white-cube (sala minimal)
 function makePlaque(title, medium, price, font = DEFAULT_FONT, light = false) {
   const canvas = document.createElement('canvas')
   canvas.width = 1024
-  canvas.height = 340
+  canvas.height = 400
   const ctx = canvas.getContext('2d')
 
   ctx.fillStyle = light ? '#f8f6f1' : '#171614'
-  ctx.fillRect(0, 0, 1024, 340)
+  ctx.fillRect(0, 0, 1024, 400)
   ctx.strokeStyle = light ? '#c9c2b3' : '#7c6f5c'
   ctx.lineWidth = 3
-  ctx.strokeRect(5, 5, 1014, 330)
+  ctx.strokeRect(5, 5, 1014, 390)
 
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  ctx.fillStyle = light ? '#26221d' : '#f0ece4'
-  ctx.font = `700 54px ${font}`
-  let t = title || ''
-  while (ctx.measureText(t).width > 930 && t.length > 3) t = t.slice(0, -4) + '…'
-  ctx.fillText(t, 512, medium || price ? 86 : 170)
 
-  if (medium) {
-    // más contraste: la línea de técnica/medidas se leía muy clarita
-    ctx.fillStyle = light ? '#3f3a33' : '#c0b7a8'
-    ctx.font = `italic 400 38px ${font}`
-    let m = medium
-    while (ctx.measureText(m).width > 950 && m.length > 3) m = m.slice(0, -4) + '…'
-    ctx.fillText(m, 512, price ? 172 : 190)
+  // título: se ENCOGE hasta caber en una línea (nada de nombres mochos)
+  ctx.fillStyle = light ? '#26221d' : '#f0ece4'
+  let ts = 56
+  ctx.font = `700 ${ts}px ${font}`
+  while (ctx.measureText(title || '').width > 940 && ts > 34) {
+    ts -= 2
+    ctx.font = `700 ${ts}px ${font}`
   }
+  ctx.fillText(title || '', 512, medium || price ? 86 : 200)
+
+  // técnica y medidas: dos renglones, grandes y bien oscuros
+  if (medium) {
+    ctx.fillStyle = light ? '#2b2723' : '#d8d0c2'
+    const parts = medium.split('·').map((s) => s.trim()).filter(Boolean)
+    const lines = parts.length >= 2 ? [parts[0], parts.slice(1).join(' · ')] : [medium]
+    let ms = 44
+    ctx.font = `italic 400 ${ms}px ${font}`
+    while (lines.some((l) => ctx.measureText(l).width > 950) && ms > 30) {
+      ms -= 2
+      ctx.font = `italic 400 ${ms}px ${font}`
+    }
+    const y0 = price ? 178 : 205
+    if (lines.length === 2) {
+      ctx.fillText(lines[0], 512, y0)
+      ctx.fillText(lines[1], 512, y0 + ms + 18)
+    } else {
+      ctx.fillText(lines[0], 512, y0 + 28)
+    }
+  }
+  // precio: rojo bold
   if (price) {
-    ctx.fillStyle = price === 'Vendido' ? '#8d857a' : (light ? '#b4452f' : '#d98a6a')
-    ctx.font = `${price === 'Vendido' ? 'italic 400' : '700'} 40px ${font}`
-    ctx.fillText(price, 512, 256)
+    ctx.fillStyle = price === 'Vendido' ? '#8d857a' : '#d61f1f'
+    ctx.font = `${price === 'Vendido' ? 'italic 400' : '700'} 44px ${font}`
+    ctx.fillText(price, 512, 338)
   }
 
   const tex = new THREE.CanvasTexture(canvas)
@@ -759,7 +776,7 @@ export async function buildSalaPremium(config, renderer) {
     paintingMeshes.push(imgMesh)
 
     const plaque = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.92, 0.3),
+      new THREE.PlaneGeometry(0.92, 0.36), // proporción del canvas 1024×400
       new THREE.MeshBasicMaterial({ map: makePlaque(p.art.title, p.art.medium, p.art.price, font, minimal) })
     )
     fg.add(plaque)
@@ -806,7 +823,7 @@ export async function buildSalaPremium(config, renderer) {
 
       imgMesh.geometry.dispose()
       imgMesh.geometry = new THREE.PlaneGeometry(iw, ih)
-      plaque.position.set(0, -(outH / 2) - 0.32, 0.012)
+      plaque.position.set(0, -(outH / 2) - 0.34, 0.012)
     }
 
     let usedRatio = p.art.ratio || 0.75
