@@ -15,13 +15,40 @@ import './museo.css'
    finos, sin vitrina, sin bancas, sin polvo. Sin música.
    ============================================================ */
 
-const OBRAS = ARTWORKS // las 7 rumiaciones
+// ============================================================
+// Idioma ES/EN — ?lang=en en la URL o el botón de la portada;
+// la elección se recuerda por navegador.
+// ============================================================
+let LANG = 'es'
+try {
+  const q = new URLSearchParams(location.search)
+  if (q.get('lang') === 'en' || q.get('lang') === 'es') {
+    LANG = q.get('lang')
+    localStorage.setItem('museo-lang', LANG)
+  } else if (localStorage.getItem('museo-lang') === 'en') {
+    LANG = 'en'
+  }
+} catch {}
+const EN = LANG === 'en'
 
 // Statement de la serie (texto de Catalina) — vinilo en la pared sur
-const STATEMENT = [
+const STATEMENT_ES = [
   'La serie de pinturas acrílicas sobre lienzo de Catalina Olivero refleja la anatomía del pensamiento repetitivo, donde la abstracción opera como un medio para procesar la inestabilidad de los vínculos afectivos. Al prescindir de una imprimación que proteja el soporte, la tela cruda absorbe el pigmento de manera irreversible, transformándose en un registro textil del tránsito de las relaciones, una inmersión donde lavados ligeros y tonos vibrantes coexisten junto a texturas de carácter terroso.',
   'Estas obras, cuyos títulos recuperan fragmentos de diálogos personales, articulan un lenguaje visual de trazos que asemejan laberintos, espacios negativos que dan respiración al plano y un salpicado visceral que irrumpe como clausura mental. Así, a través de composiciones asimétricas que equilibran la tensión entre el control y la resistencia, la muestra invita a presenciar una liturgia del desahogo donde la rumiación de las ideas se convierte en un acto de liberación.',
 ]
+const STATEMENT_EN = [
+  "Catalina Olivero's series of acrylic paintings on canvas reflects the anatomy of repetitive thought, where abstraction operates as a means of processing the instability of emotional bonds. By forgoing a primer to protect the support, the raw canvas absorbs the pigment irreversibly, becoming a textile record of the passage of relationships — an immersion where light washes and vibrant tones coexist with earthy textures.",
+  'These works, whose titles recover fragments of personal dialogues, articulate a visual language of strokes that resemble labyrinths, negative spaces that let the plane breathe, and a visceral splatter that erupts like mental closure. Thus, through asymmetrical compositions that balance the tension between control and resistance, the exhibition invites us to witness a liturgy of release in which the rumination of ideas becomes an act of liberation.',
+]
+const STATEMENT = EN ? STATEMENT_EN : STATEMENT_ES
+
+// las 7 rumiaciones (en EN se traduce la técnica de la ficha)
+const OBRAS = EN
+  ? ARTWORKS.map((a) => ({
+      ...a,
+      medium: (a.medium || '').replace('Acrílico sobre lienzo sin imprimar', 'Acrylic on unprimed canvas'),
+    }))
+  : ARTWORKS
 
 // --- DOM ---
 const canvas = document.getElementById('scene')
@@ -121,7 +148,7 @@ async function enterSala() {
         statement: STATEMENT,
         statementTitle: 'Rumiaciones',
         statementCredit: '— Catalina Olivero',
-        vitrina: { title: 'RUMIACIONES', sub: 'Catálogo · 2026' },
+        vitrina: { title: 'RUMIACIONES', sub: EN ? 'Catalogue · 2026' : 'Catálogo · 2026' },
         doors: [],
         minimal: true,
       },
@@ -142,9 +169,9 @@ async function enterSala() {
 const seenObras = new Set()
 function updateArtworkCounter() {
   const seen = OBRAS.filter((a) => seenObras.has(a.id)).length
-  artworkCounterEl.textContent = seen > 0
-    ? `${seen} de ${OBRAS.length} obras vistas`
-    : `${OBRAS.length} obras`
+  artworkCounterEl.textContent = EN
+    ? (seen > 0 ? `${seen} of ${OBRAS.length} works seen` : `${OBRAS.length} works`)
+    : (seen > 0 ? `${seen} de ${OBRAS.length} obras vistas` : `${OBRAS.length} obras`)
 }
 
 // ============================================================
@@ -159,7 +186,9 @@ function applyLights() {
   engine.scene.background.set(darkMode ? 0x040404 : 0x111110)
   if (lightsBtn) {
     lightsBtn.classList.toggle('off', darkMode)
-    lightsBtn.querySelector('span').textContent = darkMode ? 'Encender luces' : 'Apagar luces'
+    lightsBtn.querySelector('span').textContent = EN
+      ? (darkMode ? 'Lights on' : 'Lights off')
+      : (darkMode ? 'Encender luces' : 'Apagar luces')
   }
 }
 function toggleLights() {
@@ -559,6 +588,71 @@ if (isMobile) {
 }
 
 // ============================================================
+// Interfaz en inglés + botón de idioma en la portada
+// ============================================================
+const langBtn = document.getElementById('lang-btn')
+if (langBtn) {
+  langBtn.textContent = EN ? 'Versión en español' : 'English version'
+  langBtn.addEventListener('click', () => {
+    try { localStorage.setItem('museo-lang', EN ? 'es' : 'en') } catch {}
+    const u = new URL(location.href)
+    u.searchParams.set('lang', EN ? 'es' : 'en')
+    location.href = u.toString()
+  })
+}
+
+if (EN) {
+  const T = (sel, txt) => { const el = document.querySelector(sel); if (el) el.textContent = txt }
+  const lastText = (sel, txt) => {
+    const el = document.querySelector(sel)
+    if (el && el.lastChild) el.lastChild.textContent = ' ' + txt
+  }
+  T('#play-btn', 'Enter the Museum')
+  lastText('#tour-btn', 'Auto Tour')
+  T('#gallery-link', 'View canvas gallery →')
+  T('.overlay-link', 'Conexiones Museum →')
+  T('#overlay-brand .subtitle', 'Virtual Museum · 2026')
+  T('.controls-hint .desktop-only', 'WASD / Arrows move · Mouse look · Click interact')
+  T('.controls-hint .mobile-only', 'Use the joystick to move · Tap to interact')
+  const hintLabels = document.querySelectorAll('#control-hints .hint-label')
+  const hintsEn = ['Move', 'Look', 'Click to interact', 'Lights', 'Pause']
+  hintLabels.forEach((el, i) => { if (hintsEn[i]) el.textContent = hintsEn[i] })
+  lastText('#tour-auto-stop', 'Stop tour')
+  // instrucciones
+  T('#howto h2', 'How it works')
+  const hmP = document.querySelectorAll('#howto .howto-mobile .howto-step p')
+  const hmEn = [
+    '<strong>Move</strong> with the joystick in the bottom-left corner.',
+    '<strong>Look around</strong> by dragging your finger on the screen (right side).',
+    '<strong>Aim at an artwork</strong> and tap the <strong>◎</strong> button to see it up close.',
+  ]
+  hmP.forEach((el, i) => { if (hmEn[i]) el.innerHTML = hmEn[i] })
+  const hdP = document.querySelectorAll('#howto .howto-desktop .howto-step p')
+  const hdEn = [
+    '<strong>Move</strong> with WASD or the arrow keys.',
+    '<strong>Look around</strong> by moving the mouse.',
+    '<strong>Click</strong> an artwork to see it up close.',
+  ]
+  hdP.forEach((el, i) => { if (hdEn[i]) el.innerHTML = hdEn[i] })
+  const extra = document.querySelector('#howto .howto-extra')
+  if (extra) extra.innerHTML = 'L · lights &nbsp;·&nbsp; T · auto tour &nbsp;·&nbsp; ESC · pause'
+  T('#howto-start', "Ready — let's go!")
+  // gestos y botones
+  T('#gesture-hints .gh-move .gh-label', 'Move')
+  T('#gesture-hints .gh-label-look', 'Look')
+  lastText('#panel-instagram', 'View on Instagram')
+  const setTitle = (id, t) => { const el = document.getElementById(id); if (el) el.title = t }
+  setTitle('back-btn', 'Back to start')
+  setTitle('gyro-btn', 'Look by moving your phone')
+  setTitle('lights-btn', 'Lights on/off (L)')
+  setTitle('panel-zoom', 'Scroll / pinch to zoom')
+  setTitle('tour-prev', 'Previous')
+  setTitle('tour-next', 'Next')
+  setTitle('tour-exit', 'Back (ESC)')
+  document.documentElement.lang = 'en'
+}
+
+// ============================================================
 // Init
 // ============================================================
 enterSala()
@@ -580,7 +674,9 @@ if (visitsHud) {
       .then((r) => r.json())
       .then((d) => {
         const n = (d.paginas && d.paginas['museo-rumiaciones']) || 0
-        if (n > 0) visitsHud.textContent = n.toLocaleString('es-CO') + (n === 1 ? ' visita' : ' visitas')
+        if (n > 0) visitsHud.textContent = EN
+          ? n.toLocaleString('en-US') + (n === 1 ? ' visit' : ' visits')
+          : n.toLocaleString('es-CO') + (n === 1 ? ' visita' : ' visitas')
       })
       .catch(() => {})
   }, 900)
