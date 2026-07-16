@@ -54,6 +54,12 @@ const TITULOS_EN = {
   'oceano': 'Lost in the Ocean, 2026',
   'te-deseo': 'I Wish You the Best, 2026',
   'distancia': 'I Saw You from a Distance, 2026',
+  // nuevas (traducciones provisionales — confirmar con Catalina)
+  'sabor-sudor': 'The Taste of Your Sweat, 2026',
+  'ojos': 'I Like Your Eyes, 2026',
+  'arte': 'I Want to Feel Your Art, 2026',
+  'conversaciones': 'We Always Have Good Conversations, 2026',
+  'caminos': 'We Took Different Paths, 2026',
 }
 
 // las 7 rumiaciones (en EN: título, técnica y medidas en pulgadas)
