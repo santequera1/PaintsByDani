@@ -85,7 +85,7 @@ export const ARTWORKS = [
   {
     id: 'ojos',
     filename: 'Me gustan tus ojos.jpg',
-    ratio: 1.5,
+    ratio: 0.667,
     title: 'Me gustan tus ojos, 2026',
     medium: 'Acrílico sobre lienzo sin imprimar',
     price: '500.000 COP',
