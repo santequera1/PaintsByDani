@@ -96,9 +96,11 @@ canvas.addEventListener('webglcontextlost', (e) => {
 
 // --- Audio: solo pasos y puerta (sin música) ---
 const audioFootsteps = new Audio('/sonidos/pasos.mp3')
+audioFootsteps.preload = 'none' // no descargar hasta entrar
 audioFootsteps.loop = true
 audioFootsteps.volume = 0.35
 const audioDoor = new Audio('/sonidos/abrir-puerta.mp3')
+audioDoor.preload = 'none'
 audioDoor.volume = 0.6
 
 // Samsung/iOS bloquean audio fuera de un gesto → desbloquear al entrar

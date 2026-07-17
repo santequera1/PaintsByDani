@@ -77,6 +77,7 @@ canvas.addEventListener('webglcontextlost', (e) => {
 
 // --- Audio: solo pasos (sin música, pedido de Catalina) ---
 const audioFootsteps = new Audio('/sonidos/pasos.mp3')
+audioFootsteps.preload = 'none' // no descargar hasta entrar
 audioFootsteps.loop = true
 audioFootsteps.volume = 0.35
 
