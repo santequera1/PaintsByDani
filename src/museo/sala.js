@@ -268,45 +268,45 @@ function makePlaque(title, medium, price, font = DEFAULT_FONT, light = false) {
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
 
-  // JERARQUÍA (pedido de Catalina): título grande y en negrilla dominante,
-  // técnica legible pero secundaria, precio como acento.
-  ctx.fillStyle = light ? '#141210' : '#f0ece4'
-  let ts = 62
+  // JERARQUÍA legible A DISTANCIA (pedido de Catalina):
+  // título en negrilla dominante · técnica semi-bold casi negra sin
+  // itálica (la itálica se pierde de lejos) · precio rojo grande.
+  ctx.fillStyle = light ? '#121110' : '#f2eee6'
+  let ts = 64
   ctx.font = `800 ${ts}px ${font}`
-  while (ctx.measureText(title || '').width > 940 && ts > 36) {
+  while (ctx.measureText(title || '').width > 940 && ts > 38) {
     ts -= 2
     ctx.font = `800 ${ts}px ${font}`
   }
   ctx.fillText(title || '', 512, medium || price ? 88 : 200)
 
-  // técnica y medidas: dos renglones, oscuros pero de peso normal
   if (medium) {
-    ctx.fillStyle = light ? '#2e2a25' : '#ddd5c8'
+    ctx.fillStyle = light ? '#1c1a17' : '#e4ddd0'
     const parts = medium.split('·').map((s) => s.trim()).filter(Boolean)
     const lines = parts.length >= 2 ? [parts[0], parts.slice(1).join(' · ')] : [medium]
-    let ms = 40
-    ctx.font = `italic 400 ${ms}px ${font}`
-    while (lines.some((l) => ctx.measureText(l).width > 950) && ms > 30) {
+    let ms = 46
+    ctx.font = `600 ${ms}px ${font}`
+    while (lines.some((l) => ctx.measureText(l).width > 950) && ms > 32) {
       ms -= 2
-      ctx.font = `italic 400 ${ms}px ${font}`
+      ctx.font = `600 ${ms}px ${font}`
     }
-    const y0 = price ? 178 : 205
+    const y0 = price ? 180 : 205
     if (lines.length === 2) {
       ctx.fillText(lines[0], 512, y0)
-      ctx.fillText(lines[1], 512, y0 + ms + 18)
+      ctx.fillText(lines[1], 512, y0 + ms + 16)
     } else {
-      ctx.fillText(lines[0], 512, y0 + 28)
+      ctx.fillText(lines[0], 512, y0 + 22)
     }
   }
-  // precio: rojo bold
   if (price) {
-    ctx.fillStyle = price === 'Vendido' ? '#8d857a' : '#d61f1f'
-    ctx.font = `${price === 'Vendido' ? 'italic 400' : '700'} 44px ${font}`
-    ctx.fillText(price, 512, 338)
+    ctx.fillStyle = price === 'Vendido' ? '#7d766b' : '#d31c1c'
+    ctx.font = `${price === 'Vendido' ? '400' : '700'} 48px ${font}`
+    ctx.fillText(price, 512, 340)
   }
 
   const tex = new THREE.CanvasTexture(canvas)
   tex.colorSpace = THREE.SRGBColorSpace
+  tex.anisotropy = 8 // nítida también vista en ángulo / a distancia
   return tex
 }
 
