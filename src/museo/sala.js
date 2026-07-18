@@ -272,9 +272,7 @@ function makePlaque(title, medium, price, font = DEFAULT_FONT, light = false) {
   // título en negrilla dominante · técnica semi-bold casi negra sin
   // itálica (la itálica se pierde de lejos) · precio rojo grande.
   ctx.fillStyle = light ? '#121110' : '#f2eee6'
-  // sin el año en la placa: el título respira y queda más grande
-  // (el panel de la obra y el catálogo sí conservan el año)
-  const tShown = (title || '').replace(/,?\s*(19|20)\d{2}\s*$/, '')
+  const tShown = title || ''
   let ts = 64
   ctx.font = `800 ${ts}px ${font}`
   while (ctx.measureText(tShown).width > 940 && ts > 38) {
