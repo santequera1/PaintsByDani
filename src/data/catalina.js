@@ -75,8 +75,8 @@ export const ARTWORKS = [
   // --- nuevas (jul 2026) — PENDIENTE confirmar medidas y precios ---
   {
     id: 'sabor-sudor',
-    filename: 'El sabor de tu sudor.jpg',
-    ratio: 0.563,
+    filename: 'El sabor de tu sudor, 2026.jpg',
+    ratio: 0.63,
     title: 'El sabor de tu sudor, 2026',
     medium: 'Acrílico sobre lienzo sin imprimar',
     price: '500.000 COP',
@@ -84,8 +84,8 @@ export const ARTWORKS = [
   },
   {
     id: 'ojos',
-    filename: 'Me gustan tus ojos, 2026.jpg',
-    ratio: 0.667,
+    filename: 'Me gustan tus ojos 2026.jpg',
+    ratio: 0.634,
     title: 'Me gustan tus ojos, 2026',
     medium: 'Acrílico sobre lienzo sin imprimar',
     price: '500.000 COP',
@@ -93,8 +93,8 @@ export const ARTWORKS = [
   },
   {
     id: 'arte',
-    filename: 'Quiero sentir tu arte.jpg',
-    ratio: 0.563,
+    filename: 'Quiero sentir tu arte, 2026.jpg',
+    ratio: 0.626,
     title: 'Quiero sentir tu arte, 2026',
     medium: 'Acrílico sobre lienzo sin imprimar',
     price: '500.000 COP',
@@ -102,8 +102,8 @@ export const ARTWORKS = [
   },
   {
     id: 'conversaciones',
-    filename: 'Siempre tenemos buenas conversaciones.jpg',
-    ratio: 0.563,
+    filename: 'Siempre tenemos buenas conversaciones, 2026.jpg',
+    ratio: 0.568,
     title: 'Siempre tenemos buenas conversaciones, 2026',
     medium: 'Acrílico sobre lienzo sin imprimar',
     price: '500.000 COP',
@@ -111,8 +111,8 @@ export const ARTWORKS = [
   },
   {
     id: 'caminos',
-    filename: 'Tomamos caminos diferentes.jpg',
-    ratio: 0.563,
+    filename: 'Tomamos caminos diferentes, 2026.jpg',
+    ratio: 0.641,
     title: 'Tomamos caminos diferentes, 2026',
     medium: 'Acrílico sobre lienzo sin imprimar',
     price: '500.000 COP',

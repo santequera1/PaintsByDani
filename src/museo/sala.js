@@ -268,26 +268,27 @@ function makePlaque(title, medium, price, font = DEFAULT_FONT, light = false) {
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
 
-  // título: se ENCOGE hasta caber en una línea (nada de nombres mochos)
-  ctx.fillStyle = light ? '#26221d' : '#f0ece4'
-  let ts = 56
-  ctx.font = `700 ${ts}px ${font}`
-  while (ctx.measureText(title || '').width > 940 && ts > 34) {
+  // JERARQUÍA (pedido de Catalina): título grande y en negrilla dominante,
+  // técnica legible pero secundaria, precio como acento.
+  ctx.fillStyle = light ? '#141210' : '#f0ece4'
+  let ts = 62
+  ctx.font = `800 ${ts}px ${font}`
+  while (ctx.measureText(title || '').width > 940 && ts > 36) {
     ts -= 2
-    ctx.font = `700 ${ts}px ${font}`
+    ctx.font = `800 ${ts}px ${font}`
   }
-  ctx.fillText(title || '', 512, medium || price ? 86 : 200)
+  ctx.fillText(title || '', 512, medium || price ? 88 : 200)
 
-  // técnica y medidas: dos renglones, negro y semi-bold (pedido de Catalina)
+  // técnica y medidas: dos renglones, oscuros pero de peso normal
   if (medium) {
-    ctx.fillStyle = light ? '#0e0d0b' : '#f0ece4'
+    ctx.fillStyle = light ? '#2e2a25' : '#ddd5c8'
     const parts = medium.split('·').map((s) => s.trim()).filter(Boolean)
     const lines = parts.length >= 2 ? [parts[0], parts.slice(1).join(' · ')] : [medium]
-    let ms = 44
-    ctx.font = `italic 600 ${ms}px ${font}`
+    let ms = 40
+    ctx.font = `italic 400 ${ms}px ${font}`
     while (lines.some((l) => ctx.measureText(l).width > 950) && ms > 30) {
       ms -= 2
-      ctx.font = `italic 600 ${ms}px ${font}`
+      ctx.font = `italic 400 ${ms}px ${font}`
     }
     const y0 = price ? 178 : 205
     if (lines.length === 2) {
