@@ -506,6 +506,7 @@ export async function buildSalaPremium(config, renderer) {
     // 1.62 m, una obra alta (marco de ~2 m) baja su borde a ~0.5 m y arrastra
     // la cartela casi al piso. Si se define, la obra sube lo necesario.
     hangBottomMin = null,
+    zocalo = true,           // false: la pared muere limpia en el piso, sin borde
   } = config
 
   // paleta según estilo (los valores "encendidos"; setDark usa los oscuros)
@@ -663,10 +664,12 @@ export async function buildSalaPremium(config, renderer) {
     b.rotation.y = rotY
     group.add(b)
   }
-  mkBase(W, 0, -halfL + 0.03, 0)
-  mkBase(W, 0, halfL - 0.03, 0)
-  mkBase(L, halfW - 0.03, 0, Math.PI / 2)
-  mkBase(L, -halfW + 0.03, 0, Math.PI / 2)
+  if (zocalo) {
+    mkBase(W, 0, -halfL + 0.03, 0)
+    mkBase(W, 0, halfL - 0.03, 0)
+    mkBase(L, halfW - 0.03, 0, Math.PI / 2)
+    mkBase(L, -halfW + 0.03, 0, Math.PI / 2)
+  }
 
   // ---------- iluminación ----------
   const ambient = new THREE.AmbientLight(minimal ? 0xffffff : 0xfff8ee, PAL.amb)
@@ -1190,5 +1193,6 @@ export async function buildSalaConexiones({ artworks, collection, imgBase, refle
     vitrina: { title: 'CONEXIONES', sub: 'Catálogo · 2022 – Presente' },
     floorMinimal: true, // mismo piso de concreto que Rumiaciones
     hangBottomMin: 1.05, // sube las obras altas para despegar la cartela del piso
+    zocalo: false, // pared limpia contra el concreto, sin borde
   }, renderer)
 }
