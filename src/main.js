@@ -606,6 +606,14 @@ if (isMobile) {
 enterSala('sala1')
 contarVisita('museo-danni')
 
+// ?entrar: salta la portada y entra directo a la sala
+if (new URLSearchParams(location.search).has('entrar')) {
+  overlay.classList.add('fade-out')
+  setTimeout(() => { overlay.style.display = 'none' }, 150)
+  if (isMobile) engine.enableMobile()
+  setTimeout(enterMuseum, 500)
+}
+
 // contador de visitas visible en el HUD (tras registrar la propia)
 const visitsHud = document.getElementById('visits-hud')
 if (visitsHud) {

@@ -501,6 +501,11 @@ export async function buildSalaPremium(config, renderer) {
     doors = [],              // [{ x, target, label }] en la pared sur
     spawnX = 0,
     minimal = false,         // white cube: paredes blancas, marcos finos, sin bancas/polvo
+    floorMinimal = minimal,  // piso de concreto (Rumiaciones) sin tocar paredes/luces
+    // Altura mínima del borde inferior del marco. Con el colgado centrado a
+    // 1.62 m, una obra alta (marco de ~2 m) baja su borde a ~0.5 m y arrastra
+    // la cartela casi al piso. Si se define, la obra sube lo necesario.
+    hangBottomMin = null,
   } = config
 
   // paleta según estilo (los valores "encendidos"; setDark usa los oscuros)
@@ -508,6 +513,14 @@ export async function buildSalaPremium(config, renderer) {
   const PAL = minimal
     ? { wall: 0xffffff, ceil: 0xffffff, floor: 0xffffff, floorDark: 0x55555a, base: 0x141416, sky: 0xffffff, frame: 0x4a3423, mat: 0xffffff, spot: 1.2, tSpot: 1.4, spotCol: 0xffffff, amb: 0.5, hemi: 0.5, rectI: 1.6, refOp: 0.9 }
     : { wall: 0xefece5, ceil: 0xf4f1ea, floor: 0xd8c9b4, floorDark: 0x8a7a68, base: 0x211e1b, sky: 0xf5efdd, frame: 0x362b21, mat: 0xffffff, spot: 5.5, tSpot: 4, spotCol: 0xfff2dd, amb: 0.22, hemi: 0.28, rectI: 1.4, refOp: 0.86 }
+
+  // El tinte cálido del piso de nogal mancharía el concreto: cuando el piso
+  // usa el estilo Rumiaciones va en blanco puro para respetar la textura.
+  const FLOOR_COL = floorMinimal ? 0xffffff : PAL.floor
+  const FLOOR_COL_DARK = floorMinimal ? 0x55555a : PAL.floorDark
+
+  // altura del eje de colgado (centro de la obra), estándar de museo
+  const HANG_CENTER_Y = 1.62
 
   if (!rectInit) { RectAreaLightUniformsLib.init(); rectInit = true }
 
@@ -538,21 +551,21 @@ export async function buildSalaPremium(config, renderer) {
     wallMat.aoMap.channel = 0
     wallMat.aoMapIntensity = 1
   }
-  const floorTex = minimal ? makeConcreteFloor() : makeWalnutFloor()
-  if (minimal) floorTex.repeat.set(Math.max(1, Math.round(W / 8)), Math.max(1, Math.round(L / 8)))
+  const floorTex = floorMinimal ? makeConcreteFloor() : makeWalnutFloor()
+  if (floorMinimal) floorTex.repeat.set(Math.max(1, Math.round(W / 8)), Math.max(1, Math.round(L / 8)))
   else floorTex.repeat.set(Math.round(W / 2.4), Math.round(L / 2.4))
   const floorMat = new THREE.MeshStandardMaterial({
     map: floorTex,
-    color: PAL.floor,
-    roughness: minimal ? 0.38 : 0.24, // concreto pulido: satinado, refleja la luz
+    color: FLOOR_COL,
+    roughness: floorMinimal ? 0.38 : 0.24, // concreto pulido: satinado, refleja la luz
     metalness: 0.0,
-    envMapIntensity: minimal ? 0.85 : 1.15,
+    envMapIntensity: floorMinimal ? 0.85 : 1.15,
     dithering: true,
   })
-  if (minimal) {
-    // texturas fotográficas reales (las procedurales quedan de respaldo
-    // mientras cargan o si fallan). MirroredRepeat oculta las costuras.
-    const kind = LOW_TEX ? '1k' : '2k'
+  const kind = LOW_TEX ? '1k' : '2k'
+  if (floorMinimal) {
+    // textura fotográfica real del piso (la procedural queda de respaldo
+    // mientras carga o si falla). MirroredRepeat oculta las costuras.
     texLoader.load(`/texturas/piso-rumiaciones-${kind}.webp`, (t) => {
       t.colorSpace = THREE.SRGBColorSpace
       t.wrapS = t.wrapT = THREE.MirroredRepeatWrapping
@@ -561,6 +574,8 @@ export async function buildSalaPremium(config, renderer) {
       floorMat.map = t
       floorMat.needsUpdate = true
     })
+  }
+  if (minimal) {
     // paredes: yeso pintado PBR (Poliigon PlasterPainted 7664, tileable);
     // cada tile cubre ~2.15 m, relieve y brillo reales solo en desktop
     const wallTexSetup = (t, srgb) => {
@@ -763,7 +778,7 @@ export async function buildSalaPremium(config, renderer) {
   for (const p of layout) {
     if (!p.art) continue
     const fg = new THREE.Group()
-    fg.position.set(p.x, 1.62, p.z)
+    fg.position.set(p.x, HANG_CENTER_Y, p.z)
     fg.rotation.y = p.rotY
 
     // minimal: marco fino y paspartú estrecho (estilo white cube)
@@ -826,6 +841,16 @@ export async function buildSalaPremium(config, renderer) {
       imgMesh.geometry.dispose()
       imgMesh.geometry = new THREE.PlaneGeometry(iw, ih)
       plaque.position.set(0, -(outH / 2) - 0.34, 0.012)
+
+      // obras verticales/altas: subir el conjunto para que la placa nunca
+      // quede pegada al piso (placa a ≥ ~0.6 m de altura)
+      fg.position.y = Math.max(1.62, outH / 2 + 0.94)
+
+      // Sube la obra si su borde inferior (y por tanto la cartela) quedaría
+      // demasiado cerca del piso. Las obras pequeñas conservan el centrado.
+      if (hangBottomMin != null) {
+        fg.position.y = Math.max(HANG_CENTER_Y, hangBottomMin + outH / 2 + fw)
+      }
     }
 
     let usedRatio = p.art.ratio || 0.75
@@ -851,7 +876,8 @@ export async function buildSalaPremium(config, renderer) {
     // al piso (evita los charcos de luz con bandas)
     const spot = new THREE.SpotLight(PAL.spotCol, PAL.spot, 4.6, 0.4, 0.6, 2)
     spot.position.set(p.x + dir.x * 1.7, H - 0.25, p.z + dir.z * 1.7)
-    spot.target.position.set(p.x, 1.62, p.z)
+    // apunta a la altura real de la obra (puede haber subido por hangBottomMin)
+    spot.target.position.set(p.x, fg.position.y, p.z)
     lights.push(spot)
     obraSpots.push(spot)
 
@@ -860,7 +886,7 @@ export async function buildSalaPremium(config, renderer) {
       new THREE.MeshStandardMaterial({ color: 0x15130f, roughness: 0.4, metalness: 0.5 })
     )
     fixture.position.set(p.x + dir.x * 1.7, H - 0.12, p.z + dir.z * 1.7)
-    fixture.lookAt(p.x, 1.62, p.z)
+    fixture.lookAt(p.x, fg.position.y, p.z)
     fixture.rotateX(Math.PI / 2)
     group.add(fixture)
 
@@ -1108,7 +1134,7 @@ export async function buildSalaPremium(config, renderer) {
   function setDark(dark) {
     wallMat.color.set(dark ? 0x232126 : PAL.wall)
     ceilMat.color.set(dark ? 0x18171b : PAL.ceil)
-    floorMat.color.set(dark ? PAL.floorDark : PAL.floor)
+    floorMat.color.set(dark ? FLOOR_COL_DARK : FLOOR_COL)
     baseMat.color.set(dark ? 0x0f0e11 : PAL.base)
     if (skyFrameMat !== baseMat) skyFrameMat.color.set(dark ? 0x18171b : 0xe9e8e4)
     skyGlowMat.color.set(dark ? 0x2e2b26 : PAL.sky)
@@ -1162,5 +1188,7 @@ export async function buildSalaConexiones({ artworks, collection, imgBase, refle
     statementTitle: 'Declaración de Artista',
     statementCredit: '— Catalina Olivero',
     vitrina: { title: 'CONEXIONES', sub: 'Catálogo · 2022 – Presente' },
+    floorMinimal: true, // mismo piso de concreto que Rumiaciones
+    hangBottomMin: 1.05, // sube las obras altas para despegar la cartela del piso
   }, renderer)
 }

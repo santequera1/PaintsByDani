@@ -70,7 +70,8 @@ const OBRAS = EN
       medium: (a.medium || '')
         .replace('Acrílico sobre lienzo sin imprimar', 'Acrylic on unprimed canvas')
         .replace('54 × 94 cm', '21.3 × 37 in')
-        .replace('60 × 94 cm', '23.6 × 37 in'),
+        .replace('60 × 94 cm', '23.6 × 37 in')
+        .replace('60 × 95 cm', '23.6 × 37.4 in'),
     }))
   : ARTWORKS
 
