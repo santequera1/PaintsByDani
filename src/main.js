@@ -3,7 +3,7 @@ import { contarVisita } from './misc/visitas.js'
 import * as THREE from 'three'
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 import { buildSalaPremium } from './museo/sala.js'
-import { initPanelZoom, initGyroLook, revealSala, createTourProgress, unlockAudios, mostrarErrorFatal, initDebugConsole, setPanelImagen, precargarVecinas } from './museo/usabilidad.js'
+import { initPanelZoom, initGyroLook, revealSala, createTourProgress, unlockAudios, mostrarErrorFatal, initDebugConsole, setPanelImagen, precargarVecinas, precargarTodas } from './museo/usabilidad.js'
 import { initFlipbook } from './playground/flipbook.js'
 import { ARTWORKS, ARTIST } from './data/artworks.js'
 import './style.css'
@@ -470,6 +470,8 @@ function enterMuseum() {
   if (isMobile) mobileControls.classList.remove('hidden')
   if (!isMobile) { try { engine.requestLock() } catch {} }
   showGestureHints()
+  // en segundo plano, de a una: el slider queda instantáneo en cualquier equipo
+  precargarTodas(engine.paintingMeshes, 'posts')
 }
 
 document.addEventListener('pointerlockchange', () => {

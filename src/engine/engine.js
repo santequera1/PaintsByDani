@@ -55,6 +55,7 @@ export function createEngine(canvas) {
 
   // Clickable meshes
   let paintingMeshes = []
+  let plaqueMeshes = []
   let doorMeshes = []
 
   // Callbacks
@@ -157,6 +158,18 @@ export function createEngine(canvas) {
       }
     }
 
+    // Check plaques (clic en la placa = clic en su obra)
+    if (plaqueMeshes.length > 0) {
+      const hits = raycaster.intersectObjects(plaqueMeshes, false)
+      if (hits.length > 0) {
+        const u = hits[0].object.userData
+        if (u.artwork && u.plaqueFor && onPaintingClicked) {
+          onPaintingClicked(u.artwork, u.plaqueFor)
+          return
+        }
+      }
+    }
+
     // Check doors
     if (doorMeshes.length > 0) {
       const hits = raycaster.intersectObjects(doorMeshes, false)
@@ -174,7 +187,7 @@ export function createEngine(canvas) {
   function updateCrosshair() {
     if ((!locked && !mobileMode) || zoomMode) return 'default'
     raycaster.setFromCamera(new THREE.Vector2(0, 0), camera)
-    const allClickable = [...paintingMeshes, ...doorMeshes]
+    const allClickable = [...paintingMeshes, ...plaqueMeshes, ...doorMeshes]
     if (allClickable.length === 0) return 'default'
     const hits = raycaster.intersectObjects(allClickable, false)
     if (hits.length === 0) return 'default'
@@ -187,9 +200,15 @@ export function createEngine(canvas) {
     return 'pointer'
   }
 
+  // Token de animación: cada vuelo de cámara nuevo cancela el anterior.
+  // Sin esto, salir del zoom mientras el slider aún volaba dejaba la app
+  // atrapada en modo zoom sin controles (zoomOut se rehusaba a correr).
+  let animToken = 0
+
   // --- Zoom to painting ---
   function zoomToPainting(mesh) {
     if (zoomAnimating) return
+    const token = ++animToken
     zoomAnimating = true
 
     // Save current position
@@ -223,6 +242,7 @@ export function createEngine(canvas) {
     const startTime = performance.now()
 
     function animateZoom() {
+      if (token !== animToken) return // otro vuelo tomó el control
       const elapsed = performance.now() - startTime
       const t = Math.min(elapsed / duration, 1)
       // Ease in-out cubic
@@ -248,7 +268,9 @@ export function createEngine(canvas) {
   }
 
   function zoomOut() {
-    if (zoomAnimating || !zoomMode) return
+    // interrumpible: cancela cualquier vuelo en curso y sale SIEMPRE
+    if (!zoomMode && !zoomAnimating) return
+    const token = ++animToken
     zoomAnimating = true
     zoomMode = false
 
@@ -259,6 +281,7 @@ export function createEngine(canvas) {
     const startTime = performance.now()
 
     function animateOut() {
+      if (token !== animToken) return
       const elapsed = performance.now() - startTime
       const t = Math.min(elapsed / duration, 1)
       const e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
@@ -282,7 +305,8 @@ export function createEngine(canvas) {
 
   // Navigate to specific painting mesh (for slider)
   function zoomToMesh(mesh) {
-    if (zoomAnimating) return
+    // interrumpible: navegar rápido cancela el vuelo anterior
+    const token = ++animToken
     zoomAnimating = true
 
     const worldPos = new THREE.Vector3()
@@ -306,6 +330,7 @@ export function createEngine(canvas) {
     const startTime = performance.now()
 
     function animateSlide() {
+      if (token !== animToken) return
       const elapsed = performance.now() - startTime
       const t = Math.min(elapsed / duration, 1)
       const e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
@@ -501,6 +526,7 @@ export function createEngine(canvas) {
     obstacles = room.obstacles || []
     roomBounds = room.bounds || { halfW: 5, halfL: 5 }
     paintingMeshes = room.paintingMeshes || []
+    plaqueMeshes = room.plaqueMeshes || []
     doorMeshes = room.doorMeshes || []
 
     // Reset player

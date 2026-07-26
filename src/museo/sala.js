@@ -539,6 +539,7 @@ export async function buildSalaPremium(config, renderer) {
   const group = new THREE.Group()
   const obstacles = []
   const paintingMeshes = []
+  const plaqueMeshes = [] // clic en la placa = clic en su obra
   const doorMeshes = []
   const lights = []
 
@@ -799,6 +800,9 @@ export async function buildSalaPremium(config, renderer) {
       new THREE.PlaneGeometry(0.92, 0.36), // proporción del canvas 1024×400
       new THREE.MeshBasicMaterial({ map: makePlaque(p.art.title, p.art.medium, p.art.price, font, minimal) })
     )
+    plaque.userData.artwork = p.art
+    plaque.userData.plaqueFor = imgMesh
+    plaqueMeshes.push(plaque)
     fg.add(plaque)
 
     const sizeFrame = (ratio) => {
@@ -1167,6 +1171,7 @@ export async function buildSalaPremium(config, renderer) {
     group,
     obstacles,
     paintingMeshes,
+    plaqueMeshes,
     doorMeshes,
     lights,
     bounds: { halfW, halfL },

@@ -239,6 +239,23 @@ export function setPanelImagen(img, url) {
   img.src = url
 }
 
+// Precarga TODAS las imágenes grandes de la sala en segundo plano, de a
+// una y con pausa entre cada una: en teléfonos modestos el slider queda
+// instantáneo sin saturar la red ni la memoria al entrar.
+export function precargarTodas(meshes, imgBase, delayMs = 700) {
+  let i = 0
+  const next = () => {
+    if (i >= meshes.length) return
+    const m = meshes[i++]
+    const a = m && m.userData && m.userData.artwork
+    if (!a) { next(); return }
+    const im = new Image()
+    im.onload = im.onerror = () => setTimeout(next, delayMs)
+    im.src = `/${imgBase}/full/${encodeURI(a.filename.replace(/\.[^.]+$/, ''))}.webp`
+  }
+  setTimeout(next, 2500) // deja respirar la entrada a la sala
+}
+
 // Precarga las obras vecinas del slider para que el cambio sea instantáneo
 export function precargarVecinas(meshes, idx, imgBase) {
   for (const j of [idx - 1, idx + 1]) {
