@@ -67,17 +67,19 @@
   -webkit-backface-visibility: hidden;
   overflow: hidden;
   background:
-    linear-gradient(105deg, rgba(60, 45, 25, 0.06), transparent 14%),
-    #fbf8f2;
-  border: 1px solid rgba(80, 65, 45, 0.18);
-  border-radius: 2px 8px 8px 2px;
+    linear-gradient(105deg, rgba(60, 45, 25, 0.1), transparent 12%),
+    linear-gradient(to right, transparent 70%, rgba(60, 45, 25, 0.05)),
+    radial-gradient(140% 120% at 35% 45%, #fdfcf8 55%, #f4efe3 100%);
+  border: 1px solid rgba(80, 65, 45, 0.12);
+  border-radius: 1px 6px 6px 1px;
 }
 .fb-back {
   transform: rotateY(180deg);
   background:
-    linear-gradient(-105deg, rgba(60, 45, 25, 0.06), transparent 14%),
-    #fbf8f2;
-  border-radius: 8px 2px 2px 8px;
+    linear-gradient(-105deg, rgba(60, 45, 25, 0.1), transparent 12%),
+    linear-gradient(to left, transparent 70%, rgba(60, 45, 25, 0.05)),
+    radial-gradient(140% 120% at 65% 45%, #fdfcf8 55%, #f4efe3 100%);
+  border-radius: 6px 1px 1px 6px;
 }
 
 /* Sombra dinámica durante el giro (se ilumina/oscurece al pasar) */
@@ -149,7 +151,17 @@
 .fb-cover-artist { margin: 10px 0 0; font-size: 13px; }
 .fb-cover-years { margin: 2px 0 0; font-size: 11px; letter-spacing: 0.1em; color: #8a7f6e; }
 
-.fb-statement { justify-content: flex-start; text-align: left; overflow-y: auto; }
+.fb-statement {
+  justify-content: flex-start;
+  text-align: left;
+  overflow-y: auto;
+  /* barra de scroll VISIBLE (antes era blanca sobre papel claro) */
+  scrollbar-width: thin;
+  scrollbar-color: #b4452f rgba(60, 45, 25, 0.12);
+}
+.fb-statement::-webkit-scrollbar { width: 6px; }
+.fb-statement::-webkit-scrollbar-thumb { background: #b4452f; border-radius: 3px; }
+.fb-statement::-webkit-scrollbar-track { background: rgba(60, 45, 25, 0.12); border-radius: 3px; }
 .fb-statement h3 { margin: 0 0 10px; font-size: 15px; font-weight: 700; }
 .fb-statement p { margin: 0 0 10px; font-size: 11.5px; line-height: 1.55; color: #453e33; }
 
@@ -218,9 +230,11 @@
 .fb-close:hover { background: rgba(255, 255, 255, 0.22); transform: rotate(90deg); }
 
 .fb-nav {
+  /* debajo del libro: no tapan textos ni obras */
   position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
+  top: auto;
+  bottom: 12px;
+  transform: none;
   z-index: 5;
   width: 46px; height: 46px;
   display: grid;
@@ -235,12 +249,12 @@
 }
 .fb-nav:hover { background: rgba(255, 255, 255, 0.22); }
 .fb-nav:disabled { opacity: 0.3; cursor: default; }
-.fb-prev { left: clamp(8px, 3vw, 30px); }
-.fb-next { right: clamp(8px, 3vw, 30px); }
+.fb-prev { left: calc(50% - 110px); }
+.fb-next { right: calc(50% - 110px); }
 
 .fb-count {
   position: absolute;
-  bottom: 18px;
+  bottom: 26px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 5;

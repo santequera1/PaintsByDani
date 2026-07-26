@@ -1054,6 +1054,15 @@ export async function buildSalaPremium(config, renderer) {
     )
     book.position.set(0, 1.045, 0)
     book.rotation.y = -0.35
+    // flota y oscila: invita a descubrir que es clickeable
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const bookClock = new THREE.Clock()
+      book.onBeforeRender = () => {
+        const t = bookClock.getElapsedTime()
+        book.position.y = 1.045 + Math.sin(t * 1.6) * 0.014
+        book.rotation.y = -0.35 + Math.sin(t * 0.7) * 0.12
+      }
+    }
     group.add(book)
 
     const glass = new THREE.Mesh(

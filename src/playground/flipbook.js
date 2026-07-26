@@ -110,7 +110,7 @@ export function initFlipbook({
   // ---------- tamaño responsivo ----------
   function fit() {
     const vw = window.innerWidth, vh = window.innerHeight
-    let ph = Math.min(vh * 0.72, 540)
+    let ph = Math.min(vh * 0.76, 575)
     pw = ph * 0.72
     if (pw * 2 > vw * 0.92) { pw = vw * 0.46; ph = Math.min(pw / 0.72, vh * 0.72) }
     book.style.setProperty('--fbpw', pw + 'px')
