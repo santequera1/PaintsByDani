@@ -3,7 +3,7 @@ import { contarVisita } from './misc/visitas.js'
 import * as THREE from 'three'
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 import { buildSalaPremium } from './museo/sala.js'
-import { initPanelZoom, initGyroLook, revealSala, createTourProgress, unlockAudios, mostrarErrorFatal, initDebugConsole } from './museo/usabilidad.js'
+import { initPanelZoom, initGyroLook, revealSala, createTourProgress, unlockAudios, mostrarErrorFatal, initDebugConsole, setPanelImagen, precargarVecinas } from './museo/usabilidad.js'
 import { initFlipbook } from './playground/flipbook.js'
 import { ARTWORKS, ARTIST } from './data/artworks.js'
 import './style.css'
@@ -246,6 +246,7 @@ function enterZoom(artwork, mesh) {
   zoomIndex = meshes.indexOf(mesh)
   if (zoomIndex < 0) zoomIndex = 0
   engine.zoomToPainting(mesh)
+  precargarVecinas(meshes, zoomIndex, 'posts')
   showPaintingPanel(artwork)
   showTourControls()
   hud.classList.add('hidden')
@@ -269,6 +270,7 @@ function navigateZoom(delta) {
   if (newIndex < 0 || newIndex >= meshes.length) return
   zoomIndex = newIndex
   const mesh = meshes[zoomIndex]
+  precargarVecinas(meshes, zoomIndex, 'posts')
   engine.zoomToMesh(mesh)
   showPaintingPanel(mesh.userData.artwork)
   updateTourCounter()
@@ -280,7 +282,7 @@ function showPaintingPanel(artwork) {
   panelMedium.textContent = artwork.medium || ''
   panelMedium.style.display = artwork.medium ? '' : 'none'
   const base = artwork.filename.replace(/\.[^.]+$/, '')
-  panelImage.src = `/posts/full/${encodeURI(base)}.webp`
+  setPanelImagen(panelImage, `/posts/full/${encodeURI(base)}.webp`)
   panelImage.alt = artwork.title
   panelInstagram.href = artwork.instagramUrl || ARTIST.instagramUrl
   paintingPanel.classList.remove('hidden')
@@ -405,6 +407,7 @@ engine.onMovementChange = (isMoving) => { if (isMoving) playFootsteps(); else st
 engine.onCrosshairChange = (state) => {
   if (state === 'pointer-artwork') crosshair.className = 'clickable artwork'
   else if (state === 'pointer-door') crosshair.className = 'clickable door'
+  else if (state === 'pointer-book') crosshair.className = 'clickable book'
   else crosshair.className = ''
 }
 

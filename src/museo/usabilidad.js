@@ -228,6 +228,28 @@ export function unlockAudios(list) {
   }
 }
 
+// Cambia la imagen del panel con estado de carga visible: sin esto, al
+// pasar rápido entre obras se veía la imagen anterior con el nombre de la
+// nueva mientras llegaba la descarga (bug reportado por Catalina).
+export function setPanelImagen(img, url) {
+  img.classList.add('panel-cargando')
+  const done = () => img.classList.remove('panel-cargando')
+  img.onload = done
+  img.onerror = done
+  img.src = url
+}
+
+// Precarga las obras vecinas del slider para que el cambio sea instantáneo
+export function precargarVecinas(meshes, idx, imgBase) {
+  for (const j of [idx - 1, idx + 1]) {
+    const m = meshes[j]
+    if (!m || !m.userData || !m.userData.artwork) continue
+    const b = m.userData.artwork.filename.replace(/\.[^.]+$/, '')
+    const im = new Image()
+    im.src = `/${imgBase}/full/${encodeURI(b)}.webp`
+  }
+}
+
 export function revealSala(roomTransition) {
   if (!roomTransition) return
   // accesibilidad: sin fundido si el sistema pide menos movimiento

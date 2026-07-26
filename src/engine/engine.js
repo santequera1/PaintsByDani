@@ -179,7 +179,10 @@ export function createEngine(canvas) {
     const hits = raycaster.intersectObjects(allClickable, false)
     if (hits.length === 0) return 'default'
     const obj = hits[0].object
-    if (obj.userData && obj.userData.door) return 'pointer-door'
+    if (obj.userData && obj.userData.door) {
+      // la vitrina del catálogo se distingue de las puertas de sala
+      return obj.userData.door.target === 'catalogo' ? 'pointer-book' : 'pointer-door'
+    }
     if (obj.userData && obj.userData.artwork) return 'pointer-artwork'
     return 'pointer'
   }
