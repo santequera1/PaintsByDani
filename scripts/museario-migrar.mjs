@@ -50,19 +50,16 @@ const STATEMENT_RUMIACIONES_EN = [
 ]
 
 // --- crear base ---
-// El catálogo (artistas/colecciones/obras) se regenera completo; las tablas de
-// cuentas (usuarios/sesiones, creadas por la API) se conservan intactas.
+// Este script solo regenera los artistas SEMILLA (danni, catalina), cuyos datos
+// viven en src/data/*.js. Los artistas creados desde el panel de Museario y las
+// tablas de cuentas (usuarios/sesiones) se conservan intactos.
+const SEMILLA = ['danni', 'catalina']
 mkdirSync(dirname(DB_PATH), { recursive: true })
 const db = new DatabaseSync(DB_PATH)
 
 db.exec(`
   PRAGMA journal_mode = WAL;
-  DROP TABLE IF EXISTS obras;
-  DROP TABLE IF EXISTS colecciones;
-  DROP TABLE IF EXISTS artistas;
-  DROP INDEX IF EXISTS idx_colecciones_artista;
-  DROP INDEX IF EXISTS idx_obras_coleccion;
-  CREATE TABLE artistas (
+  CREATE TABLE IF NOT EXISTS artistas (
     id INTEGER PRIMARY KEY,
     slug TEXT UNIQUE NOT NULL,
     nombre TEXT NOT NULL,
@@ -77,7 +74,7 @@ db.exec(`
     bio_en TEXT,
     creado_en TEXT NOT NULL DEFAULT (datetime('now'))
   );
-  CREATE TABLE colecciones (
+  CREATE TABLE IF NOT EXISTS colecciones (
     id INTEGER PRIMARY KEY,
     artista_id INTEGER NOT NULL REFERENCES artistas(id),
     slug TEXT NOT NULL,
@@ -92,7 +89,7 @@ db.exec(`
     publicada INTEGER NOT NULL DEFAULT 1,
     UNIQUE (artista_id, slug)
   );
-  CREATE TABLE obras (
+  CREATE TABLE IF NOT EXISTS obras (
     id INTEGER PRIMARY KEY,
     coleccion_id INTEGER NOT NULL REFERENCES colecciones(id),
     slug TEXT NOT NULL,
@@ -108,9 +105,25 @@ db.exec(`
     orden INTEGER NOT NULL,
     UNIQUE (coleccion_id, slug)
   );
-  CREATE INDEX idx_colecciones_artista ON colecciones (artista_id);
-  CREATE INDEX idx_obras_coleccion ON obras (coleccion_id);
+  CREATE INDEX IF NOT EXISTS idx_colecciones_artista ON colecciones (artista_id);
+  CREATE INDEX IF NOT EXISTS idx_obras_coleccion ON obras (coleccion_id);
 `)
+
+// Borrar solo los datos de los artistas semilla (se reinsertan abajo).
+{
+  const delObras = db.prepare(
+    'DELETE FROM obras WHERE coleccion_id IN (SELECT id FROM colecciones WHERE artista_id = ?)'
+  )
+  const delColecciones = db.prepare('DELETE FROM colecciones WHERE artista_id = ?')
+  const delArtista = db.prepare('DELETE FROM artistas WHERE id = ?')
+  for (const slug of SEMILLA) {
+    const fila = db.prepare('SELECT id FROM artistas WHERE slug = ?').get(slug)
+    if (!fila) continue
+    delObras.run(fila.id)
+    delColecciones.run(fila.id)
+    delArtista.run(fila.id)
+  }
+}
 
 const insArtista = db.prepare(
   `INSERT INTO artistas (slug, nombre, handle, instagram_url, website, substack, profile_image, logo_blanco, logo_negro, bio_es, bio_en)

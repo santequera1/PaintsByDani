@@ -14,8 +14,9 @@
 import { createServer } from 'node:http'
 import { DatabaseSync } from 'node:sqlite'
 import { fileURLToPath } from 'node:url'
-import { resolve, dirname } from 'node:path'
+import { resolve, dirname, join } from 'node:path'
 import { randomBytes } from 'node:crypto'
+import { mkdir, writeFile, rm } from 'node:fs/promises'
 
 const RAIZ = dirname(fileURLToPath(import.meta.url))
 const DB_PATH = process.env.MUSEARIO_DB || resolve(RAIZ, '..', 'museario.db')
@@ -27,6 +28,10 @@ const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || ''
 const BASE_URL = process.env.BASE_URL || 'https://museario.art'
 const COOKIE_SECURE = BASE_URL.startsWith('https') ? '; Secure' : ''
 const SESION_DIAS = 30
+
+// Imágenes subidas desde el panel (fuera del repo y del dist; nginx sirve /media/)
+const MEDIA_DIR = process.env.MUSEARIO_MEDIA || resolve(RAIZ, '..', 'media')
+const MAX_SUBIDA = 30 * 1024 * 1024 // 30 MB
 
 const db = new DatabaseSync(DB_PATH)
 
@@ -234,6 +239,243 @@ async function rutasAuth(req, res, resto, url) {
   return privado(res, 404, { error: 'No encontrado' })
 }
 
+// ============================================================
+// Panel de artista (/api/panel/*, requiere sesión)
+// ============================================================
+
+const ESTILOS = {
+  // Galería blanca: cubo blanco, concreto, lienzo flotante sin marco
+  blanca: { minimal: true, sinMarco: true, zocalo: false },
+  // Clásica: piso de madera, marcos y zócalo
+  clasica: { minimal: false, sinMarco: false, zocalo: true },
+}
+
+function slugificar(texto) {
+  return (texto || '')
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+    .slice(0, 48) || 'sin-nombre'
+}
+
+function slugUnico(base, existe) {
+  let slug = base
+  for (let i = 2; existe(slug); i++) slug = `${base}-${i}`
+  return slug
+}
+
+function limpiarNombreArchivo(nombre) {
+  const sinExt = (nombre || 'obra').replace(/\.[^.]+$/, '')
+  return sinExt.normalize('NFC').replace(/[\\/:*?"<>|#%&{}]/g, '').trim().slice(0, 80) || 'obra'
+}
+
+function leerJSON(req) {
+  return new Promise((resolver, rechazar) => {
+    let datos = ''
+    req.on('data', (c) => {
+      datos += c
+      if (datos.length > 1e6) { rechazar(new Error('JSON muy grande')); req.destroy() }
+    })
+    req.on('end', () => {
+      try { resolver(datos ? JSON.parse(datos) : {}) } catch (e) { rechazar(e) }
+    })
+    req.on('error', rechazar)
+  })
+}
+
+function leerBinario(req) {
+  return new Promise((resolver, rechazar) => {
+    const trozos = []
+    let total = 0
+    req.on('data', (c) => {
+      total += c.length
+      if (total > MAX_SUBIDA) { rechazar(new Error('Archivo muy grande (máx 30 MB)')); req.destroy(); return }
+      trozos.push(c)
+    })
+    req.on('end', () => resolver(Buffer.concat(trozos)))
+    req.on('error', rechazar)
+  })
+}
+
+const qArtistaDeUsuario = db.prepare('SELECT a.* FROM artistas a WHERE a.id = ?')
+const qColeccionPanel = db.prepare('SELECT * FROM colecciones WHERE artista_id = ? AND slug = ?')
+const qObraPanel = db.prepare(
+  `SELECT o.*, c.artista_id, c.img_base FROM obras o JOIN colecciones c ON c.id = o.coleccion_id
+   WHERE o.id = ?`
+)
+
+async function rutasPanel(req, res, resto, url) {
+  const u = usuarioActual(req)
+  if (!u) return privado(res, 401, { error: 'Inicia sesión para usar el panel' })
+  const artista = u.artista_id ? qArtistaDeUsuario.get(u.artista_id) : null
+
+  // GET /api/panel/estado — todo lo que el panel necesita para pintarse
+  if (resto[1] === 'estado' && req.method === 'GET') {
+    let colecciones = []
+    if (artista) {
+      colecciones = qColecciones.all(artista.id).map((c) => ({
+        slug: c.slug,
+        nombre: c.nombre,
+        subtitulo: c.subtitulo,
+        imgBase: c.img_base,
+        publicada: !!c.publicada,
+        estilo: parse(c.estilo),
+        obras: qObras.all(c.id).map((o) => ({
+          id: o.id, slug: o.slug, filename: o.filename, ratio: o.ratio,
+          title: o.titulo, medium: o.medium, price: o.precio,
+        })),
+      }))
+    }
+    return privado(res, 200, {
+      usuario: { email: u.email, nombre: u.nombre, foto: u.foto },
+      artista: artista && {
+        slug: artista.slug, nombre: artista.nombre, handle: artista.handle,
+        instagramUrl: artista.instagram_url, website: artista.website, bioEs: artista.bio_es,
+        colecciones,
+      },
+    })
+  }
+
+  // POST /api/panel/artista — crear o actualizar el perfil del artista
+  if (resto[1] === 'artista' && req.method === 'POST') {
+    const b = await leerJSON(req)
+    const nombre = (b.nombre || '').trim()
+    if (!nombre) return privado(res, 400, { error: 'El nombre es obligatorio' })
+    const handle = (b.handle || '').trim() || null
+    const instagram = (b.instagramUrl || '').trim() || null
+    const website = (b.website || '').trim() || null
+    const bio = (b.bioEs || '').trim() || null
+    if (artista) {
+      db.prepare(
+        'UPDATE artistas SET nombre=?, handle=?, instagram_url=?, website=?, bio_es=? WHERE id=?'
+      ).run(nombre, handle, instagram, website, bio, artista.id)
+      return privado(res, 200, { ok: true, slug: artista.slug })
+    }
+    const slug = slugUnico(slugificar(nombre), (s) => !!qArtista.get(s))
+    const { lastInsertRowid: id } = db.prepare(
+      'INSERT INTO artistas (slug, nombre, handle, instagram_url, website, bio_es) VALUES (?,?,?,?,?,?)'
+    ).run(slug, nombre, handle, instagram, website, bio)
+    db.prepare('UPDATE usuarios SET artista_id=? WHERE id=?').run(id, u.id)
+    return privado(res, 200, { ok: true, slug })
+  }
+
+  // Todo lo demás requiere perfil de artista
+  if (!artista) return privado(res, 400, { error: 'Crea primero tu perfil de artista' })
+
+  // POST /api/panel/colecciones — crear colección
+  if (resto[1] === 'colecciones' && resto.length === 2 && req.method === 'POST') {
+    const b = await leerJSON(req)
+    const nombre = (b.nombre || '').trim()
+    if (!nombre) return privado(res, 400, { error: 'El nombre es obligatorio' })
+    const estilo = ESTILOS[b.estilo] || ESTILOS.blanca
+    const slug = slugUnico(slugificar(nombre), (s) => !!qColeccionPanel.get(artista.id, s))
+    const imgBase = `media/${artista.slug}/${slug}`
+    db.prepare(
+      `INSERT INTO colecciones (artista_id, slug, nombre, subtitulo, img_base, estilo, orden, publicada)
+       VALUES (?,?,?,?,?,?, (SELECT COALESCE(MAX(orden)+1,0) FROM colecciones WHERE artista_id=?), 1)`
+    ).run(artista.id, slug, nombre, (b.subtitulo || '').trim() || null, imgBase, JSON.stringify(estilo), artista.id)
+    await mkdir(join(MEDIA_DIR, artista.slug, slug, 'thumb'), { recursive: true })
+    await mkdir(join(MEDIA_DIR, artista.slug, slug, 'full'), { recursive: true })
+    await mkdir(join(MEDIA_DIR, artista.slug, slug, 'orig'), { recursive: true })
+    return privado(res, 200, { ok: true, slug })
+  }
+
+  // PATCH /api/panel/colecciones/:slug — editar / publicar u ocultar
+  if (resto[1] === 'colecciones' && resto[2] && req.method === 'PATCH') {
+    const col = qColeccionPanel.get(artista.id, resto[2])
+    if (!col) return privado(res, 404, { error: 'Colección no encontrada' })
+    const b = await leerJSON(req)
+    db.prepare('UPDATE colecciones SET nombre=?, subtitulo=?, publicada=? WHERE id=?').run(
+      (b.nombre ?? col.nombre) || col.nombre,
+      b.subtitulo !== undefined ? ((b.subtitulo || '').trim() || null) : col.subtitulo,
+      b.publicada !== undefined ? (b.publicada ? 1 : 0) : col.publicada,
+      col.id
+    )
+    return privado(res, 200, { ok: true })
+  }
+
+  // POST /api/panel/colecciones/:slug/obras?filename=&title=&medium=&price=
+  // (el cuerpo es la imagen en binario; sharp genera thumb/full en webp)
+  if (resto[1] === 'colecciones' && resto[2] && resto[3] === 'obras' && req.method === 'POST') {
+    const col = qColeccionPanel.get(artista.id, resto[2])
+    if (!col) return privado(res, 404, { error: 'Colección no encontrada' })
+    let sharp
+    try {
+      sharp = (await import('sharp')).default
+    } catch {
+      return privado(res, 500, { error: 'El procesador de imágenes no está disponible' })
+    }
+    const cuerpo = await leerBinario(req)
+    if (!cuerpo.length) return privado(res, 400, { error: 'Imagen vacía' })
+
+    const base = limpiarNombreArchivo(url.searchParams.get('filename'))
+    const titulo = (url.searchParams.get('title') || '').trim() || base
+    const medium = (url.searchParams.get('medium') || '').trim() || null
+    const precio = (url.searchParams.get('price') || '').trim() || null
+
+    const dir = join(MEDIA_DIR, artista.slug, col.slug)
+    const img = sharp(cuerpo, { failOn: 'none' }).rotate() // respeta la orientación EXIF
+    const meta = await img.metadata()
+    if (!meta.width || !meta.height) return privado(res, 400, { error: 'No parece una imagen válida' })
+    const ratio = Math.round((meta.width / meta.height) * 1000) / 1000
+
+    // nombre único dentro de la colección
+    const existe = db.prepare('SELECT 1 FROM obras WHERE coleccion_id=? AND filename=?')
+    let nombreArchivo = `${base}.jpg`
+    for (let i = 2; existe.get(col.id, nombreArchivo); i++) nombreArchivo = `${base} (${i}).jpg`
+    const baseFinal = nombreArchivo.replace(/\.[^.]+$/, '')
+
+    await mkdir(join(dir, 'thumb'), { recursive: true })
+    await mkdir(join(dir, 'full'), { recursive: true })
+    await mkdir(join(dir, 'orig'), { recursive: true })
+    await writeFile(join(dir, 'orig', nombreArchivo), cuerpo)
+    await img.clone().resize({ width: 1600, height: 1600, fit: 'inside', withoutEnlargement: true })
+      .webp({ quality: 82 }).toFile(join(dir, 'full', `${baseFinal}.webp`))
+    await img.clone().resize({ width: 640, height: 640, fit: 'inside', withoutEnlargement: true })
+      .webp({ quality: 72 }).toFile(join(dir, 'thumb', `${baseFinal}.webp`))
+
+    const slugObra = slugUnico(slugificar(titulo), (s) =>
+      !!db.prepare('SELECT 1 FROM obras WHERE coleccion_id=? AND slug=?').get(col.id, s))
+    const { lastInsertRowid: id } = db.prepare(
+      `INSERT INTO obras (coleccion_id, slug, filename, ratio, titulo, medium, precio, instagram_url, orden)
+       VALUES (?,?,?,?,?,?,?,?, (SELECT COALESCE(MAX(orden)+1,0) FROM obras WHERE coleccion_id=?))`
+    ).run(col.id, slugObra, nombreArchivo, ratio, titulo, medium, precio, artista.instagram_url, col.id)
+    return privado(res, 200, { ok: true, id, filename: nombreArchivo, ratio })
+  }
+
+  // PATCH /api/panel/obras/:id — editar título/técnica/precio
+  if (resto[1] === 'obras' && resto[2] && req.method === 'PATCH') {
+    const obra = qObraPanel.get(Number(resto[2]))
+    if (!obra || obra.artista_id !== artista.id) return privado(res, 404, { error: 'Obra no encontrada' })
+    const b = await leerJSON(req)
+    db.prepare('UPDATE obras SET titulo=?, medium=?, precio=? WHERE id=?').run(
+      (b.title ?? obra.titulo) || obra.titulo,
+      b.medium !== undefined ? ((b.medium || '').trim() || null) : obra.medium,
+      b.price !== undefined ? ((b.price || '').trim() || null) : obra.precio,
+      obra.id
+    )
+    return privado(res, 200, { ok: true })
+  }
+
+  // DELETE /api/panel/obras/:id — borrar obra y sus archivos
+  if (resto[1] === 'obras' && resto[2] && req.method === 'DELETE') {
+    const obra = qObraPanel.get(Number(resto[2]))
+    if (!obra || obra.artista_id !== artista.id) return privado(res, 404, { error: 'Obra no encontrada' })
+    db.prepare('DELETE FROM obras WHERE id=?').run(obra.id)
+    if (obra.img_base && obra.img_base.startsWith('media/')) {
+      const dir = join(MEDIA_DIR, obra.img_base.replace(/^media\//, ''))
+      const baseFinal = obra.filename.replace(/\.[^.]+$/, '')
+      for (const ruta of [
+        join(dir, 'orig', obra.filename),
+        join(dir, 'full', `${baseFinal}.webp`),
+        join(dir, 'thumb', `${baseFinal}.webp`),
+      ]) await rm(ruta, { force: true })
+    }
+    return privado(res, 200, { ok: true })
+  }
+
+  return privado(res, 404, { error: 'No encontrado' })
+}
+
 const server = createServer(async (req, res) => {
   let partes, url
   try {
@@ -250,6 +492,16 @@ const server = createServer(async (req, res) => {
     } catch (e) {
       console.error(e)
       return privado(res, 500, { error: 'Error interno' })
+    }
+  }
+
+  // /api/panel/... (panel de artista)
+  if (partes[0] === 'api' && partes[1] === 'panel') {
+    try {
+      return await rutasPanel(req, res, partes.slice(1), url)
+    } catch (e) {
+      console.error(e)
+      return privado(res, 500, { error: e.message || 'Error interno' })
     }
   }
 
