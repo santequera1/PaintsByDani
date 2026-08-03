@@ -5,75 +5,16 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 import { buildSalaPremium } from './sala.js'
 import { initFlipbook } from '../playground/flipbook.js'
 import { initPanelZoom, initGyroLook, revealSala, createTourProgress, unlockAudios, mostrarErrorFatal, initDebugConsole, setPanelImagen, precargarVecinas, precargarTodas } from './usabilidad.js'
-import { ARTWORKS, ARTIST } from '../data/catalina.js'
+import { ARTWORKS, ARTIST } from '../data/alma.js'
 import '../style.css'
 import './museo.css'
 
 /* ============================================================
-   Museo Virtual · Rumiaciones — Catalina Olivero
-   Versión MINIMALISTA (pedido de Catalina): white cube, marcos
-   finos, sin vitrina, sin bancas, sin polvo. Sin música.
+   Museo Virtual · Alma — Catalina Olivero
+   Sala minimal (white cube), tercer museo de la artista.
    ============================================================ */
 
-// ============================================================
-// Idioma ES/EN — ?lang=en en la URL o el botón de la portada;
-// la elección se recuerda por navegador.
-// ============================================================
-let LANG = 'es'
-try {
-  const q = new URLSearchParams(location.search)
-  if (q.get('lang') === 'en' || q.get('lang') === 'es') {
-    LANG = q.get('lang')
-    localStorage.setItem('museo-lang', LANG)
-  } else if (localStorage.getItem('museo-lang') === 'en') {
-    LANG = 'en'
-  }
-} catch {}
-const EN = LANG === 'en'
-const TITULO = EN ? 'Ruminations' : 'Rumiaciones'
-
-// Statement de la serie (texto de Catalina) — vinilo en la pared sur
-const STATEMENT_ES = [
-  'La serie de pinturas acrílicas sobre lienzo de Catalina Olivero refleja la anatomía del pensamiento repetitivo, donde la abstracción opera como un medio para procesar la inestabilidad de los vínculos afectivos. Al prescindir de una imprimación que proteja el soporte, la tela cruda absorbe el pigmento de manera irreversible, transformándose en un registro textil del tránsito de las relaciones, una inmersión donde lavados ligeros y tonos vibrantes coexisten junto a texturas de carácter terroso.',
-  'Estas obras, cuyos títulos recuperan fragmentos de diálogos personales, articulan un lenguaje visual de trazos que asemejan laberintos, espacios negativos que dan respiración al plano y un salpicado visceral que irrumpe como clausura mental. Así, a través de composiciones asimétricas que equilibran la tensión entre el control y la resistencia, la muestra invita a presenciar una liturgia del desahogo donde la rumiación de las ideas se convierte en un acto de liberación.',
-]
-const STATEMENT_EN = [
-  "Catalina Olivero's series of acrylic paintings on canvas reflects the anatomy of repetitive thought, where abstraction operates as a means of processing the instability of emotional bonds. By forgoing a primer to protect the support, the raw canvas absorbs the pigment irreversibly, becoming a textile record of the passage of relationships — an immersion where light washes and vibrant tones coexist with earthy textures.",
-  'These works, whose titles recover fragments of personal dialogues, articulate a visual language of strokes that resemble labyrinths, negative spaces that let the plane breathe, and a visceral splatter that erupts like mental closure. Thus, through asymmetrical compositions that balance the tension between control and resistance, the exhibition invites us to witness a liturgy of release in which the rumination of ideas becomes an act of liberation.',
-]
-const STATEMENT = EN ? STATEMENT_EN : STATEMENT_ES
-
-// Títulos oficiales en inglés (enviados por Catalina).
-// OJO: 'I Wish You the Best' (Te deseo lo mejor) es traducción provisional —
-// no venía en su lista.
-const TITULOS_EN = {
-  'llegaste-bien': 'Did You Get Home Safely? 2026',
-  'helado': 'I Like Watching You Eat Ice Cream, 2026',
-  'parque': 'I Feel Connected to This Park, 2026',
-  'santuario': 'My Home Is My Sanctuary, 2026',
-  'oceano': 'Lost in the Ocean, 2026',
-  'te-deseo': 'I Wish You the Best, 2026',
-  'distancia': 'I Saw You from a Distance, 2026',
-  // nuevas (traducciones provisionales — confirmar con Catalina)
-  'sabor-sudor': 'The Taste of Your Sweat, 2026',
-  'ojos': 'I Like Your Eyes, 2026',
-  'arte': 'I Want to Feel Your Art, 2026',
-  'conversaciones': 'We Always Have Good Conversations, 2026',
-  'caminos': 'We Took Different Paths, 2026',
-}
-
-// las 7 rumiaciones (en EN: título, técnica y medidas en pulgadas)
-const OBRAS = EN
-  ? ARTWORKS.map((a) => ({
-      ...a,
-      title: TITULOS_EN[a.id] || a.title,
-      medium: (a.medium || '')
-        .replace('Acrílico sobre lienzo sin imprimar', 'Acrylic on unprimed canvas')
-        .replace('54 × 94 cm', '21.3 × 37 in')
-        .replace('60 × 94 cm', '23.6 × 37 in')
-        .replace('60 × 95 cm', '23.6 × 37.4 in'),
-    }))
-  : ARTWORKS
+const OBRAS = ARTWORKS
 
 // --- DOM ---
 const canvas = document.getElementById('scene')
@@ -110,7 +51,7 @@ const panelZoom = initPanelZoom(panelImage)
 initGyroLook(document.getElementById('gyro-btn'))
 
 // --- Engine + environment ---
-initDebugConsole() // consola en pantalla con ?debug (diagnóstico en móviles)
+initDebugConsole()
 
 let engine
 try {
@@ -133,11 +74,9 @@ canvas.addEventListener('webglcontextlost', (e) => {
 
 // --- Audio: solo pasos (sin música) ---
 const audioFootsteps = new Audio('/sonidos/pasos.mp3')
-audioFootsteps.preload = 'none' // no descargar hasta entrar
+audioFootsteps.preload = 'none'
 audioFootsteps.loop = true
 audioFootsteps.volume = 0.35
-
-// Samsung/iOS bloquean audio fuera de un gesto → desbloquear al entrar
 const unlockAudio = unlockAudios([audioFootsteps])
 
 function playFootsteps() {
@@ -167,16 +106,15 @@ async function enterSala() {
     sala = await buildSalaPremium(
       {
         artworks: OBRAS,
-        imgBase: 'cat-posts',
-        reflect: !isMobile, // concreto pulido: reflejo sutil de luz (solo desktop)
-        title: TITULO,
-        subtitle: 'Catalina Olivero · 2026',
-        statement: STATEMENT,
-        statementTitle: TITULO,
-        statementCredit: '— Catalina Olivero',
-        vitrina: { title: TITULO.toUpperCase(), sub: EN ? 'Catalogue · 2026' : 'Catálogo · 2026' },
+        imgBase: 'alma-posts',
+        reflect: false,
+        title: 'Alma',
+        subtitle: 'Catalina Olivero · 2022 – 2025',
+        statement: null,
+        vitrina: { title: 'ALMA', sub: 'Catálogo · 2022 – 2025' },
         doors: [],
         minimal: true,
+        hangBottomMin: 1.05, // hay varias obras verticales grandes
       },
       engine.renderer
     )
@@ -187,21 +125,21 @@ async function enterSala() {
     mostrarErrorFatal('No se pudo cargar la sala. Revisa tu conexión y recarga la página.')
     return
   }
-  roomNameEl.textContent = TITULO
+  roomNameEl.textContent = 'Alma'
   updateArtworkCounter()
 }
 
-// --- Obras vistas: "3 de 7 vistas" para incentivar completar la sala ---
+// --- Obras vistas ---
 const seenObras = new Set()
 function updateArtworkCounter() {
   const seen = OBRAS.filter((a) => seenObras.has(a.id)).length
-  artworkCounterEl.textContent = EN
-    ? (seen > 0 ? `${seen} of ${OBRAS.length} works seen` : `${OBRAS.length} works`)
-    : (seen > 0 ? `${seen} de ${OBRAS.length} obras vistas` : `${OBRAS.length} obras`)
+  artworkCounterEl.textContent = seen > 0
+    ? `${seen} de ${OBRAS.length} obras vistas`
+    : `${OBRAS.length} obras`
 }
 
 // ============================================================
-// Luces: encendidas / apagadas (modo oscuro, tecla L)
+// Luces (tecla L)
 // ============================================================
 const lightsBtn = document.getElementById('lights-btn')
 let darkMode = false
@@ -212,9 +150,7 @@ function applyLights() {
   engine.scene.background.set(darkMode ? 0x040404 : 0x111110)
   if (lightsBtn) {
     lightsBtn.classList.toggle('off', darkMode)
-    lightsBtn.querySelector('span').textContent = EN
-      ? (darkMode ? 'Lights on' : 'Lights off')
-      : (darkMode ? 'Encender luces' : 'Apagar luces')
+    lightsBtn.querySelector('span').textContent = darkMode ? 'Encender luces' : 'Apagar luces'
   }
 }
 function toggleLights() {
@@ -227,14 +163,39 @@ document.addEventListener('keydown', (e) => {
 })
 
 // ============================================================
-// Recorrido automático (cinematográfico)
+// Vitrina central → catálogo (flipbook)
+// ============================================================
+let viewingBook = false
+const book = initFlipbook({
+  trigger: null,
+  title: 'Alma',
+  years: '2022 – 2025',
+  artist: ARTIST.name,
+  handle: ARTIST.handle,
+  photo: ARTIST.profileImage,
+  statementTitle: 'Alma',
+  statement: [],
+  artworks: OBRAS,
+  imgBase: 'alma-posts',
+  pdfUrl: null,
+  logo: '/cat-logo-negro.svg',
+  onClose: () => {
+    viewingBook = false
+    if (!isMobile && museumEntered) {
+      setTimeout(() => { try { engine.requestLock() } catch {} }, 150)
+    }
+  },
+})
+
+// ============================================================
+// Recorrido automático
 // ============================================================
 const tourBtn = document.getElementById('tour-btn')
 const tourStopBtn = document.getElementById('tour-auto-stop')
 const tourProgress = createTourProgress(document.getElementById('tour-progress'))
 let touring = false
 let tourTimer = null
-const TOUR_DWELL = 5200 // ms frente a cada obra
+const TOUR_DWELL = 5200
 
 function tourAdvance() {
   if (!touring) return
@@ -281,7 +242,6 @@ function stopTour() {
   }
 }
 
-// lento acercamiento a la obra mientras se contempla (dolly-in)
 function pushIn() {
   if (!touring) return
   if (engine.zoomMode && !engine.zoomAnimating) {
@@ -306,7 +266,7 @@ function enterZoom(artwork, mesh) {
   zoomIndex = meshes.indexOf(mesh)
   if (zoomIndex < 0) zoomIndex = 0
   engine.zoomToPainting(mesh)
-  precargarVecinas(meshes, zoomIndex, 'cat-posts')
+  precargarVecinas(meshes, zoomIndex, 'alma-posts')
   showPaintingPanel(artwork)
   showTourControls()
   hud.classList.add('hidden')
@@ -330,7 +290,7 @@ function navigateZoom(delta) {
   if (newIndex < 0 || newIndex >= meshes.length) return
   zoomIndex = newIndex
   const mesh = meshes[zoomIndex]
-  precargarVecinas(meshes, zoomIndex, 'cat-posts')
+  precargarVecinas(meshes, zoomIndex, 'alma-posts')
   engine.zoomToMesh(mesh)
   showPaintingPanel(mesh.userData.artwork)
   updateTourCounter()
@@ -347,7 +307,7 @@ function showPaintingPanel(artwork) {
     panelPrice.classList.toggle('na', artwork.price === 'Vendido')
   }
   const base = artwork.filename.replace(/\.[^.]+$/, '')
-  setPanelImagen(panelImage, `/cat-posts/full/${encodeURI(base)}.webp`)
+  setPanelImagen(panelImage, `/alma-posts/full/${encodeURI(base)}.webp`)
   panelImage.alt = artwork.title
   panelInstagram.href = artwork.instagramUrl || ARTIST.instagramUrl
   paintingPanel.classList.remove('hidden')
@@ -384,31 +344,6 @@ document.addEventListener('keydown', (e) => {
 })
 
 // ============================================================
-// Vitrina central → catálogo (flipbook)
-// ============================================================
-let viewingBook = false
-const book = initFlipbook({
-  trigger: null,
-  title: TITULO,
-  years: '2026',
-  artist: ARTIST.name,
-  handle: ARTIST.handle,
-  photo: ARTIST.profileImage,
-  statementTitle: TITULO,
-  statement: STATEMENT,
-  artworks: OBRAS, // en EN el catálogo también muestra títulos/medidas traducidos
-  imgBase: 'cat-posts',
-  pdfUrl: null,
-  logo: '/cat-logo-negro.svg',
-  onClose: () => {
-    viewingBook = false
-    if (!isMobile && museumEntered) {
-      setTimeout(() => { try { engine.requestLock() } catch {} }, 150)
-    }
-  },
-})
-
-// ============================================================
 // Callbacks del motor
 // ============================================================
 engine.onPaintingClicked = (artwork, mesh) => enterZoom(artwork, mesh)
@@ -437,7 +372,6 @@ playBtn.addEventListener('click', () => {
   unlockAudio()
   overlay.classList.add('fade-out')
   setTimeout(() => { overlay.style.display = 'none' }, 600)
-  // las instrucciones se muestran máximo 2 veces por dispositivo
   let seen = 0
   try { seen = parseInt(localStorage.getItem('howto-count') || '0', 10) } catch {}
   if (howto && seen < 2) {
@@ -449,7 +383,7 @@ playBtn.addEventListener('click', () => {
 })
 if (howtoStart) howtoStart.addEventListener('click', enterMuseum)
 
-// Botón "volver" del HUD (móvil): regresa a la pantalla de inicio
+// Botón "volver" del HUD (móvil)
 const backBtn = document.getElementById('back-btn')
 if (backBtn) backBtn.addEventListener('click', () => {
   stopFootsteps()
@@ -478,18 +412,18 @@ function showGestureHints() {
 function enterMuseum() {
   if (howto) howto.classList.add('hidden')
   museumEntered = true
-  revealSala(roomTransition) // fade desde negro: disimula la carga de texturas
+  revealSala(roomTransition)
   hud.classList.remove('hidden')
   if (isMobile) mobileControls.classList.remove('hidden')
   if (!isMobile) { try { engine.requestLock() } catch {} }
   showGestureHints()
   // en segundo plano, de a una: el slider queda instantáneo en cualquier equipo
-  precargarTodas(engine.paintingMeshes, 'cat-posts')
+  precargarTodas(engine.paintingMeshes, 'alma-posts')
 }
 
 document.addEventListener('pointerlockchange', () => {
   if (isMobile) return
-  if (viewingBook || touring) return // el catálogo/recorrido gestionan su propio estado
+  if (viewingBook || touring) return
   if (!engine.locked && !engine.zoomMode && !engine.zoomAnimating) {
     if (museumEntered) {
       overlay.style.display = ''
@@ -619,78 +553,24 @@ if (isMobile) {
 }
 
 // ============================================================
-// Interfaz en inglés + botón de idioma en la portada
-// ============================================================
-const langBtn = document.getElementById('lang-btn')
-if (langBtn) {
-  langBtn.textContent = EN ? 'Versión en español' : 'English version'
-  langBtn.addEventListener('click', () => {
-    try { localStorage.setItem('museo-lang', EN ? 'es' : 'en') } catch {}
-    const u = new URL(location.href)
-    u.searchParams.set('lang', EN ? 'es' : 'en')
-    location.href = u.toString()
-  })
-}
-
-if (EN) {
-  const T = (sel, txt) => { const el = document.querySelector(sel); if (el) el.textContent = txt }
-  const lastText = (sel, txt) => {
-    const el = document.querySelector(sel)
-    if (el && el.lastChild) el.lastChild.textContent = ' ' + txt
-  }
-  T('#overlay-brand h1', 'Ruminations')
-  document.title = 'Virtual Museum · Ruminations | Catalina Olivero'
-  T('#play-btn', 'Enter the Museum')
-  lastText('#tour-btn', 'Auto Tour')
-  T('#gallery-link', 'View canvas gallery →')
-  T('a.overlay-link[href="./museo.html"]', 'Conexiones Museum →')
-  T('a.overlay-link[href="./museo-alma.html"]', 'Alma Museum →')
-  T('#overlay-brand .subtitle', 'Virtual Museum · 2026')
-  T('.controls-hint .desktop-only', 'WASD / Arrows move · Mouse look · Click interact')
-  T('.controls-hint .mobile-only', 'Use the joystick to move · Tap to interact')
-  const hintLabels = document.querySelectorAll('#control-hints .hint-label')
-  const hintsEn = ['Move', 'Look', 'Click to interact', 'Lights', 'Pause']
-  hintLabels.forEach((el, i) => { if (hintsEn[i]) el.textContent = hintsEn[i] })
-  lastText('#tour-auto-stop', 'Stop tour')
-  // instrucciones
-  T('#howto h2', 'How it works')
-  const hmP = document.querySelectorAll('#howto .howto-mobile .howto-step p')
-  const hmEn = [
-    '<strong>Move</strong> with the joystick in the bottom-left corner.',
-    '<strong>Look around</strong> by dragging your finger on the screen (right side).',
-    '<strong>Aim at an artwork</strong> and tap the <strong>◎</strong> button to see it up close.',
-  ]
-  hmP.forEach((el, i) => { if (hmEn[i]) el.innerHTML = hmEn[i] })
-  const hdP = document.querySelectorAll('#howto .howto-desktop .howto-step p')
-  const hdEn = [
-    '<strong>Move</strong> with WASD or the arrow keys.',
-    '<strong>Look around</strong> by moving the mouse.',
-    '<strong>Click</strong> an artwork to see it up close.',
-  ]
-  hdP.forEach((el, i) => { if (hdEn[i]) el.innerHTML = hdEn[i] })
-  const extra = document.querySelector('#howto .howto-extra')
-  if (extra) extra.innerHTML = 'L · lights &nbsp;·&nbsp; T · auto tour &nbsp;·&nbsp; ESC · pause'
-  T('#howto-start', "Ready — let's go!")
-  // gestos y botones
-  T('#gesture-hints .gh-move .gh-label', 'Move')
-  T('#gesture-hints .gh-label-look', 'Look')
-  lastText('#panel-instagram', 'View on Instagram')
-  const setTitle = (id, t) => { const el = document.getElementById(id); if (el) el.title = t }
-  setTitle('back-btn', 'Back to start')
-  setTitle('gyro-btn', 'Look by moving your phone')
-  setTitle('lights-btn', 'Lights on/off (L)')
-  setTitle('panel-zoom', 'Scroll / pinch to zoom')
-  setTitle('tour-prev', 'Previous')
-  setTitle('tour-next', 'Next')
-  setTitle('tour-exit', 'Back (ESC)')
-  document.documentElement.lang = 'en'
-}
-
-// ============================================================
 // Init
 // ============================================================
 enterSala()
-contarVisita('museo-rumiaciones')
+contarVisita('museo-alma')
+
+// contador de visitas visible en el HUD
+const visitsHud = document.getElementById('visits-hud')
+if (visitsHud) {
+  setTimeout(() => {
+    fetch('/api/visitas')
+      .then((r) => r.json())
+      .then((d) => {
+        const n = (d.paginas && d.paginas['museo-alma']) || 0
+        if (n > 0) visitsHud.textContent = n.toLocaleString('es-CO') + (n === 1 ? ' visita' : ' visitas')
+      })
+      .catch(() => {})
+  }, 900)
+}
 
 // ?entrar: salta la portada y entra directo a la sala
 if (new URLSearchParams(location.search).has('entrar')) {
@@ -698,20 +578,4 @@ if (new URLSearchParams(location.search).has('entrar')) {
   setTimeout(() => { overlay.style.display = 'none' }, 150)
   if (isMobile) engine.enableMobile()
   setTimeout(enterMuseum, 500)
-}
-
-// contador de visitas visible en el HUD (tras registrar la propia)
-const visitsHud = document.getElementById('visits-hud')
-if (visitsHud) {
-  setTimeout(() => {
-    fetch('/api/visitas')
-      .then((r) => r.json())
-      .then((d) => {
-        const n = (d.paginas && d.paginas['museo-rumiaciones']) || 0
-        if (n > 0) visitsHud.textContent = EN
-          ? n.toLocaleString('en-US') + (n === 1 ? ' visit' : ' visits')
-          : n.toLocaleString('es-CO') + (n === 1 ? ' visita' : ' visitas')
-      })
-      .catch(() => {})
-  }, 900)
 }
