@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <base href="/" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="dark" />
+  <title>Museario — cada artista, su museo</title>
+  <link rel="icon" type="image/svg+xml" href="/museario/favicon.svg" />
+  <link rel="alternate icon" type="image/png" href="/museario/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Museario" />
+  <meta property="og:title" content="Museario — cada artista, su museo" />
+  <meta property="og:description" content="Museos virtuales 3D y galerías interactivas para artistas. Plataforma en construcción." />
+  <meta property="og:url" content="https://museario.art/" />
+  <style>
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background: #0c0c0e;
+      color: #ece8df;
+      font-family: 'Poppins', 'Helvetica Neue', sans-serif;
+      font-weight: 300;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    /* textura sutil de puntos */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: radial-gradient(rgba(236,232,223,0.05) 1px, transparent 1px);
+      background-size: 26px 26px;
+      pointer-events: none;
+    }
+    .hero {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px 20px;
+      position: relative;
+    }
+    .logo { width: min(440px, 78vw); display: block; margin-bottom: 26px; }
+    .chip {
+      font-size: 0.66rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: #c9a35c;
+      border: 1px solid rgba(201,163,92,0.4);
+      padding: 7px 16px 6px;
+      margin-bottom: 30px;
+    }
+    h1 {
+      font-family: 'DM Serif Display', serif;
+      font-weight: 400;
+      font-size: clamp(1.7rem, 4.6vw, 2.9rem);
+      line-height: 1.18;
+      margin: 0 0 14px;
+      max-width: 17em;
+    }
+    h1 em { font-style: italic; }
+    .sub {
+      color: #8d8579;
+      font-size: 0.95rem;
+      line-height: 1.65;
+      max-width: 34em;
+      margin: 0 0 36px;
+    }
+    .acciones { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 9px;
+      background: #ece8df; color: #16130f;
+      padding: 13px 26px;
+      font-size: 0.78rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
+      text-decoration: none;
+      transition: background .2s ease;
+    }
+    .btn:hover { background: #fff; }
+    .btn-ghost { background: transparent; color: #ece8df; border: 1px solid rgba(255,255,255,0.3); }
+    .btn-ghost:hover { background: rgba(255,255,255,0.09); }
+    footer {
+      text-align: center;
+      padding: 22px 16px 26px;
+      font-size: 0.72rem;
+      letter-spacing: 0.06em;
+      color: #6d675d;
+      position: relative;
+    }
+    footer a { color: #a59d8f; text-decoration: none; }
+    footer a:hover { color: #ece8df; }
+  </style>
+</head>
+<body>
+  <div class="hero">
+    <img class="logo" src="/museario/logo-blanco.svg" alt="Museario" />
+    <p class="chip">Plataforma en construcción</p>
+    <h1>Cada artista tiene <em>su propio museo</em></h1>
+    <p class="sub">
+      Museos virtuales en 3D y galerías interactivas para recorrer, coleccionar
+      y compartir arte. Muy pronto, cualquier artista podrá abrir el suyo.
+    </p>
+    <div class="acciones">
+      <a class="btn" href="/a/catalina/rumiaciones">Recorrer un museo</a>
+      <a class="btn btn-ghost" href="/cuenta.html">Soy artista — entrar</a>
+    </div>
+  </div>
+  <footer>
+    <a href="https://museo.wailus.co/catalina.html" target="_blank" rel="noopener">Catalina Olivero</a>
+    &nbsp;·&nbsp;
+    <a href="https://museo.wailus.co/" target="_blank" rel="noopener">Danní</a>
+    &nbsp;·&nbsp; museario.art
+  </footer>
+</body>
+</html>
