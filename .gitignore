@@ -14,3 +14,6 @@ museario.db-*
 
 # credenciales de Google (nunca subir)
 /google/
+
+# fuente de logos museario (copias en public/museario)
+/museariomedia/

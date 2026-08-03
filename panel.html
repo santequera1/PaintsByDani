@@ -6,90 +6,150 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="color-scheme" content="dark" />
   <title>Panel de artista · Museario</title>
-  <link rel="icon" type="image/jpeg" href="/cat-profile.jpg" />
+  <link rel="icon" type="image/svg+xml" href="/museario/favicon.svg" />
+  <link rel="alternate icon" type="image/png" href="/museario/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <style>
     * { box-sizing: border-box; }
     body {
       margin: 0;
       background: #0c0c0e;
       color: #ece8df;
-      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-family: 'Poppins', 'Helvetica Neue', sans-serif;
+      font-weight: 300;
       min-height: 100vh;
     }
+    h1, h2 { font-family: 'DM Serif Display', serif; font-weight: 400; }
     header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 18px 22px;
+      padding: 16px 22px;
       border-bottom: 1px solid rgba(255,255,255,0.08);
     }
-    .marca { font-size: 12px; letter-spacing: 0.42em; text-transform: uppercase; color: #8d8579; }
-    .usuario { display: flex; align-items: center; gap: 10px; font-size: 0.8rem; color: #a59d8f; }
+    .marca { display: flex; align-items: baseline; gap: 12px; }
+    .marca img { height: 17px; display: block; }
+    .marca span { font-size: 0.7rem; letter-spacing: 0.28em; text-transform: uppercase; color: #8d8579; }
+    .usuario { display: flex; align-items: center; gap: 10px; font-size: 0.78rem; color: #a59d8f; }
     .usuario img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
-    .usuario button { background: none; border: 0; color: #6d675d; cursor: pointer; font-size: 0.78rem; text-decoration: underline; }
-    main { max-width: 860px; margin: 0 auto; padding: 28px 18px 60px; }
-    h1 { font-size: 1.3rem; letter-spacing: 0.03em; margin: 0 0 4px; }
-    h2 { font-size: 1.02rem; letter-spacing: 0.04em; margin: 0 0 14px; }
-    .sub { color: #8d8579; font-size: 0.84rem; margin: 0 0 24px; line-height: 1.5; }
+    .usuario button { background: none; border: 0; color: #6d675d; cursor: pointer; font-size: 0.76rem; font-family: inherit; text-decoration: underline; }
+    main { max-width: 880px; margin: 0 auto; padding: 30px 18px 60px; }
+    h1 { font-size: 1.9rem; margin: 0 0 4px; }
+    h2 { font-size: 1.35rem; margin: 0 0 14px; }
+    .sub { color: #8d8579; font-size: 0.84rem; margin: 0 0 26px; line-height: 1.55; }
     .card {
       background: #141416;
       border: 1px solid rgba(255,255,255,0.1);
-      padding: 22px 20px;
+      padding: 24px 22px;
       margin-bottom: 22px;
     }
-    label { display: block; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: #8d8579; margin: 14px 0 5px; }
+    label { display: block; font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: #8d8579; margin: 14px 0 6px; font-weight: 400; }
     input[type="text"], textarea, select {
       width: 100%;
       background: #0e0e10;
       border: 1px solid rgba(255,255,255,0.14);
       color: #ece8df;
       padding: 10px 11px;
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       font-family: inherit;
+      font-weight: 300;
     }
-    textarea { min-height: 84px; resize: vertical; }
+    textarea { min-height: 88px; resize: vertical; }
     input:focus, textarea:focus, select:focus { outline: 1px solid rgba(236,232,223,0.45); }
     .btn {
       display: inline-flex; align-items: center; justify-content: center; gap: 8px;
       background: #ece8df; color: #16130f;
-      border: 0; padding: 11px 20px;
-      font-size: 0.8rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      border: 0; padding: 12px 22px;
+      font-size: 0.76rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
+      font-family: inherit;
       cursor: pointer; text-decoration: none; transition: background .2s ease;
-      margin-top: 16px;
+      margin-top: 18px;
     }
     .btn:hover { background: #fff; }
     .btn-ghost { background: transparent; color: #ece8df; border: 1px solid rgba(255,255,255,0.3); }
     .btn-ghost:hover { background: rgba(255,255,255,0.09); }
     .btn-mini {
       background: transparent; color: #a59d8f; border: 1px solid rgba(255,255,255,0.2);
-      padding: 6px 12px; font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase;
-      cursor: pointer; margin: 0;
+      padding: 6px 12px; font-size: 0.64rem; letter-spacing: 0.1em; text-transform: uppercase;
+      font-family: inherit; cursor: pointer; margin: 0;
     }
     .btn-mini:hover { color: #ece8df; background: rgba(255,255,255,0.07); }
-    .btn-peligro:hover { color: #e6a79b; border-color: rgba(230,167,155,0.5); }
+    .btn-peligro:hover { color: #e6a79b; border-color: rgba(230,167,155,0.5); background: rgba(230,167,155,0.06); }
     .fila { display: flex; gap: 14px; flex-wrap: wrap; }
     .fila > div { flex: 1; min-width: 200px; }
     .col-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
     .col-head .enlaces { display: flex; gap: 14px; font-size: 0.76rem; }
     .col-head .enlaces a { color: #a59d8f; text-decoration: none; }
     .col-head .enlaces a:hover { color: #ece8df; }
-    .estado-pub { font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; }
+    .estado-pub { font-family: 'Poppins', sans-serif; font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; vertical-align: middle; }
     .estado-pub.si { color: #9fc49b; }
     .estado-pub.no { color: #c9a35c; }
-    .obras { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; margin-top: 18px; }
+
+    /* Selector visual de estilo de sala */
+    .estilos { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 6px; }
+    .estilo {
+      flex: 1; min-width: 220px;
+      background: #0e0e10;
+      border: 1px solid rgba(255,255,255,0.14);
+      cursor: pointer;
+      padding: 0 0 12px;
+      transition: border-color .2s ease, transform .2s ease;
+      position: relative;
+    }
+    .estilo:hover { border-color: rgba(255,255,255,0.35); }
+    .estilo.activo { border-color: #ece8df; }
+    .estilo.activo::after {
+      content: '✓';
+      position: absolute; top: 8px; right: 10px;
+      width: 22px; height: 22px;
+      background: #ece8df; color: #16130f;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 600;
+    }
+    .estilo img { width: 100%; aspect-ratio: 8/5; object-fit: cover; display: block; opacity: .92; }
+    .estilo strong { display: block; font-weight: 500; font-size: 0.85rem; margin: 10px 12px 2px; }
+    .estilo small { display: block; color: #8d8579; font-size: 0.72rem; margin: 0 12px; line-height: 1.45; }
+
+    /* Obras */
+    .obras { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; margin-top: 18px; }
     .obra { background: #0e0e10; border: 1px solid rgba(255,255,255,0.09); padding: 10px; }
+    .obra .img-wrap { position: relative; }
     .obra img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; background: #1b1b1e; }
-    .obra input { margin-top: 7px; padding: 7px 8px; font-size: 0.78rem; }
-    .obra .acciones { display: flex; gap: 6px; margin-top: 8px; }
+    .obra input[type="text"] { margin-top: 7px; padding: 7px 8px; font-size: 0.76rem; }
+    .obra .precio-fila { display: flex; align-items: center; gap: 8px; margin-top: 7px; }
+    .obra .precio-fila input[type="text"] { margin-top: 0; flex: 1; }
+    .vendido {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 0.66rem; letter-spacing: 0.06em; text-transform: uppercase; color: #8d8579;
+      cursor: pointer; user-select: none; white-space: nowrap;
+    }
+    .vendido input { accent-color: #c97f72; width: 14px; height: 14px; cursor: pointer; }
+    .obra .acciones { display: flex; justify-content: space-between; align-items: center; margin-top: 9px; }
+    .guardado { font-size: 0.64rem; color: #9fc49b; opacity: 0; transition: opacity .3s ease; }
+    .guardado.visible { opacity: 1; }
+
+    /* Subida con preview y barra */
+    .obra.subiendo img { opacity: 0.45; }
+    .barra {
+      position: absolute; left: 8px; right: 8px; bottom: 8px;
+      height: 5px; background: rgba(255,255,255,0.18);
+      overflow: hidden;
+    }
+    .barra i { display: block; height: 100%; width: 0%; background: #ece8df; transition: width .15s ease; }
+    .obra .estado-subida { font-size: 0.66rem; color: #8d8579; margin-top: 7px; min-height: 1em; }
+    .obra.error-subida { border-color: rgba(230,167,155,0.5); }
     .subir { margin-top: 18px; padding: 16px; border: 1px dashed rgba(255,255,255,0.22); text-align: center; }
     .subir input { display: none; }
-    .subir .progreso { font-size: 0.76rem; color: #8d8579; margin-top: 8px; min-height: 1em; }
+
     .aviso {
       position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
       background: #ece8df; color: #16130f;
-      padding: 10px 18px; font-size: 0.82rem; font-weight: 600;
+      padding: 10px 18px; font-size: 0.8rem; font-weight: 500;
       opacity: 0; pointer-events: none; transition: opacity .25s ease;
-      max-width: 90vw;
+      max-width: 90vw; z-index: 10;
     }
     .aviso.error { background: #c97f72; color: #fff; }
     .aviso.visible { opacity: 1; }
@@ -100,7 +160,10 @@
 </head>
 <body>
   <header>
-    <span class="marca">Museario · Panel</span>
+    <span class="marca">
+      <img src="/museario/logo-blanco.svg" alt="Museario" />
+      <span>Panel</span>
+    </span>
     <span class="usuario" id="chip-usuario" hidden>
       <img id="chip-foto" src="" alt="" />
       <span id="chip-nombre"></span>
@@ -144,12 +207,10 @@
     <!-- Panel -->
     <div id="v-panel" hidden>
       <h1 id="p-titulo"></h1>
-      <p class="sub">Administra tu perfil, tus colecciones y tus obras. Los cambios se publican al instante.</p>
+      <p class="sub">Administra tu perfil, tus colecciones y tus obras. Los cambios se guardan y publican al instante.</p>
 
       <div class="card">
-        <div class="col-head">
-          <h2>Mi perfil</h2>
-        </div>
+        <h2>Mi perfil</h2>
         <div class="fila">
           <div>
             <label>Nombre artístico</label>
@@ -190,10 +251,18 @@
           </div>
         </div>
         <label>Estilo de la sala 3D</label>
-        <select id="nc-estilo">
-          <option value="blanca">Galería blanca — concreto pulido, lienzo flotante sin marco</option>
-          <option value="clasica">Clásica — piso de madera, marcos y zócalo</option>
-        </select>
+        <div class="estilos" id="nc-estilos">
+          <div class="estilo activo" data-estilo="blanca">
+            <img src="/museario/estilo-blanca.jpg" alt="Galería blanca" />
+            <strong>Galería blanca</strong>
+            <small>Cubo blanco con concreto pulido y obras en lienzo flotante, sin marco.</small>
+          </div>
+          <div class="estilo" data-estilo="clasica">
+            <img src="/museario/estilo-clasica.jpg" alt="Sala clásica" />
+            <strong>Sala clásica</strong>
+            <small>Piso de madera oscura, obras enmarcadas y zócalo tradicional.</small>
+          </div>
+        </div>
         <button class="btn" id="nc-crear">Crear colección</button>
       </div>
 
@@ -226,6 +295,26 @@
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(cuerpo),
     })
+
+    // subida con progreso real (XHR permite el evento progress)
+    function subirObra(colSlug, archivo, alProgresar) {
+      return new Promise((resolver, rechazar) => {
+        const q = new URLSearchParams({ filename: archivo.name, title: archivo.name.replace(/\.[^.]+$/, '') })
+        const xhr = new XMLHttpRequest()
+        xhr.open('POST', `/api/panel/colecciones/${colSlug}/obras?${q}`)
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) alProgresar(Math.round((e.loaded / e.total) * 100))
+        }
+        xhr.onload = () => {
+          try {
+            const d = JSON.parse(xhr.responseText || '{}')
+            xhr.status >= 200 && xhr.status < 300 ? resolver(d) : rechazar(new Error(d.error || `Error ${xhr.status}`))
+          } catch { rechazar(new Error(`Error ${xhr.status}`)) }
+        }
+        xhr.onerror = () => rechazar(new Error('Fallo de red'))
+        xhr.send(archivo)
+      })
+    }
 
     let estado = null
 
@@ -298,45 +387,10 @@
 
       const grid = document.createElement('div')
       grid.className = 'obras'
-      for (const o of col.obras) {
-        const el = document.createElement('div')
-        el.className = 'obra'
-        const base = encodeURI(o.filename.replace(/\.[^.]+$/, ''))
-        el.innerHTML =
-          `<img src="/${col.imgBase}/thumb/${base}.webp" alt="" loading="lazy" />` +
-          `<input type="text" data-c="title" value="${esc(o.title)}" placeholder="Título" />` +
-          `<input type="text" data-c="medium" value="${esc(o.medium || '')}" placeholder="Técnica · medidas" />` +
-          `<input type="text" data-c="price" value="${esc(o.price || '')}" placeholder="Precio (o Vendido)" />`
-        const acc = document.createElement('div')
-        acc.className = 'acciones'
-        const bg = document.createElement('button')
-        bg.className = 'btn-mini'
-        bg.textContent = 'Guardar'
-        bg.onclick = async () => {
-          const v = (c) => el.querySelector(`input[data-c="${c}"]`).value
-          try {
-            await api(`/api/panel/obras/${o.id}`, json('PATCH', { title: v('title'), medium: v('medium'), price: v('price') }))
-            avisar('Obra guardada')
-          } catch (e) { avisar(e.message, true) }
-        }
-        const bb = document.createElement('button')
-        bb.className = 'btn-mini btn-peligro'
-        bb.textContent = 'Borrar'
-        bb.onclick = async () => {
-          if (!confirm(`¿Borrar "${o.title}"? Esta acción no se puede deshacer.`)) return
-          try {
-            await api(`/api/panel/obras/${o.id}`, { method: 'DELETE' })
-            avisar('Obra borrada')
-            cargar()
-          } catch (e) { avisar(e.message, true) }
-        }
-        acc.appendChild(bg); acc.appendChild(bb)
-        el.appendChild(acc)
-        grid.appendChild(el)
-      }
+      for (const o of col.obras) grid.appendChild(cardObra(col, o))
       card.appendChild(grid)
 
-      // subir obras
+      // subir obras: preview inmediata + barra de progreso por imagen
       const subir = document.createElement('div')
       subir.className = 'subir'
       const inp = document.createElement('input')
@@ -344,39 +398,128 @@
       inp.accept = 'image/*'
       inp.multiple = true
       const btn = document.createElement('button')
-      btn.className = 'btn-ghost btn'
+      btn.className = 'btn btn-ghost'
       btn.style.marginTop = '0'
       btn.textContent = 'Subir obras (fotos)'
       btn.onclick = () => inp.click()
-      const prog = document.createElement('div')
-      prog.className = 'progreso'
       inp.onchange = async () => {
         const archivos = [...inp.files]
+        inp.value = ''
         let subidas = 0
-        for (const f of archivos) {
-          prog.textContent = `Subiendo ${subidas + 1} de ${archivos.length}: ${f.name}…`
+        // pinta todas las previews de una vez
+        const pendientes = archivos.map((f) => {
+          const el = document.createElement('div')
+          el.className = 'obra subiendo'
+          const urlPrev = URL.createObjectURL(f)
+          el.innerHTML =
+            `<div class="img-wrap"><img src="${urlPrev}" alt="" /><div class="barra"><i></i></div></div>` +
+            `<div class="estado-subida">En cola…</div>`
+          grid.appendChild(el)
+          return { f, el, urlPrev }
+        })
+        for (const p of pendientes) {
+          const barra = p.el.querySelector('.barra i')
+          const estadoEl = p.el.querySelector('.estado-subida')
           try {
-            const q = new URLSearchParams({ filename: f.name, title: f.name.replace(/\.[^.]+$/, '') })
-            await api(`/api/panel/colecciones/${col.slug}/obras?${q}`, { method: 'POST', body: f })
+            estadoEl.textContent = 'Subiendo…'
+            await subirObra(col.slug, p.f, (pct) => {
+              barra.style.width = pct + '%'
+              estadoEl.textContent = pct < 100 ? `Subiendo… ${pct}%` : 'Optimizando…'
+            })
+            estadoEl.textContent = 'Lista ✓'
+            p.el.classList.remove('subiendo')
             subidas++
           } catch (e) {
-            avisar(`${f.name}: ${e.message}`, true)
+            p.el.classList.add('error-subida')
+            p.el.classList.remove('subiendo')
+            estadoEl.textContent = `Error: ${e.message}`
+          } finally {
+            URL.revokeObjectURL(p.urlPrev)
           }
         }
-        prog.textContent = ''
         if (subidas) avisar(`${subidas} obra${subidas > 1 ? 's' : ''} subida${subidas > 1 ? 's' : ''} y optimizada${subidas > 1 ? 's' : ''}`)
-        inp.value = ''
         cargar()
       }
-      subir.appendChild(btn); subir.appendChild(inp); subir.appendChild(prog)
+      subir.appendChild(btn); subir.appendChild(inp)
       card.appendChild(subir)
 
       return card
     }
 
+    function cardObra(col, o) {
+      const el = document.createElement('div')
+      el.className = 'obra'
+      const base = encodeURI(o.filename.replace(/\.[^.]+$/, ''))
+      const vendido = o.price === 'Vendido'
+      el.innerHTML =
+        `<div class="img-wrap"><img src="/${col.imgBase}/thumb/${base}.webp" alt="" loading="lazy" /></div>` +
+        `<input type="text" data-c="title" value="${esc(o.title)}" placeholder="Título" />` +
+        `<input type="text" data-c="medium" value="${esc(o.medium || '')}" placeholder="Técnica · medidas" />` +
+        `<div class="precio-fila">` +
+        `<input type="text" data-c="price" value="${esc(vendido ? '' : (o.price || ''))}" placeholder="Precio" ${vendido ? 'disabled' : ''} />` +
+        `<label class="vendido"><input type="checkbox" data-c="vendido" ${vendido ? 'checked' : ''} />Vendido</label>` +
+        `</div>`
+
+      const acc = document.createElement('div')
+      acc.className = 'acciones'
+      const chk = document.createElement('span')
+      chk.className = 'guardado'
+      chk.textContent = 'Guardado ✓'
+      const bb = document.createElement('button')
+      bb.className = 'btn-mini btn-peligro'
+      bb.textContent = 'Eliminar'
+      bb.onclick = async () => {
+        if (!confirm(`¿Eliminar "${o.title}"? Esta acción no se puede deshacer.`)) return
+        try {
+          await api(`/api/panel/obras/${o.id}`, { method: 'DELETE' })
+          avisar('Obra eliminada')
+          cargar()
+        } catch (e) { avisar(e.message, true) }
+      }
+      acc.appendChild(chk); acc.appendChild(bb)
+      el.appendChild(acc)
+
+      // autoguardado: cualquier cambio se guarda solo
+      const inTitle = el.querySelector('input[data-c="title"]')
+      const inMedium = el.querySelector('input[data-c="medium"]')
+      const inPrice = el.querySelector('input[data-c="price"]')
+      const inVendido = el.querySelector('input[data-c="vendido"]')
+      let guardadoTimer
+      async function autoguardar() {
+        const esVendido = inVendido.checked
+        inPrice.disabled = esVendido
+        try {
+          await api(`/api/panel/obras/${o.id}`, json('PATCH', {
+            title: inTitle.value,
+            medium: inMedium.value,
+            price: esVendido ? 'Vendido' : inPrice.value,
+          }))
+          chk.classList.add('visible')
+          clearTimeout(guardadoTimer)
+          guardadoTimer = setTimeout(() => chk.classList.remove('visible'), 2200)
+        } catch (e) { avisar(e.message, true) }
+      }
+      inTitle.addEventListener('change', autoguardar)
+      inMedium.addEventListener('change', autoguardar)
+      inPrice.addEventListener('change', autoguardar)
+      inVendido.addEventListener('change', autoguardar)
+
+      return el
+    }
+
     function esc(s) {
       return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;')
     }
+
+    // selector visual de estilo
+    let estiloElegido = 'blanca'
+    $('nc-estilos').addEventListener('click', (e) => {
+      const card = e.target.closest('.estilo')
+      if (!card) return
+      estiloElegido = card.dataset.estilo
+      document.querySelectorAll('#nc-estilos .estilo').forEach((el) =>
+        el.classList.toggle('activo', el === card))
+    })
 
     // crear perfil
     $('np-crear').addEventListener('click', async () => {
@@ -411,10 +554,10 @@
     // crear colección
     $('nc-crear').addEventListener('click', async () => {
       try {
-        const r = await api('/api/panel/colecciones', json('POST', {
+        await api('/api/panel/colecciones', json('POST', {
           nombre: $('nc-nombre').value,
           subtitulo: $('nc-subtitulo').value,
-          estilo: $('nc-estilo').value,
+          estilo: estiloElegido,
         }))
         $('nc-nombre').value = ''; $('nc-subtitulo').value = ''
         avisar('Colección creada — sube tus obras')

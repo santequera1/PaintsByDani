@@ -6,7 +6,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="color-scheme" content="dark" />
   <title>Mi cuenta · Museario</title>
-  <link rel="icon" type="image/jpeg" href="/cat-profile.jpg" />
+  <link rel="icon" type="image/svg+xml" href="/museario/favicon.svg" />
+  <link rel="alternate icon" type="image/png" href="/museario/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <style>
     * { box-sizing: border-box; }
     html, body { height: 100%; }
@@ -14,7 +18,8 @@
       margin: 0;
       background: #0c0c0e;
       color: #ece8df;
-      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-family: 'Poppins', 'Helvetica Neue', sans-serif;
+      font-weight: 300;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -22,13 +27,9 @@
       min-height: 100vh;
       padding: 24px 16px;
     }
-    .marca {
-      font-size: 13px;
-      letter-spacing: 0.42em;
-      text-transform: uppercase;
-      color: #8d8579;
-      margin: 0 0 30px;
-    }
+    h1 { font-family: 'DM Serif Display', serif; font-weight: 400; }
+    .marca { margin: 0 0 32px; }
+    .marca img { height: 26px; display: block; }
     .tarjeta {
       width: min(380px, 92vw);
       background: #141416;
@@ -36,7 +37,7 @@
       padding: 34px 30px 30px;
       text-align: center;
     }
-    h1 { font-size: 1.25rem; letter-spacing: 0.04em; margin: 0 0 6px; }
+    h1 { font-size: 1.55rem; margin: 0 0 6px; }
     .sub { color: #8d8579; font-size: 0.85rem; margin: 0 0 26px; line-height: 1.5; }
     .btn {
       display: flex;
@@ -45,9 +46,10 @@
       gap: 10px;
       width: 100%;
       padding: 13px 0;
-      font-size: 0.85rem;
-      font-weight: 600;
+      font-size: 0.82rem;
+      font-weight: 500;
       letter-spacing: 0.06em;
+      font-family: inherit;
       border: 0;
       cursor: pointer;
       text-decoration: none;
@@ -87,7 +89,7 @@
   </style>
 </head>
 <body>
-  <p class="marca">Museario</p>
+  <p class="marca"><img src="/museario/logo-blanco.svg" alt="Museario" /></p>
 
   <!-- Sin sesión -->
   <div class="tarjeta" id="vista-login" hidden>
