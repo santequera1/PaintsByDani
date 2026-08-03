@@ -64,6 +64,14 @@ async function main() {
   const introMuseo = document.getElementById('pg-intro-museo')
   if (introMuseo) introMuseo.href = museoDe(coleccion)
 
+  // La palabra del fondo es la de la colección (el CSS trae "Rumiaciones" por defecto)
+  const bgword = document.getElementById('pg-bgword')
+  if (bgword) {
+    const w = Math.max(300, Math.round(coleccion.nombre.length * 30) + 90)
+    bgword.style.backgroundImage =
+      `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${w}' height='150'%3E%3Ctext x='16' y='100' font-family='Georgia,serif' font-style='italic' font-size='54' fill='%2334435a' fill-opacity='0.05'%3E${encodeURIComponent(coleccion.nombre)}%3C/text%3E%3C/svg%3E")`
+  }
+
   // --- Marca / panel del artista ---
   const brandLogo = document.getElementById('pg-brand-logo')
   if (brandLogo) {
