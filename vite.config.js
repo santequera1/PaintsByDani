@@ -18,6 +18,9 @@ export default defineConfig({
         museoAlma: resolve(__dirname, 'museo-alma.html'),
         alma: resolve(__dirname, 'alma.html'),
         rumiaciones: resolve(__dirname, 'rumiaciones.html'),
+        // Museario (Fase 1): páginas dinámicas alimentadas por la API
+        m: resolve(__dirname, 'm.html'),
+        g: resolve(__dirname, 'g.html'),
       },
     },
   },

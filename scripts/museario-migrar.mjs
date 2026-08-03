@@ -63,7 +63,10 @@ db.exec(`
     handle TEXT,
     instagram_url TEXT,
     website TEXT,
+    substack TEXT,
     profile_image TEXT,
+    logo_blanco TEXT,
+    logo_negro TEXT,
     bio_es TEXT,
     bio_en TEXT,
     creado_en TEXT NOT NULL DEFAULT (datetime('now'))
@@ -104,8 +107,8 @@ db.exec(`
 `)
 
 const insArtista = db.prepare(
-  `INSERT INTO artistas (slug, nombre, handle, instagram_url, website, profile_image, bio_es, bio_en)
-   VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+  `INSERT INTO artistas (slug, nombre, handle, instagram_url, website, substack, profile_image, logo_blanco, logo_negro, bio_es, bio_en)
+   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 )
 const insColeccion = db.prepare(
   `INSERT INTO colecciones (artista_id, slug, nombre, subtitulo, img_base, statement_es, statement_en, pdf_url, estilo, orden)
@@ -139,8 +142,8 @@ function agregarObras(coleccionId, obras, { tituloEn = {}, conMediumEn = false }
 
 // --- Danní ---
 const danniId = insArtista.run(
-  'danni', DANNI.name, DANNI.handle, DANNI.instagramUrl, null,
-  DANNI.profileImage, DANNI.bioEs, DANNI.bioEn
+  'danni', DANNI.name, DANNI.handle, DANNI.instagramUrl, null, null,
+  DANNI.profileImage, null, null, DANNI.bioEs, DANNI.bioEn
 ).lastInsertRowid
 
 const colDanni = insColeccion.run(
@@ -151,9 +154,12 @@ const colDanni = insColeccion.run(
 agregarObras(colDanni, OBRAS_DANNI)
 
 // --- Catalina ---
+const CATALINA_BIO_ES =
+  'Mi nombre es Catalina Olivero. Soy pintora abstracta y artista multidisciplinaria radicada en Cartagena de Indias, dedicada a la búsqueda de la claridad visual. Convencida de que el proceso creativo debe compartirse, uso mi Substack para explorar los rituales que sostienen mi práctica.'
 const cataId = insArtista.run(
   'catalina', CATALINA.name, CATALINA.handle, CATALINA.instagramUrl,
-  CATALINA.website, CATALINA.profileImage, null, CATALINA.bio
+  CATALINA.website, 'https://substack.com/@catalinaoliveroart', CATALINA.profileImage,
+  '/cat-logo-blanco.svg', '/cat-logo-negro.svg', CATALINA_BIO_ES, CATALINA.bio
 ).lastInsertRowid
 
 const colRum = insColeccion.run(
@@ -161,6 +167,7 @@ const colRum = insColeccion.run(
   J(STATEMENT_RUMIACIONES_ES), J(STATEMENT_RUMIACIONES_EN), null,
   J({
     minimal: true, sinMarco: true, zocalo: false, reflect: 'desktop', bilingue: true,
+    nombreEn: 'Ruminations',
     subtitle: 'Catalina Olivero · 2026',
     vitrina: { title: 'RUMIACIONES', sub: 'Catálogo · 2026' },
   }), 0

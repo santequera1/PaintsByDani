@@ -43,7 +43,10 @@ const pubArtista = (a) => ({
   handle: a.handle,
   instagramUrl: a.instagram_url,
   website: a.website,
+  substack: a.substack,
   profileImage: a.profile_image,
+  logoBlanco: a.logo_blanco,
+  logoNegro: a.logo_negro,
   bioEs: a.bio_es,
   bioEn: a.bio_en,
 })
@@ -55,10 +58,10 @@ const pubColeccion = (c, { conEstilo = false } = {}) => ({
   imgBase: c.img_base,
   pdfUrl: c.pdf_url,
   portada: qPortada.get(c.id)?.filename ?? null,
+  estilo: parse(c.estilo),
   ...(conEstilo && {
     statementEs: parse(c.statement_es),
     statementEn: parse(c.statement_en),
-    estilo: parse(c.estilo),
   }),
 })
 
