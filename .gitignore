@@ -11,3 +11,6 @@ paintsbydani_publicaciones*.txt
 # museario (base de datos generada)
 museario.db
 museario.db-*
+
+# credenciales de Google (nunca subir)
+/google/

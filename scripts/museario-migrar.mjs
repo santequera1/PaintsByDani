@@ -7,7 +7,7 @@
 // siendo los .js hasta que exista el panel de subida).
 
 import { DatabaseSync } from 'node:sqlite'
-import { unlinkSync, existsSync, mkdirSync } from 'node:fs'
+import { mkdirSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 
 import { ARTIST as DANNI, ROOMS, ARTWORKS as OBRAS_DANNI } from '../src/data/artworks.js'
@@ -50,12 +50,18 @@ const STATEMENT_RUMIACIONES_EN = [
 ]
 
 // --- crear base ---
+// El catálogo (artistas/colecciones/obras) se regenera completo; las tablas de
+// cuentas (usuarios/sesiones, creadas por la API) se conservan intactas.
 mkdirSync(dirname(DB_PATH), { recursive: true })
-if (existsSync(DB_PATH)) unlinkSync(DB_PATH)
 const db = new DatabaseSync(DB_PATH)
 
 db.exec(`
   PRAGMA journal_mode = WAL;
+  DROP TABLE IF EXISTS obras;
+  DROP TABLE IF EXISTS colecciones;
+  DROP TABLE IF EXISTS artistas;
+  DROP INDEX IF EXISTS idx_colecciones_artista;
+  DROP INDEX IF EXISTS idx_obras_coleccion;
   CREATE TABLE artistas (
     id INTEGER PRIMARY KEY,
     slug TEXT UNIQUE NOT NULL,

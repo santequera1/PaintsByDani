@@ -21,6 +21,8 @@ export default defineConfig({
         // Museario (Fase 1): páginas dinámicas alimentadas por la API
         m: resolve(__dirname, 'm.html'),
         g: resolve(__dirname, 'g.html'),
+        // Museario (Fase 2): cuenta e inicio de sesión
+        cuenta: resolve(__dirname, 'cuenta.html'),
       },
     },
   },
