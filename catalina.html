@@ -61,13 +61,13 @@
       scroll-snap-align: center;
       background: #141416;
       border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 14px;
+      border-radius: 0;
       overflow: hidden;
       display: flex;
       flex-direction: column;
       transition: transform 0.25s ease, border-color 0.25s ease;
     }
-    .card:hover { transform: translateY(-5px); border-color: rgba(255, 255, 255, 0.28); }
+    .card:hover { border-color: rgba(255, 255, 255, 0.28); }
     .card-img {
       width: 100%;
       height: 190px;
@@ -166,7 +166,17 @@
 
   <script type="module">
     import { contarVisita } from '/src/misc/visitas.js'
+    import VanillaTilt from 'vanilla-tilt'
     contarVisita('catalina-hub')
+
+    // mismo efecto 3D de las galerias de lienzo
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (!reduce && window.matchMedia('(hover: hover)').matches) {
+      VanillaTilt.init([...document.querySelectorAll('.card')], {
+        max: 11, speed: 500, scale: 1.04, perspective: 900,
+        glare: true, 'max-glare': 0.22, gyroscope: false,
+      })
+    }
   </script>
 </body>
 </html>
