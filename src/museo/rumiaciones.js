@@ -177,6 +177,8 @@ async function enterSala() {
         vitrina: { title: TITULO.toUpperCase(), sub: EN ? 'Catalogue · 2026' : 'Catálogo · 2026' },
         doors: [],
         minimal: true,
+        sinMarco: true, // las obras reales no tienen marco
+        zocalo: false, // sin linea divisoria en el piso
       },
       engine.renderer
     )

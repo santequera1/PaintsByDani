@@ -507,6 +507,7 @@ export async function buildSalaPremium(config, renderer) {
     // la cartela casi al piso. Si se define, la obra sube lo necesario.
     hangBottomMin = null,
     zocalo = true,           // false: la pared muere limpia en el piso, sin borde
+    sinMarco = false,        // true: lienzo sin marco, flotando con canto y sombra
   } = config
 
   // paleta según estilo (los valores "encendidos"; setDark usa los oscuros)
@@ -772,6 +773,8 @@ export async function buildSalaPremium(config, renderer) {
     envMapIntensity: 0.7,
   })
   const matWhite = new THREE.MeshStandardMaterial({ color: PAL.mat, roughness: 0.9 })
+  // canto del lienzo para obras sin marco (bastidor visto de lado)
+  const edgeMat = new THREE.MeshStandardMaterial({ color: 0xe3ded2, roughness: 0.88, dithering: true })
   // sombra suave tras cada obra (modo claro, como en galerías reales);
   // en modo oscuro se apaga y mandan los resplandores de los focos
   const artShadowMat = new THREE.MeshBasicMaterial({
@@ -809,7 +812,8 @@ export async function buildSalaPremium(config, renderer) {
       let iw, ih
       if (ratio >= 1) { ih = 1.85; iw = ih / ratio }
       else { iw = 2.05; ih = iw * ratio }
-      const outW = iw + mw * 2, outH = ih + mw * 2
+      const outW = sinMarco ? iw : iw + mw * 2
+      const outH = sinMarco ? ih : ih + mw * 2
 
       for (const part of [...fg.children]) {
         if (part.userData.framePart) {
@@ -817,23 +821,33 @@ export async function buildSalaPremium(config, renderer) {
           part.geometry.dispose()
         }
       }
-      const mkBar = (w, h, x, y) => {
-        const bar = new THREE.Mesh(new THREE.BoxGeometry(w, h, fd), frameMat)
-        bar.position.set(x, y, 0)
-        bar.userData.framePart = true
-        fg.add(bar)
+      if (sinMarco) {
+        // lienzo flotante: caja con canto (bastidor) que despega la obra
+        // de la pared — asi son las obras reales de Catalina, sin marco
+        const canvasBox = new THREE.Mesh(new THREE.BoxGeometry(iw, ih, 0.045), edgeMat)
+        // la cara frontal de la caja queda 1 mm DETRAS de la imagen
+        canvasBox.position.z = (fd / 2 - 0.002) - 0.0235
+        canvasBox.userData.framePart = true
+        fg.add(canvasBox)
+      } else {
+        const mkBar = (w, h, x, y) => {
+          const bar = new THREE.Mesh(new THREE.BoxGeometry(w, h, fd), frameMat)
+          bar.position.set(x, y, 0)
+          bar.userData.framePart = true
+          fg.add(bar)
+        }
+        mkBar(outW + fw * 2, fw, 0, outH / 2 + fw / 2)
+        mkBar(outW + fw * 2, fw, 0, -outH / 2 - fw / 2)
+        mkBar(fw, outH, -outW / 2 - fw / 2, 0)
+        mkBar(fw, outH, outW / 2 + fw / 2, 0)
+
+        const matMesh = new THREE.Mesh(new THREE.PlaneGeometry(outW, outH), matWhite)
+        matMesh.position.z = fd / 2 - 0.006
+        matMesh.userData.framePart = true
+        fg.add(matMesh)
       }
-      mkBar(outW + fw * 2, fw, 0, outH / 2 + fw / 2)
-      mkBar(outW + fw * 2, fw, 0, -outH / 2 - fw / 2)
-      mkBar(fw, outH, -outW / 2 - fw / 2, 0)
-      mkBar(fw, outH, outW / 2 + fw / 2, 0)
 
-      const matMesh = new THREE.Mesh(new THREE.PlaneGeometry(outW, outH), matWhite)
-      matMesh.position.z = fd / 2 - 0.006
-      matMesh.userData.framePart = true
-      fg.add(matMesh)
-
-      if (minimal) {
+      if (minimal || sinMarco) {
         // la sombra ocupa el 65.6% del canvas → escalar el plano para que
         // el hueco coincida con el marco y el halo quede alrededor
         const sh = new THREE.Mesh(
@@ -1171,6 +1185,7 @@ export async function buildSalaPremium(config, renderer) {
       stMat.needsUpdate = true
     }
     matWhite.color.set(dark ? 0x050505 : PAL.mat)
+    edgeMat.color.set(dark ? 0x2e2c28 : 0xe3ded2)
     frameMat.color.set(dark ? 0x141210 : PAL.frame)
     dustMat.opacity = dark ? 0.4 : 0.22
     if (reflect) floorMat.opacity = dark ? 0.78 : PAL.refOp
@@ -1208,5 +1223,6 @@ export async function buildSalaConexiones({ artworks, collection, imgBase, refle
     floorMinimal: true, // mismo piso de concreto que Rumiaciones
     hangBottomMin: 1.05, // sube las obras altas para despegar la cartela del piso
     zocalo: false, // pared limpia contra el concreto, sin borde
+    sinMarco: true, // las obras reales no tienen marco
   }, renderer)
 }

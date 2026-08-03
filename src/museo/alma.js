@@ -114,6 +114,8 @@ async function enterSala() {
         vitrina: { title: 'ALMA', sub: 'Catálogo · 2022 – 2025' },
         doors: [],
         minimal: true,
+        sinMarco: true, // las obras reales no tienen marco
+        zocalo: false, // sin linea divisoria en el piso
         hangBottomMin: 1.05, // hay varias obras verticales grandes
       },
       engine.renderer
