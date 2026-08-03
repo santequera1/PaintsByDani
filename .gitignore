@@ -7,3 +7,7 @@ dist
 *.jfif
 paintsbydani_publicaciones*.txt
 /sonidos/
+
+# museario (base de datos generada)
+museario.db
+museario.db-*
