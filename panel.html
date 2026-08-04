@@ -77,6 +77,32 @@
     .nav button:hover { color: var(--tinta); background: rgba(255,255,255,0.05); }
     .nav button.activo { color: #16130f; background: var(--tinta); font-weight: 500; }
     .nav svg { flex-shrink: 0; opacity: 0.8; }
+    .nav-museos { display: flex; flex-direction: column; gap: 2px; margin: 2px 0 2px 14px; border-left: 1px solid var(--borde); }
+    .nav-museos button {
+      display: flex; align-items: center; gap: 9px;
+      background: none; border: 0; color: var(--tinta-2);
+      font-family: inherit; font-size: 0.78rem; font-weight: 300;
+      padding: 8px 12px; cursor: pointer; text-align: left;
+      border-radius: 0 12px 12px 0;
+      transition: background .2s ease, color .2s ease;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .nav-museos button:hover { color: var(--tinta); background: rgba(255,255,255,0.05); }
+    .nav-museos button.activo { color: var(--tinta); background: rgba(255,255,255,0.08); }
+    .nav-museos .mini {
+      width: 22px; height: 22px; border-radius: 7px; flex-shrink: 0;
+      background: #232326 center/cover; border: 1px solid var(--borde);
+    }
+    .side-qr {
+      margin: 18px 8px 12px;
+      text-align: center;
+    }
+    .side-qr img {
+      width: 116px; height: 116px;
+      background: #fff; border-radius: 14px; padding: 7px;
+      display: block; margin: 0 auto 8px;
+    }
+    .side-qr span { font-size: 0.64rem; color: var(--tinta-3); line-height: 1.45; letter-spacing: 0.04em; }
     aside .abajo { margin-top: auto; }
     .chip {
       display: flex; align-items: center; gap: 10px;
@@ -98,6 +124,7 @@
       .nav button { padding: 9px 13px; white-space: nowrap; font-size: 0.78rem; }
       /* en móvil el perfil se abre tocando la foto, no con texto */
       .nav button[data-v="perfil"] { display: none; }
+      .nav-museos, .side-qr { display: none; }
       aside .abajo { margin: 0 0 0 auto; }
       .chip { border-top: 0; padding: 0; }
       .chip .nom { display: none; }
@@ -428,11 +455,16 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/></svg>
           Mis museos
         </button>
+        <div class="nav-museos" id="nav-museos"></div>
         <button data-v="perfil">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>
           Mi perfil
         </button>
       </nav>
+      <div class="side-qr" id="side-qr" hidden>
+        <img id="side-qr-img" src="" alt="QR de tu perfil" />
+        <span>Escanéame:<br />tu perfil público</span>
+      </div>
       <div class="abajo">
         <div class="chip">
           <img id="chip-foto" src="" alt="" />
@@ -678,6 +710,27 @@
         grid.appendChild(nuevo)
       }
 
+      // pestañas de museos en el sidebar
+      const navM = $('nav-museos')
+      navM.innerHTML = ''
+      for (const col of a.colecciones) {
+        const b = document.createElement('button')
+        b.dataset.museo = col.slug
+        b.classList.toggle('activo', colActual === col.slug)
+        const mini = document.createElement('span')
+        mini.className = 'mini'
+        if (col.portadaUrl) mini.style.backgroundImage = `url('${col.portadaUrl}')`
+        b.appendChild(mini)
+        b.appendChild(document.createTextNode(col.nombre))
+        b.onclick = () => abrirDetalle(col.slug)
+        navM.appendChild(b)
+      }
+
+      // QR del perfil en el sidebar
+      const qrBox = $('side-qr')
+      qrBox.hidden = false
+      $('side-qr-img').src = `/api/panel/qr?texto=${encodeURIComponent(`${BASE_PUB}/a/${a.slug}`)}`
+
       // si hay un detalle abierto, refrescarlo
       if (colActual) {
         const col = a.colecciones.find((c) => c.slug === colActual)
@@ -689,6 +742,8 @@
     // ---------- vistas ----------
     function verVista(v) {
       if (v !== 'detalle') colActual = null
+      document.querySelectorAll('.nav-museos button').forEach((b) =>
+        b.classList.toggle('activo', v === 'detalle' && b.dataset.museo === colActual))
       $('vista-museos').hidden = v !== 'museos'
       $('vista-detalle').hidden = v !== 'detalle'
       $('vista-perfil').hidden = v !== 'perfil'

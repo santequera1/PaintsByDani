@@ -135,7 +135,6 @@
       backdrop-filter: blur(6px);
     }
     .btn-h-ghost:hover { background: rgba(255, 255, 255, 0.1); }
-    .btn-serif { font-family: 'DM Serif Display', serif; font-size: 0.98rem; letter-spacing: 0.03em; text-transform: none; font-weight: 400; }
 
     /* ---------- secciones ---------- */
     .seccion {
@@ -200,6 +199,72 @@
     .popular .p-nombre { font-family: 'DM Serif Display', serif; font-size: clamp(1.05rem, 1.7vw, 1.3rem); display: block; text-shadow: 0 2px 10px rgba(0,0,0,0.6); }
     .popular .p-artista { color: #c4bcac; font-size: 0.7rem; line-height: 1.35; display: block; margin: 3px 0 9px; }
     .popular .p-cta { color: #e8cf9d; font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500; }
+
+    /* ---------- galería en lienzo ---------- */
+    .lienzo-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(200px, 0.7fr);
+      gap: 22px;
+      align-items: stretch;
+      text-align: left;
+    }
+    @media (max-width: 760px) { .lienzo-grid { grid-template-columns: 1fr; } }
+    .lienzo-demo {
+      position: relative;
+      border-radius: 20px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background:
+        radial-gradient(rgba(236, 232, 223, 0.07) 1px, transparent 1px) 0 0 / 26px 26px,
+        #101012;
+      min-height: 380px;
+      cursor: grab;
+      touch-action: none;
+    }
+    .lienzo-demo:active { cursor: grabbing; }
+    .lienzo-mundo { position: absolute; width: 1500px; height: 950px; will-change: transform; }
+    .lienzo-obra {
+      position: absolute;
+      width: var(--w, 130px);
+      background: #f4f1ea;
+      padding: 6px 6px 7px;
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.5);
+      transform: rotate(var(--r, 0deg));
+      pointer-events: none;
+    }
+    .lienzo-obra img { width: 100%; display: block; }
+    .lienzo-pista {
+      position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%);
+      background: rgba(12, 12, 14, 0.8); backdrop-filter: blur(6px);
+      border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 999px;
+      color: #cfc8b8; font-size: 0.68rem; letter-spacing: 0.08em;
+      padding: 8px 16px; pointer-events: none; white-space: nowrap;
+    }
+    .telefono {
+      border-radius: 26px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 24px 55px rgba(0, 0, 0, 0.6);
+      background: #000;
+      align-self: center;
+      width: 100%;
+      max-width: 250px;
+      margin: 0 auto;
+      aspect-ratio: 9 / 19;
+    }
+    .telefono video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .funciones {
+      display: flex; gap: 9px; flex-wrap: wrap; justify-content: center;
+      margin-top: 30px;
+    }
+    .funcion {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 999px;
+      color: #cfc8b8; font-size: 0.72rem;
+      padding: 9px 16px;
+    }
+    .funcion b { color: #e8cf9d; font-weight: 500; }
 
     /* ---------- cierre cinematográfico ---------- */
     .final {
@@ -363,6 +428,31 @@
     </div>
   </section>
 
+  <!-- galería en lienzo -->
+  <section class="seccion" id="lienzo">
+    <h2>Y además, la <em>galería en lienzo</em></h2>
+    <p class="seccion-sub">Cada museo incluye una galería infinita para explorar arrastrando. Pruébala aquí mismo, y mira cómo se ve el museo en un celular:</p>
+    <div class="lienzo-grid">
+      <div class="lienzo-demo" id="lienzo-demo">
+        <div class="lienzo-mundo" id="lienzo-mundo"></div>
+        <div class="lienzo-pista">✥ Arrastra para explorar</div>
+      </div>
+      <div class="telefono">
+        <video id="video-movil" src="/museario/video-movil.mp4" muted loop playsinline preload="metadata"></video>
+      </div>
+    </div>
+    <div class="funciones">
+      <span class="funcion"><b>Luces apagadas</b> — modo oscuro con resplandores</span>
+      <span class="funcion"><b>Giroscopio</b> — mira moviendo el teléfono</span>
+      <span class="funcion"><b>Reflejos reales</b> en el concreto pulido</span>
+      <span class="funcion"><b>Recorrido automático</b> obra por obra</span>
+      <span class="funcion"><b>Zoom</b> con placa, técnica y precio</span>
+      <span class="funcion"><b>Catálogo</b> para hojear</span>
+      <span class="funcion"><b>ES / EN</b></span>
+      <span class="funcion"><b>QR y enlace</b> para compartir</span>
+    </div>
+  </section>
+
   <!-- cierre cinematográfico -->
   <footer class="final">
     <div class="final-bg"></div>
@@ -395,7 +485,7 @@
         c.style.setProperty('--rd', `${i * 0.12}s`)
         c.style.setProperty('--rr', `${i % 2 ? -4 : 4}deg`)
       })
-      const finales = [...document.querySelectorAll('.final-in > *, .final-fotos > *, .final-stats')]
+      const finales = [...document.querySelectorAll('#lienzo .lienzo-demo, #lienzo .telefono, #lienzo .funcion, .final-in > *, .final-fotos > *, .final-stats')]
       finales.forEach((el, i) => {
         el.classList.add('revela-suave')
         el.style.setProperty('--rd', `${(i % 6) * 0.1}s`)
@@ -406,6 +496,71 @@
         }
       }, { threshold: 0.15 })
       ;[...cards, ...finales].forEach((el) => obs.observe(el))
+    }
+
+    // ---- demo de la galería en lienzo (mini lienzo arrastrable) ----
+    {
+      const OBRAS_LIENZO = [
+        { b: 'cat-posts', f: 'Me gusta mirarte comer un helado, 2026', x: 90, y: 60, r: -3, w: 150 },
+        { b: 'conexiones-posts', f: 'Océano, 2022', x: 330, y: 140, r: 2, w: 170 },
+        { b: 'alma-posts', f: 'Energia, 2024', x: 620, y: 70, r: -2, w: 150 },
+        { b: 'posts', f: 'My lady', x: 900, y: 130, r: 3, w: 130 },
+        { b: 'cat-posts', f: 'Mi casa es mi santuario, 2026', x: 1160, y: 60, r: -3, w: 160 },
+        { b: 'alma-posts', f: 'Apego, 2025', x: 140, y: 420, r: 3, w: 140 },
+        { b: 'posts', f: 'Muerte en rojo', x: 430, y: 480, r: -2, w: 140 },
+        { b: 'conexiones-posts', f: 'Vainilla y Chocolate, 2025', x: 720, y: 420, r: 2, w: 160 },
+        { b: 'cat-posts', f: 'Tomamos caminos diferentes, 2026', x: 1020, y: 470, r: -3, w: 155 },
+        { b: 'alma-posts', f: 'Limerencia, 2022', x: 1270, y: 420, r: 2, w: 150 },
+        { b: 'posts', f: 'Little Dan', x: 260, y: 720, r: -2, w: 130 },
+        { b: 'cat-posts', f: 'Quiero sentir tu arte, 2026', x: 560, y: 700, r: 3, w: 150 },
+        { b: 'conexiones-posts', f: 'Maníaco, 2022', x: 870, y: 730, r: -3, w: 130 },
+        { b: 'alma-posts', f: 'Catarsis, 2024', x: 1130, y: 700, r: 2, w: 160 },
+      ]
+      const demo = document.getElementById('lienzo-demo')
+      const mundo = document.getElementById('lienzo-mundo')
+      for (const o of OBRAS_LIENZO) {
+        const el = document.createElement('div')
+        el.className = 'lienzo-obra'
+        el.style.left = o.x + 'px'
+        el.style.top = o.y + 'px'
+        el.style.setProperty('--r', o.r + 'deg')
+        el.style.setProperty('--w', o.w + 'px')
+        el.innerHTML = `<img src="/${o.b}/thumb/${encodeURI(o.f)}.webp" alt="" loading="lazy" draggable="false" />`
+        mundo.appendChild(el)
+      }
+      let mx = -220, my = -120, sx = 0, sy = 0, activo = false
+      const aplicar = () => {
+        const minX = demo.clientWidth - 1500, minY = demo.clientHeight - 950
+        mx = Math.min(0, Math.max(minX, mx))
+        my = Math.min(0, Math.max(minY, my))
+        mundo.style.transform = `translate(${mx}px, ${my}px)`
+      }
+      aplicar()
+      demo.addEventListener('pointerdown', (e) => {
+        demo.setPointerCapture(e.pointerId)
+        activo = true
+        sx = e.clientX - mx; sy = e.clientY - my
+      })
+      demo.addEventListener('pointermove', (e) => {
+        if (!activo) return
+        mx = e.clientX - sx; my = e.clientY - sy
+        aplicar()
+      })
+      const soltar = () => { activo = false }
+      demo.addEventListener('pointerup', soltar)
+      demo.addEventListener('pointercancel', soltar)
+    }
+
+    // ---- video móvil: acelerado y solo cuando se ve ----
+    {
+      const v = document.getElementById('video-movil')
+      const obsV = new IntersectionObserver((es) => {
+        for (const e of es) {
+          if (e.isIntersecting) { v.playbackRate = 1.8; v.play().catch(() => {}) }
+          else v.pause()
+        }
+      }, { threshold: 0.3 })
+      obsV.observe(v)
     }
 
     // ---- obras flotantes (reales, de Catalina y Danní) ----
