@@ -18,7 +18,6 @@
   <meta property="og:url" content="https://museario.art/" />
   <style>
     * { box-sizing: border-box; }
-    html, body { height: 100%; }
     body {
       margin: 0;
       background: #0b0b0d;
@@ -30,6 +29,9 @@
       display: flex;
       flex-direction: column;
     }
+    /* los hijos del flex NUNCA se encogen: con height fija el footer
+       quedaba recortado por su overflow:hidden */
+    body > * { flex-shrink: 0; }
     /* fondo: cuadrícula + brillos cálidos */
     .fondo {
       position: fixed; inset: 0; pointer-events: none; z-index: 0;
@@ -67,7 +69,7 @@
 
     /* hero */
     .hero {
-      flex: 1;
+      min-height: 88vh;
       position: relative;
       z-index: 2;
       display: flex;
@@ -177,64 +179,6 @@
     .popular .p-artista { color: #8d8579; font-size: 0.74rem; display: block; margin: 3px 0 10px; }
     .popular .p-cta { color: #d9b878; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500; }
 
-    /* mockup mini-galería */
-    .mockup {
-      border-radius: 20px;
-      overflow: hidden;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      box-shadow: 0 30px 70px rgba(0, 0, 0, 0.55);
-      text-align: left;
-      margin-bottom: 30px;
-    }
-    .mock-bar {
-      display: flex; align-items: center; gap: 14px;
-      background: #1b1b1e;
-      padding: 12px 16px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    }
-    .mock-bar .puntos { display: flex; gap: 6px; }
-    .mock-bar .puntos i { width: 10px; height: 10px; border-radius: 50%; display: block; }
-    .mock-bar .puntos i:nth-child(1) { background: #e0635c; }
-    .mock-bar .puntos i:nth-child(2) { background: #e0b04f; }
-    .mock-bar .puntos i:nth-child(3) { background: #67b269; }
-    .mock-bar .url {
-      flex: 1; max-width: 340px;
-      background: #0e0e10; border-radius: 8px;
-      color: #8d8579; font-size: 0.72rem;
-      padding: 7px 13px;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .mock-cuerpo {
-      position: relative;
-      aspect-ratio: 16 / 9;
-      max-height: 560px;
-      width: 100%;
-      background: url('/museario/estilo-blanca.jpg') center/cover;
-    }
-    .mock-cuerpo iframe { width: 100%; height: 100%; border: 0; display: block; }
-    .mock-play {
-      position: absolute; inset: 0;
-      width: 100%; border: 0; cursor: pointer;
-      background: linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.42));
-      display: flex; align-items: center; justify-content: center;
-      font-family: inherit;
-      transition: background 0.25s ease;
-    }
-    .mock-play:hover { background: linear-gradient(180deg, rgba(0, 0, 0, 0.02), rgba(0, 0, 0, 0.3)); }
-    .mock-play span {
-      display: inline-flex; align-items: center; gap: 10px;
-      background: rgba(12, 12, 14, 0.85);
-      backdrop-filter: blur(6px);
-      border: 1px solid rgba(255, 255, 255, 0.22);
-      border-radius: 999px;
-      color: #ece8df;
-      font-size: 0.76rem; font-weight: 500;
-      letter-spacing: 0.12em; text-transform: uppercase;
-      padding: 15px 28px;
-      transition: transform 0.2s ease;
-    }
-    .mock-play:hover span { transform: scale(1.05); }
-
     /* ---------- cierre cinematográfico ---------- */
     .final {
       position: relative; z-index: 2;
@@ -314,7 +258,7 @@
 
   <div class="hero">
     <img class="logo" src="/museario/logo-blanco.svg" alt="Museario" />
-    <p class="chip">Próximamente</p>
+    <p class="chip">Beta abierta</p>
     <h1>Tu obra merece <em>su propio museo.</em></h1>
     <p class="sub">
       Museario convierte tu colección en un museo virtual 3D y una galería
@@ -344,27 +288,10 @@
         <img src="/alma-posts/thumb/Energia,%202024.webp" alt="Alma" loading="lazy" />
         <span class="p-info"><span class="p-nombre">Alma</span><span class="p-artista">Catalina Olivero · 2022 – 2025</span><span class="p-cta">Recorrer →</span></span>
       </a>
-      <a class="popular" href="/index.html">
+      <a class="popular" href="/a/danni/obras">
         <img src="/posts/thumb/Muerte%20en%20rojo.webp" alt="Danní" loading="lazy" />
         <span class="p-info"><span class="p-nombre">Museo Danní</span><span class="p-artista">Danní · Colección permanente</span><span class="p-cta">Recorrer →</span></span>
       </a>
-    </div>
-  </section>
-
-  <!-- mockup: mini-museo 3D real -->
-  <section class="seccion">
-    <h2>Pruébalo <em>aquí mismo</em></h2>
-    <p class="seccion-sub">Un museo 3D de verdad, embebido: entra, camina y acércate a las obras.</p>
-    <div class="mockup">
-      <div class="mock-bar">
-        <span class="puntos"><i></i><i></i><i></i></span>
-        <span class="url">museario.art/a/catalina/alma</span>
-      </div>
-      <div class="mock-cuerpo" id="mock-cuerpo">
-        <button class="mock-play" id="mock-play">
-          <span>▶ &nbsp;Entrar al mini-museo</span>
-        </button>
-      </div>
     </div>
   </section>
 
@@ -446,13 +373,6 @@
       el.addEventListener('pointercancel', soltar)
     })
 
-    // ---- mockup: mini-museo 3D real (se carga al hacer clic) ----
-    document.getElementById('mock-play').addEventListener('click', () => {
-      const cuerpo = document.getElementById('mock-cuerpo')
-      cuerpo.innerHTML =
-        '<iframe src="/a/catalina/alma?entrar" title="Mini museo 3D"' +
-        ' allow="fullscreen; pointer-lock; gyroscope; accelerometer"></iframe>'
-    })
   </script>
 </body>
 </html>
