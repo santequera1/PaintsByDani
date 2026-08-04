@@ -32,9 +32,11 @@ export function enlaceGaleria(ctx, slug, entrar = false) {
 
 // Devuelve { artista, coleccion, obras, colecciones } (colecciones = todas las del artista).
 export async function cargarColeccion(ctx) {
+  // sin caché: el artista edita su sala en el panel y quiere ver el cambio YA
+  const v = `?t=${Date.now()}`
   const [rCol, rArt] = await Promise.all([
-    fetch(`${API_BASE}/api/m/a/${encodeURIComponent(ctx.artista)}/${encodeURIComponent(ctx.coleccion)}`),
-    fetch(`${API_BASE}/api/m/a/${encodeURIComponent(ctx.artista)}`),
+    fetch(`${API_BASE}/api/m/a/${encodeURIComponent(ctx.artista)}/${encodeURIComponent(ctx.coleccion)}${v}`),
+    fetch(`${API_BASE}/api/m/a/${encodeURIComponent(ctx.artista)}${v}`),
   ])
   if (!rCol.ok) throw new Error(`Colección no encontrada (${rCol.status})`)
   const data = await rCol.json()
