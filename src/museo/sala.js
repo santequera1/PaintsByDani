@@ -810,8 +810,18 @@ export async function buildSalaPremium(config, renderer) {
   })
   const obraSpots = []
 
+  // Cada SpotLight se evalúa en TODOS los píxeles de la sala: con 30 obras
+  // serían 30 luces reales y el rendimiento muere (sobre todo en integradas
+  // y móviles). Se racionan repartidas; las obras son MeshBasic (no les
+  // afecta) — solo cambia cuántos charcos de luz hay en la pared.
+  const capSpots = LOW_TEX ? 10 : 18
+  const obrasConArte = layout.filter((q) => q.art).length
+  const pasoSpots = Math.max(1, Math.ceil(obrasConArte / capSpots))
+  let idxSpot = -1
+
   for (const p of layout) {
     if (!p.art) continue
+    idxSpot++
     const fg = new THREE.Group()
     fg.position.set(p.x, HANG_CENTER_Y, p.z)
     fg.rotation.y = p.rotY
@@ -924,14 +934,16 @@ export async function buildSalaPremium(config, renderer) {
     })
 
     const dir = new THREE.Vector3(Math.sin(p.rotY), 0, Math.cos(p.rotY))
-    // distance 4.6: ilumina la obra completa pero se apaga antes de llegar
-    // al piso (evita los charcos de luz con bandas)
-    const spot = new THREE.SpotLight(PAL.spotCol, PAL.spot, 4.6, 0.4, 0.6, 2)
-    spot.position.set(p.x + dir.x * 1.7, H - 0.25, p.z + dir.z * 1.7)
-    // apunta a la altura real de la obra (puede haber subido por hangBottomMin)
-    spot.target.position.set(p.x, fg.position.y, p.z)
-    lights.push(spot)
-    obraSpots.push(spot)
+    if (idxSpot % pasoSpots === 0) {
+      // distance 4.6: ilumina la obra completa pero se apaga antes de llegar
+      // al piso (evita los charcos de luz con bandas)
+      const spot = new THREE.SpotLight(PAL.spotCol, PAL.spot, 4.6, 0.4, 0.6, 2)
+      spot.position.set(p.x + dir.x * 1.7, H - 0.25, p.z + dir.z * 1.7)
+      // apunta a la altura real de la obra (puede haber subido por hangBottomMin)
+      spot.target.position.set(p.x, fg.position.y, p.z)
+      lights.push(spot)
+      obraSpots.push(spot)
+    }
 
     const fixture = new THREE.Mesh(
       new THREE.CylinderGeometry(0.045, 0.06, 0.16, 12),

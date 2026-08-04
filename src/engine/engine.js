@@ -7,7 +7,27 @@ export function createEngine(canvas) {
   // en táctil, limitar el pixel ratio: menos carga de GPU en teléfonos flojos
   // móvil/tablet real: puntero grueso o sin hover (un portátil táctil tiene mouse)
   const touchDevice = window.matchMedia('(hover: none), (pointer: coarse)').matches
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, touchDevice ? 1.75 : 2))
+  let pixelRatioActual = Math.min(window.devicePixelRatio, touchDevice ? 1.75 : 2)
+  renderer.setPixelRatio(pixelRatioActual)
+
+  // Resolución adaptativa: si el equipo no alcanza ~24fps sostenidos, se baja
+  // la resolución de render en pasos del 15% (hasta 1.0). Rescata integradas
+  // y gamas bajas sin tocar la experiencia de los equipos capaces.
+  let fpsAcum = 0, fpsFrames = 0, fpsUltimo = performance.now()
+  function ajustarResolucion() {
+    const ahora = performance.now()
+    const dt = ahora - fpsUltimo
+    fpsUltimo = ahora
+    if (dt > 0 && dt < 500) { fpsAcum += dt; fpsFrames++ }
+    if (fpsFrames >= 90) {
+      const fps = 1000 / (fpsAcum / fpsFrames)
+      fpsAcum = 0; fpsFrames = 0
+      if (fps < 24 && pixelRatioActual > 1.0) {
+        pixelRatioActual = Math.max(1.0, pixelRatioActual * 0.85)
+        renderer.setPixelRatio(pixelRatioActual)
+      }
+    }
+  }
   renderer.outputColorSpace = THREE.SRGBColorSpace
   renderer.toneMapping = THREE.ACESFilmicToneMapping
   renderer.toneMappingExposure = 1.2
@@ -487,6 +507,7 @@ export function createEngine(canvas) {
   let crosshairState = 'default'
 
   function animate() {
+    ajustarResolucion()
     requestAnimationFrame(animate)
     const now = performance.now()
     const dt = Math.min((now - prevTime) / 1000, 0.1)
