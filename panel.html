@@ -127,7 +127,6 @@
       height: 285px;
       perspective: 1000px;
       perspective-origin: 50% 50%;
-      filter: drop-shadow(0 26px 46px rgba(0, 0, 0, 0.5));
     }
     .mcard-card {
       position: relative;
@@ -135,14 +134,12 @@
       border-radius: 42px;
       background: linear-gradient(135deg, #efe9db 0%, #c9c0ad 100%);
       transform-style: preserve-3d;
-      transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.55s ease;
-      box-shadow: rgba(0, 0, 0, 0) 40px 50px 25px -40px, rgba(0, 0, 0, 0.3) 0 25px 25px -5px;
+      transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
       cursor: pointer;
       overflow: visible;
     }
     .mcard:hover .mcard-card {
       transform: rotate3d(1, 1, 0, 22deg);
-      box-shadow: rgba(0, 0, 0, 0.5) 26px 44px 26px -36px, rgba(236, 232, 223, 0.12) 0 0 60px -10px;
     }
     /* la portada del museo como fondo de la card */
     .mcard-fondo {
@@ -170,7 +167,6 @@
       display: block; position: absolute; aspect-ratio: 1; border-radius: 50%;
       top: 0; right: 0;
       background: rgba(255, 255, 255, 0.28);
-      box-shadow: rgba(60, 55, 45, 0.25) -10px 10px 22px 0;
       backdrop-filter: blur(5px);
       -webkit-backdrop-filter: blur(5px);
       transition: all 0.5s ease-in-out;
@@ -214,7 +210,6 @@
       width: 34px; aspect-ratio: 1; padding: 6px;
       background: #fff; border-radius: 50%; border: none;
       display: grid; place-content: center; cursor: pointer;
-      box-shadow: rgba(0, 0, 0, 0.4) 0 8px 6px -5px;
       transition: transform 0.2s ease-in-out, background 0.2s;
       color: #3a332a; text-decoration: none;
     }
