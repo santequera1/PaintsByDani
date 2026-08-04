@@ -212,55 +212,6 @@
     .popular .p-artista { color: #c4bcac; font-size: 0.7rem; line-height: 1.35; display: block; margin: 3px 0 9px; }
     .popular .p-cta { color: #e8cf9d; font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500; }
 
-    /* ---------- galería en lienzo ---------- */
-    .lienzo-demo {
-      position: relative;
-      overflow: hidden;
-      border-top: 1px solid rgba(255, 255, 255, 0.12);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-      background:
-        radial-gradient(rgba(236, 232, 223, 0.07) 1px, transparent 1px) 0 0 / 26px 26px,
-        #101012;
-      width: 100vw;
-      margin-left: calc(50% - 50vw);
-      height: min(86vh, 820px);
-      cursor: grab;
-      touch-action: none;
-    }
-    .lienzo-demo:active { cursor: grabbing; }
-    .lienzo-mundo { position: absolute; width: 2600px; height: 1650px; will-change: transform; }
-    .lienzo-obra {
-      position: absolute;
-      width: var(--w, 130px);
-      background: #f4f1ea;
-      padding: 6px 6px 7px;
-      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.5);
-      transform: rotate(var(--r, 0deg));
-      pointer-events: none;
-    }
-    .lienzo-obra img { width: 100%; display: block; }
-    .lienzo-pista {
-      position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%);
-      background: rgba(12, 12, 14, 0.8); backdrop-filter: blur(6px);
-      border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 999px;
-      color: #cfc8b8; font-size: 0.68rem; letter-spacing: 0.08em;
-      padding: 8px 16px; pointer-events: none; white-space: nowrap;
-    }
-    .funciones {
-      display: flex; gap: 9px; flex-wrap: wrap; justify-content: center;
-      margin-top: 30px;
-    }
-    .funcion {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 999px;
-      color: #cfc8b8; font-size: 0.72rem;
-      padding: 9px 16px;
-    }
-    .funcion b { color: #e8cf9d; font-weight: 500; }
-    .funcion { display: inline-flex; align-items: center; gap: 8px; }
-    .funcion svg { width: 14px; height: 14px; flex-shrink: 0; color: #e8cf9d; }
-
     /* ---------- cierre cinematográfico ---------- */
     .final {
       position: relative; z-index: 2;
@@ -441,26 +392,6 @@
     </div>
   </footer>
 
-  <!-- galería en lienzo -->
-  <section class="seccion" id="lienzo">
-    <h2>Y además, la <em>galería en lienzo</em></h2>
-    <p class="seccion-sub">Cada museo incluye una galería infinita para explorar arrastrando. Pruébala aquí mismo:</p>
-    <div class="lienzo-demo" id="lienzo-demo">
-      <div class="lienzo-mundo" id="lienzo-mundo"></div>
-      <div class="lienzo-pista">✥ Arrastra para explorar</div>
-    </div>
-    <div class="funciones">
-      <span class="funcion"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.4 1 2.3h6c0-.9.4-1.8 1-2.3A7 7 0 0 0 12 2z"/></svg><b>Luces apagadas</b> — modo oscuro con resplandores</span>
-      <span class="funcion"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="3" width="8" height="18" rx="2"/><path d="M4.5 8.5A9 9 0 0 1 8 4.6"/><path d="M19.5 15.5A9 9 0 0 1 16 19.4"/><polyline points="4 4.6 4.5 8.5 8.2 7.6"/><polyline points="20 19.4 19.5 15.5 15.8 16.4"/></svg><b>Giroscopio</b> — mira moviendo el teléfono</span>
-      <span class="funcion"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg><b>Reflejos reales</b> en el concreto pulido</span>
-      <span class="funcion"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21"/></svg><b>Recorrido automático</b> obra por obra</span>
-      <span class="funcion"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg><b>Zoom</b> con placa, técnica y precio</span>
-      <span class="funcion"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h7a3 3 0 0 1 3 3v13a2.5 2.5 0 0 0-2.5-2.5H2z"/><path d="M22 4h-7a3 3 0 0 0-3 3v13a2.5 2.5 0 0 1 2.5-2.5H22z"/></svg><b>Catálogo</b> para hojear</span>
-      <span class="funcion"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18"/></svg><b>ES / EN</b></span>
-      <span class="funcion"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14h1M14 20h1M18 18h3v3h-3z"/></svg><b>QR y enlace</b> para compartir</span>
-    </div>
-  </section>
-
   <div class="final-stats">
     <span>2 artistas fundadoras</span><i>|</i>
     <span>4 museos abiertos</span><i>|</i>
@@ -478,7 +409,7 @@
         c.style.setProperty('--rd', `${i * 0.12}s`)
         c.style.setProperty('--rr', `${i % 2 ? -4 : 4}deg`)
       })
-      const finales = [...document.querySelectorAll('#lienzo .lienzo-demo, #lienzo .funcion, .final-in > *, .final-fotos > *, .final-stats')]
+      const finales = [...document.querySelectorAll('.final-in > *, .final-fotos > *, .final-stats')]
       finales.forEach((el, i) => {
         el.classList.add('revela-suave')
         el.style.setProperty('--rd', `${(i % 6) * 0.1}s`)
@@ -491,124 +422,36 @@
       ;[...cards, ...finales].forEach((el) => obs.observe(el))
     }
 
-    // ---- demo de la galería en lienzo (mini lienzo arrastrable) ----
-    {
-      // catálogo base: se reparte por una cuadrícula grande con variación
-      const POOL = [
-        ['cat-posts', 'Me gusta mirarte comer un helado, 2026'],
-        ['conexiones-posts', 'Océano, 2022'],
-        ['alma-posts', 'Energia, 2024'],
-        ['posts', 'My lady'],
-        ['cat-posts', 'Mi casa es mi santuario, 2026'],
-        ['conexiones-posts', 'Colonización de X, 2023'],
-        ['alma-posts', 'Adultez, 2023'],
-        ['alma-posts', 'Apego, 2025'],
-        ['posts', 'Muerte en rojo'],
-        ['conexiones-posts', 'Vainilla y Chocolate, 2025'],
-        ['cat-posts', 'Tomamos caminos diferentes, 2026'],
-        ['alma-posts', 'Limerencia, 2022'],
-        ['posts', 'Me'],
-        ['cat-posts', 'Llegaste bien 2026'],
-        ['posts', 'Little Dan'],
-        ['cat-posts', 'Quiero sentir tu arte, 2026'],
-        ['conexiones-posts', 'Maníaco, 2022'],
-        ['alma-posts', 'Catarsis, 2024'],
-        ['posts', 'Retrato'],
-        ['conexiones-posts', "C'est la vie, 2023"],
-        ['alma-posts', 'Angustia, 2024'],
-        ['cat-posts', 'El sabor de tu sudor, 2026'],
-        ['posts', 'Te amé'],
-        ['conexiones-posts', 'Yes-No, 2022'],
-        ['alma-posts', 'Euforia, 2023'],
-        ['cat-posts', 'Siempre tenemos buenas conversaciones, 2026'],
-        ['conexiones-posts', 'La Noche de las Narices Frías, 2022'],
-        ['alma-posts', 'Infancia, 2023'],
-        ['cat-posts', 'Me siento conectada a este parque, 2026'],
-        ['posts', 'PRE_MORTE'],
-        ['conexiones-posts', 'Peut être, 2022'],
-        ['cat-posts', 'Te ví desde la distancia, 2026'],
-        ['alma-posts', 'Mañana, 2025'],
-        ['conexiones-posts', 'Aron Piper, 2022'],
-        ['cat-posts', 'Te deseo lo mejor, 2026'],
-        ['posts', 'Vacio - Óleo sobre canva'],
-      ]
-      const OBRAS_LIENZO = []
-      let idx = 0
-      for (let fila = 0; fila < 6; fila++) {
-        for (let col = 0; col < 9; col++) {
-          const [b, f] = POOL[idx % POOL.length]
-          OBRAS_LIENZO.push({
-            b, f,
-            x: 40 + col * 285 + ((idx * 53) % 70),
-            y: 30 + fila * 265 + ((idx * 37) % 60),
-            r: ((idx * 7) % 9) - 4,
-            w: 110 + ((idx * 29) % 60),
-          })
-          idx++
-        }
-      }
-      const demo = document.getElementById('lienzo-demo')
-      const mundo = document.getElementById('lienzo-mundo')
-      for (const o of OBRAS_LIENZO) {
-        const el = document.createElement('div')
-        el.className = 'lienzo-obra'
-        el.style.left = o.x + 'px'
-        el.style.top = o.y + 'px'
-        el.style.setProperty('--r', o.r + 'deg')
-        el.style.setProperty('--w', o.w + 'px')
-        el.innerHTML = `<img src="/${o.b}/thumb/${encodeURI(o.f)}.webp" alt="" loading="lazy" draggable="false" />`
-        mundo.appendChild(el)
-      }
-      let mx = -420, my = -260, sx = 0, sy = 0, activo = false
-      const aplicar = () => {
-        const minX = demo.clientWidth - 2600, minY = demo.clientHeight - 1650
-        mx = Math.min(0, Math.max(minX, mx))
-        my = Math.min(0, Math.max(minY, my))
-        mundo.style.transform = `translate(${mx}px, ${my}px)`
-      }
-      aplicar()
-      demo.addEventListener('pointerdown', (e) => {
-        demo.setPointerCapture(e.pointerId)
-        activo = true
-        sx = e.clientX - mx; sy = e.clientY - my
-      })
-      demo.addEventListener('pointermove', (e) => {
-        if (!activo) return
-        mx = e.clientX - sx; my = e.clientY - sy
-        aplicar()
-      })
-      const soltar = () => { activo = false }
-      demo.addEventListener('pointerup', soltar)
-      demo.addEventListener('pointercancel', soltar)
-    }
-
     // ---- obras flotantes (reales, de Catalina y Danní) ----
     const OBRAS = [
-      { b: 'cat-posts', f: 'Me siento conectada a este parque, 2026', x: '4%', y: '6%', r: -7, w: 150 },
-      { b: 'alma-posts', f: 'Energia, 2024', x: '82%', y: '5%', r: 6, w: 140 },
-      { b: 'conexiones-posts', f: 'Océano, 2022', x: '88%', y: '38%', r: -5, w: 150, m: true },
-      { b: 'posts', f: 'Muerte en rojo', x: '2%', y: '40%', r: 5, w: 118, m: true },
-      { b: 'alma-posts', f: 'Apego, 2025', x: '7%', y: '72%', r: -6, w: 126 },
-      { b: 'cat-posts', f: 'Quiero sentir tu arte, 2026', x: '84%', y: '70%', r: 7, w: 148 },
-      { b: 'posts', f: 'My lady', x: '20%', y: '12%', r: 4, w: 108, m: true },
-      { b: 'conexiones-posts', f: 'Vainilla y Chocolate, 2025', x: '70%', y: '14%', r: -4, w: 128, m: true },
-      { b: 'posts', f: 'Little Dan', x: '73%', y: '75%', r: -6, w: 110, m: true },
-      { b: 'alma-posts', f: 'Angustia, 2024', x: '22%', y: '74%', r: 5, w: 112, m: true },
-      { b: 'cat-posts', f: 'Te deseo lo mejor, 2026', x: '13%', y: '26%', r: 6, w: 122, m: true },
-      { b: 'conexiones-posts', f: 'Maníaco, 2022', x: '79%', y: '24%', r: 5, w: 108, m: true },
-      { b: 'alma-posts', f: 'Limerencia, 2022', x: '35%', y: '5%', r: -5, w: 118, m: true },
-      { b: 'posts', f: 'Me', x: '58%', y: '7%', r: 6, w: 100, m: true },
-      { b: 'cat-posts', f: 'Llegaste bien 2026', x: '1%', y: '56%', r: -4, w: 104, m: true },
-      { b: 'conexiones-posts', f: "C'est la vie, 2023", x: '92%', y: '56%', r: 6, w: 104, m: true },
-      { b: 'alma-posts', f: 'Catarsis, 2024', x: '36%', y: '77%', r: -5, w: 124, m: true },
-      { b: 'posts', f: 'Retrato', x: '55%', y: '76%', r: 5, w: 100, m: true },
-      { b: 'cat-posts', f: 'El sabor de tu sudor, 2026', x: '10%', y: '79%', r: 4, w: 108, m: true },
-      { b: 'conexiones-posts', f: 'Yes-No, 2022', x: '90%', y: '76%', r: -7, w: 96, m: true },
-      { b: 'alma-posts', f: 'Infancia, 2023', x: '14%', y: '47%', r: 5, w: 112, m: true },
+      // fila superior
+      { b: 'cat-posts', f: 'Me siento conectada a este parque, 2026', x: '3%', y: '5%', r: -7, w: 146 },
+      { b: 'posts', f: 'My lady', x: '16%', y: '11%', r: 4, w: 104, m: true },
+      { b: 'alma-posts', f: 'Limerencia, 2022', x: '29%', y: '4%', r: -5, w: 116, m: true },
+      { b: 'posts', f: 'Me', x: '43%', y: '8%', r: 6, w: 96, m: true },
+      { b: 'conexiones-posts', f: 'Vainilla y Chocolate, 2025', x: '56%', y: '4%', r: -4, w: 122, m: true },
+      { b: 'conexiones-posts', f: 'Maníaco, 2022', x: '70%', y: '10%', r: 5, w: 104, m: true },
+      { b: 'alma-posts', f: 'Energia, 2024', x: '85%', y: '5%', r: 6, w: 134 },
+      // costado izquierdo
+      { b: 'posts', f: 'Muerte en rojo', x: '2%', y: '28%', r: 5, w: 116, m: true },
+      { b: 'cat-posts', f: 'Te deseo lo mejor, 2026', x: '1%', y: '48%', r: -4, w: 112, m: true },
+      { b: 'alma-posts', f: 'Angustia, 2024', x: '3%', y: '66%', r: 5, w: 108, m: true },
+      { b: 'alma-posts', f: 'Apego, 2025', x: '8%', y: '82%', r: -6, w: 122 },
+      // costado derecho
+      { b: 'conexiones-posts', f: 'Océano, 2022', x: '88%', y: '28%', r: -5, w: 144, m: true },
+      { b: 'cat-posts', f: 'Llegaste bien 2026', x: '92%', y: '50%', r: 5, w: 106, m: true },
+      { b: 'conexiones-posts', f: "C'est la vie, 2023", x: '90%', y: '66%', r: 6, w: 102, m: true },
+      { b: 'cat-posts', f: 'Quiero sentir tu arte, 2026', x: '84%', y: '82%', r: 7, w: 138 },
+      // fila inferior
+      { b: 'cat-posts', f: 'El sabor de tu sudor, 2026', x: '20%', y: '82%', r: 4, w: 106, m: true },
+      { b: 'alma-posts', f: 'Catarsis, 2024', x: '33%', y: '86%', r: -5, w: 120, m: true },
+      { b: 'posts', f: 'Little Dan', x: '47%', y: '88%', r: -6, w: 104, m: true },
+      { b: 'alma-posts', f: 'Infancia, 2023', x: '60%', y: '86%', r: 5, w: 108, m: true },
+      { b: 'posts', f: 'Retrato', x: '72%', y: '84%', r: 5, w: 98, m: true },
       // solo móvil: la franja entre el hero y la siguiente sección
-      { b: 'conexiones-posts', f: 'Maníaco, 2022', x: '6%', y: '93%', r: -6, w: 92, sm: true },
-      { b: 'alma-posts', f: 'Limerencia, 2022', x: '38%', y: '101%', r: 4, w: 104, sm: true },
-      { b: 'cat-posts', f: 'Te deseo lo mejor, 2026', x: '68%', y: '95%', r: 6, w: 96, sm: true },
+      { b: 'conexiones-posts', f: 'Maníaco, 2022', x: '6%', y: '95%', r: -6, w: 92, sm: true },
+      { b: 'alma-posts', f: 'Limerencia, 2022', x: '38%', y: '102%', r: 4, w: 104, sm: true },
+      { b: 'cat-posts', f: 'Te deseo lo mejor, 2026', x: '68%', y: '96%', r: 6, w: 96, sm: true },
     ]
     const cont = document.getElementById('obras')
     OBRAS.forEach((o, i) => {
