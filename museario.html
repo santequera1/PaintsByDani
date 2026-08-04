@@ -14,108 +14,299 @@
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Museario" />
   <meta property="og:title" content="Museario — cada artista, su museo" />
-  <meta property="og:description" content="Museos virtuales 3D y galerías interactivas para artistas. Plataforma en construcción." />
+  <meta property="og:description" content="Museos virtuales 3D y galerías interactivas para artistas. Muy pronto." />
   <meta property="og:url" content="https://museario.art/" />
   <style>
     * { box-sizing: border-box; }
     html, body { height: 100%; }
     body {
       margin: 0;
-      background: #0c0c0e;
+      background: #0b0b0d;
       color: #ece8df;
       font-family: 'Poppins', 'Helvetica Neue', sans-serif;
       font-weight: 300;
+      min-height: 100vh;
+      overflow-x: hidden;
       display: flex;
       flex-direction: column;
-      min-height: 100vh;
     }
-    /* textura sutil de puntos */
-    body::before {
-      content: '';
-      position: fixed; inset: 0;
-      background-image: radial-gradient(rgba(236,232,223,0.05) 1px, transparent 1px);
-      background-size: 26px 26px;
-      pointer-events: none;
+    /* fondo: cuadrícula + brillos cálidos */
+    .fondo {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image:
+        radial-gradient(ellipse 75% 55% at 50% -10%, rgba(201, 163, 92, 0.09), transparent 55%),
+        radial-gradient(ellipse 55% 45% at 88% 105%, rgba(236, 232, 223, 0.05), transparent 50%),
+        linear-gradient(rgba(236, 232, 223, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(236, 232, 223, 0.035) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 44px 44px, 44px 44px;
+      mask-image: radial-gradient(ellipse 90% 85% at 50% 40%, black 55%, transparent);
     }
+
+    /* obras flotantes arrastrables */
+    .obra-flotante {
+      position: absolute;
+      width: var(--w, 130px);
+      padding: 7px 7px 9px;
+      background: #f4f1ea;
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.55);
+      cursor: grab;
+      user-select: none;
+      touch-action: none;
+      z-index: 1;
+      transform: translate(var(--x, 0), var(--y, 0)) rotate(var(--r, 0deg));
+      animation: flotar 7s ease-in-out infinite;
+      animation-delay: var(--d, 0s);
+      transition: box-shadow 0.25s ease;
+    }
+    .obra-flotante:active { cursor: grabbing; animation-play-state: paused; }
+    .obra-flotante.arrastrando { z-index: 5; box-shadow: 0 26px 54px rgba(0, 0, 0, 0.7); animation-play-state: paused; }
+    .obra-flotante img { width: 100%; display: block; pointer-events: none; background: #ddd8cc; }
+    @keyframes flotar {
+      0%, 100% { margin-top: 0; }
+      50% { margin-top: -10px; }
+    }
+
+    /* hero */
     .hero {
       flex: 1;
+      position: relative;
+      z-index: 2;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       text-align: center;
-      padding: 40px 20px;
-      position: relative;
+      padding: clamp(70px, 12vh, 130px) 18px 40px;
+      pointer-events: none;
     }
-    .logo { width: min(440px, 78vw); display: block; margin-bottom: 26px; }
+    .hero > * { pointer-events: auto; }
+    .logo { width: min(210px, 52vw); margin-bottom: 34px; }
     .chip {
-      font-size: 0.66rem;
-      letter-spacing: 0.3em;
-      text-transform: uppercase;
-      color: #c9a35c;
-      border: 1px solid rgba(201,163,92,0.4);
-      padding: 7px 16px 6px;
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 0.62rem; font-weight: 500;
+      letter-spacing: 0.3em; text-transform: uppercase;
+      color: #d9b878;
+      border: 1px solid rgba(201, 163, 92, 0.4);
+      border-radius: 999px;
+      padding: 8px 18px 7px;
       margin-bottom: 30px;
+      background: rgba(11, 11, 13, 0.6);
+      backdrop-filter: blur(6px);
     }
+    .chip::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #d9b878; animation: pulso 2.2s ease-in-out infinite; }
+    @keyframes pulso { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
     h1 {
       font-family: 'DM Serif Display', serif;
       font-weight: 400;
-      font-size: clamp(1.7rem, 4.6vw, 2.9rem);
-      line-height: 1.18;
-      margin: 0 0 14px;
-      max-width: 17em;
+      font-size: clamp(2.3rem, 7.2vw, 4.4rem);
+      line-height: 1.06;
+      margin: 0 0 18px;
+      max-width: 13em;
+      text-shadow: 0 4px 30px rgba(0, 0, 0, 0.7);
     }
     h1 em { font-style: italic; }
     .sub {
-      color: #8d8579;
-      font-size: 0.95rem;
-      line-height: 1.65;
-      max-width: 34em;
-      margin: 0 0 36px;
+      color: #a59d8f;
+      font-size: 0.98rem;
+      line-height: 1.7;
+      max-width: 33em;
+      margin: 0 0 34px;
+      text-shadow: 0 2px 14px rgba(0, 0, 0, 0.8);
     }
-    .acciones { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
-    .btn {
-      display: inline-flex; align-items: center; gap: 9px;
+    /* captura de correo */
+    .aviso-form {
+      display: flex; gap: 8px;
+      width: min(460px, 92vw);
+      background: rgba(20, 20, 22, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 999px;
+      padding: 7px 7px 7px 22px;
+      margin-bottom: 26px;
+    }
+    .aviso-form input {
+      flex: 1; min-width: 0;
+      background: none; border: 0; outline: 0;
+      color: #ece8df; font-family: inherit; font-size: 0.9rem; font-weight: 300;
+    }
+    .aviso-form input::placeholder { color: #6d675d; }
+    .aviso-form button {
       background: #ece8df; color: #16130f;
-      padding: 13px 26px;
-      font-size: 0.78rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
-      text-decoration: none;
-      transition: background .2s ease;
+      border: 0; border-radius: 999px;
+      padding: 12px 24px;
+      font-family: inherit; font-size: 0.76rem; font-weight: 600;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      cursor: pointer; transition: background 0.2s ease, transform 0.2s ease;
+      white-space: nowrap;
     }
-    .btn:hover { background: #fff; }
-    .btn-ghost { background: transparent; color: #ece8df; border: 1px solid rgba(255,255,255,0.3); }
-    .btn-ghost:hover { background: rgba(255,255,255,0.09); }
+    .aviso-form button:hover { background: #fff; transform: translateY(-1px); }
+    .aviso-ok { color: #9fc49b; font-size: 0.86rem; margin: -14px 0 26px; }
+    /* tarjeta "recorrer" tipo video de cibby */
+    .demo {
+      position: relative;
+      width: min(430px, 88vw);
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+      display: block;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .demo:hover { transform: translateY(-4px); box-shadow: 0 30px 70px rgba(0, 0, 0, 0.7); }
+    .demo img { width: 100%; display: block; }
+    .demo .play {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(180deg, rgba(0,0,0,0.05), rgba(0,0,0,0.35));
+    }
+    .demo .play span {
+      display: flex; align-items: center; gap: 10px;
+      background: rgba(12, 12, 14, 0.82);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 999px;
+      color: #ece8df;
+      font-size: 0.74rem; font-weight: 500;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      padding: 13px 24px;
+      transition: background 0.2s ease;
+    }
+    .demo:hover .play span { background: rgba(12, 12, 14, 0.95); }
+
     footer {
+      position: relative; z-index: 2;
       text-align: center;
-      padding: 22px 16px 26px;
+      padding: 26px 16px 28px;
       font-size: 0.72rem;
       letter-spacing: 0.06em;
       color: #6d675d;
-      position: relative;
     }
     footer a { color: #a59d8f; text-decoration: none; }
     footer a:hover { color: #ece8df; }
+
+    /* entradas */
+    @keyframes aparecer { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+    .hero > * { animation: aparecer 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
+    .hero > *:nth-child(1) { animation-delay: 0.05s; }
+    .hero > *:nth-child(2) { animation-delay: 0.15s; }
+    .hero > *:nth-child(3) { animation-delay: 0.25s; }
+    .hero > *:nth-child(4) { animation-delay: 0.35s; }
+    .hero > *:nth-child(5) { animation-delay: 0.45s; }
+    .hero > *:nth-child(6) { animation-delay: 0.55s; }
+    .obra-flotante { animation-name: flotar; }
+    .obra-flotante.entrada { animation: entradaObra 0.9s cubic-bezier(0.22, 1, 0.36, 1) both, flotar 7s ease-in-out infinite; animation-delay: var(--e, 0s), calc(var(--e, 0s) + 0.9s); }
+    @keyframes entradaObra { from { opacity: 0; transform: translate(var(--x, 0), var(--y, 0)) rotate(var(--r)) scale(0.8); } to { opacity: 1; transform: translate(var(--x, 0), var(--y, 0)) rotate(var(--r)) scale(1); } }
+    @media (prefers-reduced-motion: reduce) {
+      .hero > *, .obra-flotante, .chip::before { animation: none !important; }
+    }
+    @media (max-width: 720px) {
+      .obra-flotante { --w: 84px !important; }
+      .ocultar-movil { display: none; }
+    }
   </style>
 </head>
 <body>
+  <div class="fondo"></div>
+  <div id="obras"></div>
+
   <div class="hero">
     <img class="logo" src="/museario/logo-blanco.svg" alt="Museario" />
-    <p class="chip">Plataforma en construcción</p>
-    <h1>Cada artista tiene <em>su propio museo</em></h1>
+    <p class="chip">Próximamente</p>
+    <h1>Tu obra merece <em>su propio museo.</em></h1>
     <p class="sub">
-      Museos virtuales en 3D y galerías interactivas para recorrer, coleccionar
-      y compartir arte. Muy pronto, cualquier artista podrá abrir el suyo.
+      Museario convierte tu colección en un museo virtual 3D y una galería
+      interactiva que se recorren desde cualquier lugar. Sube tus obras,
+      elige tu sala y comparte tu museo con el mundo.
     </p>
-    <div class="acciones">
-      <a class="btn" href="/a/catalina/rumiaciones">Recorrer un museo</a>
-      <a class="btn btn-ghost" href="/cuenta.html">Soy artista — entrar</a>
-    </div>
+    <form class="aviso-form" id="form-interes">
+      <input type="email" id="interes-email" placeholder="tu@correo.com" autocomplete="email" required />
+      <button type="submit">Avísame</button>
+    </form>
+    <a class="demo" href="/a/catalina/rumiaciones">
+      <img src="/museario/estilo-blanca.jpg" alt="Museo virtual 3D" />
+      <span class="play"><span>▶ &nbsp;Recorrer un museo real</span></span>
+    </a>
   </div>
+
   <footer>
+    Ya viven aquí:
     <a href="https://museo.wailus.co/catalina.html" target="_blank" rel="noopener">Catalina Olivero</a>
     &nbsp;·&nbsp;
     <a href="https://museo.wailus.co/" target="_blank" rel="noopener">Danní</a>
-    &nbsp;·&nbsp; museario.art
+    &nbsp;&nbsp;—&nbsp;&nbsp; museario.art
   </footer>
+
+  <script type="module">
+    // ---- obras flotantes (reales, de Catalina y Danní) ----
+    const OBRAS = [
+      { b: 'cat-posts', f: 'Me siento conectada a este parque, 2026', x: '4%', y: '6%', r: -7, w: 150 },
+      { b: 'alma-posts', f: 'Energia, 2024', x: '82%', y: '5%', r: 6, w: 140 },
+      { b: 'conexiones-posts', f: 'Océano, 2022', x: '88%', y: '38%', r: -5, w: 150, m: true },
+      { b: 'posts', f: 'Muerte en rojo', x: '2%', y: '40%', r: 5, w: 118, m: true },
+      { b: 'alma-posts', f: 'Apego, 2025', x: '7%', y: '72%', r: -6, w: 126 },
+      { b: 'cat-posts', f: 'Quiero sentir tu arte, 2026', x: '84%', y: '70%', r: 7, w: 148 },
+      { b: 'posts', f: 'My lady', x: '20%', y: '12%', r: 4, w: 108, m: true },
+      { b: 'conexiones-posts', f: 'Vainilla y Chocolate, 2025', x: '70%', y: '14%', r: -4, w: 128, m: true },
+      { b: 'posts', f: 'Little Dan', x: '73%', y: '86%', r: -6, w: 110, m: true },
+      { b: 'alma-posts', f: 'Angustia, 2024', x: '22%', y: '84%', r: 5, w: 112, m: true },
+    ]
+    const cont = document.getElementById('obras')
+    OBRAS.forEach((o, i) => {
+      const el = document.createElement('div')
+      el.className = 'obra-flotante entrada' + (o.m ? ' ocultar-movil' : '')
+      el.style.left = o.x
+      el.style.top = o.y
+      el.style.setProperty('--r', o.r + 'deg')
+      el.style.setProperty('--w', o.w + 'px')
+      el.style.setProperty('--d', (i * 0.6) + 's')
+      el.style.setProperty('--e', (0.15 + i * 0.08) + 's')
+      el.innerHTML = `<img src="/${o.b}/thumb/${encodeURI(o.f)}.webp" alt="" draggable="false" loading="lazy" />`
+      cont.appendChild(el)
+
+      // arrastrable
+      let px = 0, py = 0, sx = 0, sy = 0
+      el.addEventListener('pointerdown', (e) => {
+        el.setPointerCapture(e.pointerId)
+        el.classList.add('arrastrando')
+        el.classList.remove('entrada')
+        sx = e.clientX - px
+        sy = e.clientY - py
+      })
+      el.addEventListener('pointermove', (e) => {
+        if (!el.hasPointerCapture(e.pointerId)) return
+        px = e.clientX - sx
+        py = e.clientY - sy
+        el.style.setProperty('--x', px + 'px')
+        el.style.setProperty('--y', py + 'px')
+      })
+      const soltar = (e) => {
+        if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId)
+        el.classList.remove('arrastrando')
+      }
+      el.addEventListener('pointerup', soltar)
+      el.addEventListener('pointercancel', soltar)
+    })
+
+    // ---- captura de correo ----
+    const form = document.getElementById('form-interes')
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault()
+      const email = document.getElementById('interes-email').value
+      try {
+        const r = await fetch('/api/m/interes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        })
+        if (!r.ok) throw new Error()
+        const ok = document.createElement('p')
+        ok.className = 'aviso-ok'
+        ok.textContent = '¡Listo! Te avisamos cuando Museario abra sus puertas.'
+        form.replaceWith(ok)
+      } catch {
+        alert('No se pudo guardar tu correo. Inténtalo de nuevo.')
+      }
+    })
+  </script>
 </body>
 </html>

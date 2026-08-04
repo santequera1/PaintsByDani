@@ -57,6 +57,15 @@ db.exec(`
 try { db.exec('ALTER TABLE usuarios ADD COLUMN password_hash TEXT') } catch {}
 try { db.exec('ALTER TABLE colecciones ADD COLUMN portada TEXT') } catch {}
 
+// correos interesados desde la landing ("avísame cuando abra")
+db.exec(`
+  CREATE TABLE IF NOT EXISTS interesados (
+    id INTEGER PRIMARY KEY,
+    email TEXT UNIQUE NOT NULL,
+    creado_en TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+`)
+
 // dist del sitio (para servir /a/... con metadatos OG por colección)
 const DIST_DIR = process.env.MUSEARIO_DIST || resolve(RAIZ, '..', 'dist')
 
@@ -480,6 +489,7 @@ async function rutasPanel(req, res, resto, url) {
     if (b.estiloBase && ESTILOS[b.estiloBase]) {
       estilo = { ...estilo, ...ESTILOS[b.estiloBase] }
     }
+    if (b.sinMarco !== undefined) estilo.sinMarco = !!b.sinMarco
     if (b.texturas !== undefined) {
       // valores: null (por defecto del estilo), id del sistema, o URL /media/ ya subida
       const SISTEMA = {
@@ -506,6 +516,26 @@ async function rutasPanel(req, res, resto, url) {
       col.id
     )
     return privado(res, 200, { ok: true })
+  }
+
+  // DELETE /api/panel/colecciones/:slug/obras — vaciar la galería (todas las obras)
+  if (resto[1] === 'colecciones' && resto[2] && resto[3] === 'obras' && req.method === 'DELETE') {
+    const col = qColeccionPanel.get(artista.id, resto[2])
+    if (!col) return privado(res, 404, { error: 'Colección no encontrada' })
+    const obras = qObras.all(col.id)
+    db.prepare('DELETE FROM obras WHERE coleccion_id=?').run(col.id)
+    if (col.img_base.startsWith('media/')) {
+      const dir = join(MEDIA_DIR, col.img_base.replace(/^media\//, ''))
+      for (const o of obras) {
+        const baseFinal = o.filename.replace(/\.[^.]+$/, '')
+        for (const ruta of [
+          join(dir, 'orig', o.filename),
+          join(dir, 'full', `${baseFinal}.webp`),
+          join(dir, 'thumb', `${baseFinal}.webp`),
+        ]) await rm(ruta, { force: true })
+      }
+    }
+    return privado(res, 200, { ok: true, eliminadas: obras.length })
   }
 
   // DELETE /api/panel/colecciones/:slug — eliminar museo completo
@@ -743,6 +773,17 @@ const server = createServer(async (req, res) => {
 
   try {
     if (resto[0] === 'salud') return responder(res, 200, { ok: true }, 0)
+
+    // POST /api/m/interes — correo de "avísame" de la landing
+    if (resto[0] === 'interes' && req.method === 'POST') {
+      const b = await leerJSON(req)
+      const email = (b.email || '').trim().toLowerCase()
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return privado(res, 400, { error: 'Correo no válido' })
+      }
+      db.prepare('INSERT OR IGNORE INTO interesados (email) VALUES (?)').run(email)
+      return privado(res, 200, { ok: true })
+    }
 
     if (resto[0] === 'artistas' && resto.length === 1) {
       const lista = qArtistas.all().map((a) => ({

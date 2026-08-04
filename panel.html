@@ -212,9 +212,45 @@
     .estilo img { width: 100%; aspect-ratio: 8/5; object-fit: cover; display: block; opacity: .92; }
     .estilo strong { display: block; font-weight: 500; font-size: 0.82rem; margin: 10px 12px 2px; }
     .estilo small { display: block; color: var(--tinta-2); font-size: 0.7rem; margin: 0 12px; line-height: 1.45; }
-    .tex-fila { display: flex; gap: 14px; flex-wrap: wrap; }
-    .tex-fila > div { flex: 1; min-width: 220px; }
-    .tex-acciones { display: flex; gap: 8px; margin-top: 8px; align-items: center; }
+    /* swatches visuales (texturas, marcos) */
+    .swatches { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 6px; }
+    .swatch {
+      width: 138px; background: var(--panel-2);
+      border: 1px solid rgba(255,255,255,0.14); cursor: pointer;
+      padding: 0 0 9px; text-align: center; position: relative;
+      transition: border-color .2s ease, transform .2s ease;
+    }
+    .swatch:hover { border-color: rgba(255,255,255,0.4); transform: translateY(-2px); }
+    .swatch.activo { border-color: var(--tinta); }
+    .swatch.activo::after {
+      content: '✓'; position: absolute; top: 6px; right: 7px;
+      width: 20px; height: 20px; background: var(--tinta); color: #16130f;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 0.66rem; font-weight: 600;
+    }
+    .swatch img { width: 100%; height: 88px; object-fit: cover; display: block; }
+    .swatch span { display: block; font-size: 0.64rem; color: var(--tinta-2); margin: 8px 6px 0; letter-spacing: 0.04em; line-height: 1.3; }
+    .swatch.activo span { color: var(--tinta); }
+    .swatch.subir {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 122px; border-style: dashed; color: var(--tinta-2);
+      font-size: 0.66rem; padding: 8px; font-family: inherit; background: transparent;
+    }
+    .swatch.subir:hover { color: var(--tinta); }
+
+    /* animaciones (el panel debe sentirse vivo) */
+    @keyframes aparecer { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+    @keyframes velar { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes brotar { from { opacity: 0; transform: translateY(12px) scale(0.97); } to { opacity: 1; transform: none; } }
+    .anim { animation: aparecer 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
+    .modal-fondo { animation: velar 0.22s ease both; }
+    .modal { animation: brotar 0.3s cubic-bezier(0.22, 1, 0.36, 1) both; }
+    @media (prefers-reduced-motion: reduce) {
+      .anim, .modal, .modal-fondo { animation: none; }
+      .mcard-card, .swatch { transition: none; }
+    }
+    .btn-rojo { background: #c97f72; color: #fff; }
+    .btn-rojo:hover { background: #d8907f; }
 
     /* ---------- obras ---------- */
     .obras { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; margin-top: 18px; }
@@ -514,7 +550,12 @@
         `${a.colecciones.length} de ${estado.limiteMuseos} museos. Cada museo tiene su sala 3D y su galería.`
       const grid = $('museos-grid')
       grid.innerHTML = ''
-      for (const col of a.colecciones) grid.appendChild(cardMuseo(a, col))
+      a.colecciones.forEach((col, i) => {
+        const card = cardMuseo(a, col)
+        card.classList.add('anim')
+        card.style.animationDelay = `${i * 80}ms`
+        grid.appendChild(card)
+      })
       if (a.colecciones.length < estado.limiteMuseos) {
         const nuevo = document.createElement('button')
         nuevo.className = 'museo-nuevo'
@@ -660,6 +701,15 @@
       const tex = est.texturas || {}
       const estadoTex = (v) => !v ? 'defecto' : (String(v).startsWith('/media/') ? 'propia' : 'sistema')
 
+      const sinMarcoActual = est.sinMarco !== false
+      const swatch = (v, img, txt, activo) =>
+        `<div class="swatch ${activo ? 'activo' : ''}" data-v="${v}">` +
+        (img ? `<img src="${img}" alt="" loading="lazy" />` : '') +
+        `<span>${txt}</span></div>`
+      const swatchSubir = `<button class="swatch subir" data-v="subir" type="button">+ Subir la mía</button>`
+
+      const ePiso = estadoTex(tex.piso)
+      const ePared = estadoTex(tex.pared)
       const cSala = document.createElement('div')
       cSala.className = 'card'
       cSala.innerHTML =
@@ -673,43 +723,37 @@
         `<img src="/museario/estilo-clasica.jpg" alt="" /><strong>Sala clásica</strong>` +
         `<small>Madera oscura, marcos y zócalo.</small></div>` +
         `</div>` +
-        `<div class="tex-fila" style="margin-top:18px">` +
-        `<div><label>Textura del piso</label>` +
-        `<select id="d-tex-piso">` +
-        `<option value="">La del estilo (por defecto)</option>` +
-        `<option value="concreto">Concreto pulido</option>` +
-        `<option value="propia" ${estadoTex(tex.piso) === 'propia' ? '' : 'disabled'}>Mi textura subida</option>` +
-        `</select>` +
-        `<div class="tex-acciones"><button class="btn-mini" id="d-subir-piso">Subir mi textura de piso</button></div></div>` +
-        `<div><label>Textura de la pared</label>` +
-        `<select id="d-tex-pared">` +
-        `<option value="">La del estilo (por defecto)</option>` +
-        `<option value="yeso">Yeso pintado</option>` +
-        `<option value="propia" ${estadoTex(tex.pared) === 'propia' ? '' : 'disabled'}>Mi textura subida</option>` +
-        `</select>` +
-        `<div class="tex-acciones"><button class="btn-mini" id="d-subir-pared">Subir mi textura de pared</button></div></div>` +
+        `<label>Las obras</label>` +
+        `<div class="swatches" id="d-marcos">` +
+        swatch('sin', '/museario/marco-sin.jpg', 'Lienzo flotante, sin marco', sinMarcoActual) +
+        swatch('negro', '/museario/marco-negro.jpg', 'Con marco negro', !sinMarcoActual) +
         `</div>` +
-        `<p class="sub" style="margin:14px 0 0">Los cambios se aplican al instante: abre el Museo 3D para verlos. Las texturas subidas se repiten por la superficie — funcionan mejor las fotos de material tomadas de frente.</p>`
+        `<label>Textura del piso</label>` +
+        `<div class="swatches" id="d-piso">` +
+        swatch('', baseActual === 'clasica' ? '/museario/tex-madera.jpg' : '/museario/tex-concreto.jpg', 'La del estilo', ePiso === 'defecto') +
+        swatch('concreto', '/museario/tex-concreto.jpg', 'Concreto pulido', ePiso === 'sistema') +
+        (ePiso === 'propia' ? swatch('propia', tex.piso, 'Mi textura', true) : '') +
+        swatchSubir +
+        `</div>` +
+        `<label>Textura de la pared</label>` +
+        `<div class="swatches" id="d-pared">` +
+        swatch('', baseActual === 'clasica' ? '/museario/tex-lisa.jpg' : '/museario/tex-yeso.jpg', 'La del estilo', ePared === 'defecto') +
+        swatch('yeso', '/museario/tex-yeso.jpg', 'Yeso pintado', ePared === 'sistema') +
+        (ePared === 'propia' ? swatch('propia', tex.pared, 'Mi textura', true) : '') +
+        swatchSubir +
+        `</div>` +
+        `<p class="sub" style="margin:16px 0 0">Los cambios se aplican al instante: abre el Museo 3D para verlos. Las texturas subidas se repiten por la superficie — funcionan mejor las fotos de material tomadas de frente.</p>`
       cont.appendChild(cSala)
-
-      // valores actuales de los selects
-      const selPiso = cSala.querySelector('#d-tex-piso')
-      const selPared = cSala.querySelector('#d-tex-pared')
-      selPiso.value = estadoTex(tex.piso) === 'propia' ? 'propia' : (estadoTex(tex.piso) === 'sistema' ? 'concreto' : '')
-      selPared.value = estadoTex(tex.pared) === 'propia' ? 'propia' : (estadoTex(tex.pared) === 'sistema' ? 'yeso' : '')
 
       cSala.querySelector('#d-estilos').addEventListener('click', (e) => {
         const c = e.target.closest('.estilo')
         if (!c) return
         patchCol({ estiloBase: c.dataset.estilo })
       })
-      selPiso.addEventListener('change', () => {
-        if (selPiso.value === 'propia') return // ya está aplicada
-        patchCol({ texturas: { piso: selPiso.value || null } })
-      })
-      selPared.addEventListener('change', () => {
-        if (selPared.value === 'propia') return
-        patchCol({ texturas: { pared: selPared.value || null } })
+      cSala.querySelector('#d-marcos').addEventListener('click', (e) => {
+        const c = e.target.closest('.swatch')
+        if (!c) return
+        patchCol({ sinMarco: c.dataset.v === 'sin' })
       })
       const subirTextura = (tipo) => pedirArchivo(async ([f]) => {
         if (!f) return
@@ -719,8 +763,17 @@
           await cargar()
         } catch (e) { avisar(e.message, true) }
       })
-      cSala.querySelector('#d-subir-piso').onclick = () => subirTextura('piso')
-      cSala.querySelector('#d-subir-pared').onclick = () => subirTextura('pared')
+      const clicTextura = (tipo, actual) => (e) => {
+        const c = e.target.closest('.swatch')
+        if (!c) return
+        const v = c.dataset.v
+        if (v === 'subir') return subirTextura(tipo)
+        if (v === 'propia') return // ya aplicada
+        const sistema = tipo === 'piso' ? 'concreto' : 'yeso'
+        patchCol({ texturas: { [tipo]: v === sistema ? sistema : null } })
+      }
+      cSala.querySelector('#d-piso').addEventListener('click', clicTextura('piso'))
+      cSala.querySelector('#d-pared').addEventListener('click', clicTextura('pared'))
 
       // --- obras ---
       const cObras = document.createElement('div')
@@ -779,14 +832,34 @@
       // --- zona de peligro ---
       const cPeligro = document.createElement('div')
       cPeligro.className = 'card peligro'
-      cPeligro.innerHTML = `<h2>Eliminar museo</h2><p class="sub" style="margin-bottom:0">Se borran el museo, su galería y todas sus obras. No se puede deshacer.</p>`
+      cPeligro.innerHTML = `<h2>Zona de cuidado</h2><p class="sub" style="margin-bottom:0">Estas acciones no se pueden deshacer.</p>`
+      const filaPeligro = document.createElement('div')
+      filaPeligro.style.cssText = 'display:flex;gap:10px;flex-wrap:wrap;margin-top:14px'
+      const bVaciar = document.createElement('button')
+      bVaciar.className = 'btn-mini btn-peligro'
+      bVaciar.textContent = 'Vaciar galería (eliminar todas las obras)'
+      bVaciar.onclick = async () => {
+        if (!col.obras.length) return avisar('Este museo no tiene obras')
+        const ok = await confirmar(
+          `Se eliminarán las ${col.obras.length} obras de "${col.nombre}" con sus imágenes. El museo queda vacío.`,
+          { titulo: '¿Vaciar la galería?', accion: 'Sí, vaciar' }
+        )
+        if (!ok) return
+        try {
+          const r = await api(`/api/panel/colecciones/${col.slug}/obras`, { method: 'DELETE' })
+          avisar(`${r.eliminadas} obras eliminadas`)
+          cargar()
+        } catch (e) { avisar(e.message, true) }
+      }
       const bBorrar = document.createElement('button')
       bBorrar.className = 'btn-mini btn-peligro'
-      bBorrar.style.marginTop = '14px'
       bBorrar.textContent = 'Eliminar este museo'
       bBorrar.onclick = async () => {
-        if (!confirm(`¿Eliminar el museo "${col.nombre}" con sus ${col.obras.length} obras? Esta acción no se puede deshacer.`)) return
-        if (!confirm('¿Seguro seguro? Se borra todo.')) return
+        const ok = await confirmar(
+          `Se borran el museo "${col.nombre}", su galería y sus ${col.obras.length} obras, para siempre.`,
+          { titulo: '¿Eliminar el museo completo?', accion: 'Sí, eliminar todo' }
+        )
+        if (!ok) return
         try {
           await api(`/api/panel/colecciones/${col.slug}`, { method: 'DELETE' })
           avisar('Museo eliminado')
@@ -795,8 +868,16 @@
           cargar()
         } catch (e) { avisar(e.message, true) }
       }
-      cPeligro.appendChild(bBorrar)
+      filaPeligro.appendChild(bVaciar)
+      filaPeligro.appendChild(bBorrar)
+      cPeligro.appendChild(filaPeligro)
       cont.appendChild(cPeligro)
+
+      // animación de entrada escalonada de las secciones
+      ;[...cont.children].forEach((sec, i) => {
+        sec.classList.add('anim')
+        sec.style.animationDelay = `${i * 70}ms`
+      })
     }
 
     function cardObra(col, o) {
@@ -821,7 +902,8 @@
       bb.className = 'btn-mini btn-peligro'
       bb.textContent = 'Eliminar'
       bb.onclick = async () => {
-        if (!confirm(`¿Eliminar "${o.title}"? Esta acción no se puede deshacer.`)) return
+        const ok = await confirmar(`Se elimina "${o.title}" con su imagen.`, { titulo: '¿Eliminar esta obra?' })
+        if (!ok) return
         try {
           await api(`/api/panel/obras/${o.id}`, { method: 'DELETE' })
           avisar('Obra eliminada')
@@ -855,6 +937,27 @@
       inPrice.addEventListener('change', autoguardar)
       inVendido.addEventListener('change', autoguardar)
       return el
+    }
+
+    // ---------- confirmación propia (nada de confirm() del sistema) ----------
+    function confirmar(mensaje, { titulo = '¿Estás seguro?', accion = 'Eliminar' } = {}) {
+      return new Promise((resolver) => {
+        const zona = $('modal-zona')
+        zona.innerHTML =
+          `<div class="modal-fondo"><div class="modal">` +
+          `<h3>${esc(titulo)}</h3>` +
+          `<p class="sub" style="margin:0 0 22px">${esc(mensaje)}</p>` +
+          `<div class="acciones-modal">` +
+          `<button class="btn btn-ghost" data-r="no" style="margin-top:0">Cancelar</button>` +
+          `<button class="btn btn-rojo" data-r="si" style="margin-top:0">${esc(accion)}</button>` +
+          `</div></div></div>`
+        const fin = (v) => { zona.innerHTML = ''; resolver(v) }
+        zona.querySelector('[data-r="no"]').onclick = () => fin(false)
+        zona.querySelector('[data-r="si"]').onclick = () => fin(true)
+        zona.querySelector('.modal-fondo').addEventListener('click', (e) => {
+          if (e.target === zona.querySelector('.modal-fondo')) fin(false)
+        })
+      })
     }
 
     // ---------- compartir ----------
