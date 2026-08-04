@@ -51,13 +51,14 @@
       user-select: none;
       touch-action: none;
       z-index: 1;
-      transform: translate(var(--x, 0), var(--y, 0)) rotate(var(--r, 0deg));
+      transform: translate(var(--x, 0), var(--y, 0)) rotate(var(--r, 0deg)) scale(var(--s, 1));
       animation: flotar 7s ease-in-out infinite;
       animation-delay: var(--d, 0s);
-      transition: box-shadow 0.25s ease;
+      transition: box-shadow 0.25s ease, transform 0.3s ease;
     }
+    .obra-flotante:hover { --s: 1.14; z-index: 4; box-shadow: 0 22px 48px rgba(0, 0, 0, 0.65); }
     .obra-flotante:active { cursor: grabbing; animation-play-state: paused; }
-    .obra-flotante.arrastrando { z-index: 5; box-shadow: 0 26px 54px rgba(0, 0, 0, 0.7); animation-play-state: paused; }
+    .obra-flotante.arrastrando { --s: 1.18; z-index: 5; box-shadow: 0 26px 54px rgba(0, 0, 0, 0.7); animation-play-state: paused; transition: box-shadow 0.25s ease; }
     .obra-flotante img { width: 100%; display: block; pointer-events: none; background: #ddd8cc; }
     @keyframes flotar {
       0%, 100% { margin-top: 0; }
@@ -111,65 +112,27 @@
       margin: 0 0 34px;
       text-shadow: 0 2px 14px rgba(0, 0, 0, 0.8);
     }
-    /* captura de correo */
-    .aviso-form {
-      display: flex; gap: 8px;
-      width: min(460px, 92vw);
-      background: rgba(20, 20, 22, 0.85);
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      border-radius: 999px;
-      padding: 7px 7px 7px 22px;
-      margin-bottom: 26px;
-    }
-    .aviso-form input {
-      flex: 1; min-width: 0;
-      background: none; border: 0; outline: 0;
-      color: #ece8df; font-family: inherit; font-size: 0.9rem; font-weight: 300;
-    }
-    .aviso-form input::placeholder { color: #6d675d; }
-    .aviso-form button {
+    /* botones del hero */
+    html { scroll-behavior: smooth; }
+    .acciones { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+    .btn-h {
+      display: inline-flex; align-items: center; gap: 9px;
       background: #ece8df; color: #16130f;
-      border: 0; border-radius: 999px;
-      padding: 12px 24px;
-      font-family: inherit; font-size: 0.76rem; font-weight: 600;
-      letter-spacing: 0.08em; text-transform: uppercase;
-      cursor: pointer; transition: background 0.2s ease, transform 0.2s ease;
-      white-space: nowrap;
-    }
-    .aviso-form button:hover { background: #fff; transform: translateY(-1px); }
-    .aviso-ok { color: #9fc49b; font-size: 0.86rem; margin: -14px 0 26px; }
-    /* tarjeta "recorrer" tipo video de cibby */
-    .demo {
-      position: relative;
-      width: min(430px, 88vw);
-      border-radius: 18px;
-      overflow: hidden;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
-      display: block;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    .demo:hover { transform: translateY(-4px); box-shadow: 0 30px 70px rgba(0, 0, 0, 0.7); }
-    .demo img { width: 100%; display: block; }
-    .demo .play {
-      position: absolute; inset: 0;
-      display: flex; align-items: center; justify-content: center;
-      background: linear-gradient(180deg, rgba(0,0,0,0.05), rgba(0,0,0,0.35));
-    }
-    .demo .play span {
-      display: flex; align-items: center; gap: 10px;
-      background: rgba(12, 12, 14, 0.82);
-      backdrop-filter: blur(6px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 999px;
-      color: #ece8df;
-      font-size: 0.74rem; font-weight: 500;
-      letter-spacing: 0.12em; text-transform: uppercase;
-      padding: 13px 24px;
-      transition: background 0.2s ease;
+      padding: 15px 30px;
+      font-size: 0.78rem; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      text-decoration: none;
+      transition: background 0.2s ease, transform 0.2s ease;
     }
-    .demo:hover .play span { background: rgba(12, 12, 14, 0.95); }
+    .btn-h:hover { background: #fff; transform: translateY(-2px); }
+    .btn-h-ghost {
+      background: rgba(12, 12, 14, 0.6);
+      color: #ece8df;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(6px);
+    }
+    .btn-h-ghost:hover { background: rgba(255, 255, 255, 0.1); }
 
     /* ---------- secciones ---------- */
     .seccion {
@@ -191,10 +154,12 @@
     /* galerías populares */
     .populares {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(205px, 1fr));
+      grid-template-columns: repeat(4, 1fr);
       gap: 18px;
       text-align: left;
     }
+    @media (max-width: 900px) { .populares { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 500px) { .populares { grid-template-columns: 1fr; } }
     .popular {
       display: block;
       border-radius: 18px;
@@ -206,7 +171,7 @@
       transition: transform 0.3s ease, border-color 0.3s ease;
     }
     .popular:hover { transform: translateY(-5px); border-color: rgba(255, 255, 255, 0.3); }
-    .popular img { width: 100%; aspect-ratio: 16/10; object-fit: cover; display: block; }
+    .popular img { width: 100%; height: 170px; object-fit: cover; display: block; border-radius: 18px 18px 0 0; margin: 0; }
     .popular .p-info { padding: 15px 17px 17px; }
     .popular .p-nombre { font-family: 'DM Serif Display', serif; font-size: 1.2rem; display: block; }
     .popular .p-artista { color: #8d8579; font-size: 0.74rem; display: block; margin: 3px 0 10px; }
@@ -241,67 +206,86 @@
     }
     .mock-cuerpo {
       position: relative;
-      background: linear-gradient(180deg, #efece5 0%, #e5e1d7 78%, #cfc9bb 78%, #d8d3c6 100%);
-      padding: 46px 20px 60px;
-      min-height: 320px;
+      aspect-ratio: 16 / 9;
+      max-height: 560px;
+      width: 100%;
+      background: url('/museario/estilo-blanca.jpg') center/cover;
     }
-    .mock-pared {
-      display: flex; justify-content: center; align-items: center;
-      gap: clamp(14px, 4vw, 40px);
-      flex-wrap: wrap;
+    .mock-cuerpo iframe { width: 100%; height: 100%; border: 0; display: block; }
+    .mock-play {
+      position: absolute; inset: 0;
+      width: 100%; border: 0; cursor: pointer;
+      background: linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.42));
+      display: flex; align-items: center; justify-content: center;
+      font-family: inherit;
+      transition: background 0.25s ease;
     }
-    .mock-obra {
-      background: none; border: 0; padding: 0; cursor: pointer;
-      width: clamp(90px, 16vw, 150px);
-      transition: transform 0.3s ease;
-    }
-    .mock-obra:hover { transform: scale(1.06) translateY(-4px); }
-    .mock-obra img { width: 100%; display: block; box-shadow: 0 12px 28px rgba(40, 35, 25, 0.4); }
-    .mock-obra .m-placa {
-      margin: 10px auto 0; width: 84%;
-      background: #16130f; color: #ece8df;
-      font-size: 0.52rem; letter-spacing: 0.04em;
-      padding: 4px 6px; text-align: center;
-      border-radius: 2px;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .mock-pista { text-align: center; color: #8a8478; font-size: 0.72rem; margin-top: 34px; }
-    /* visor dentro del mockup */
-    .mock-visor {
-      position: absolute; inset: 0; z-index: 3;
-      background: rgba(14, 13, 11, 0.93);
+    .mock-play:hover { background: linear-gradient(180deg, rgba(0, 0, 0, 0.02), rgba(0, 0, 0, 0.3)); }
+    .mock-play span {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: rgba(12, 12, 14, 0.85);
       backdrop-filter: blur(6px);
-      display: flex; align-items: center; justify-content: center; gap: clamp(12px, 3vw, 34px);
-      padding: 26px;
-      animation: velar 0.25s ease both;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 999px;
+      color: #ece8df;
+      font-size: 0.76rem; font-weight: 500;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      padding: 15px 28px;
+      transition: transform 0.2s ease;
     }
-    @keyframes velar { from { opacity: 0; } }
-    .mock-visor img { max-height: 260px; max-width: 46%; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6); }
-    .mock-visor .v-info { max-width: 250px; text-align: left; }
-    .mock-visor .v-titulo { font-family: 'DM Serif Display', serif; font-size: 1.25rem; display: block; }
-    .mock-visor .v-medium { color: #a59d8f; font-size: 0.76rem; margin: 8px 0 4px; display: block; }
-    .mock-visor .v-precio { color: #d9756a; font-size: 0.82rem; font-weight: 500; display: block; margin-bottom: 16px; }
-    .mock-visor .v-nav { display: flex; gap: 8px; }
-    .mock-visor .v-nav button {
-      background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.25);
-      color: #ece8df; border-radius: 999px; padding: 8px 16px;
-      font-family: inherit; font-size: 0.72rem; cursor: pointer;
-      transition: background 0.2s ease;
-    }
-    .mock-visor .v-nav button:hover { background: rgba(255, 255, 255, 0.2); }
-    .mock-visor .v-cerrar { position: absolute; top: 12px; right: 16px; background: none; border: 0; color: #a59d8f; font-size: 1.2rem; cursor: pointer; }
-    .mock-visor .v-cerrar:hover { color: #fff; }
+    .mock-play:hover span { transform: scale(1.05); }
 
-    footer {
+    /* ---------- cierre cinematográfico ---------- */
+    .final {
       position: relative; z-index: 2;
+      margin-top: 80px;
+      overflow: hidden;
       text-align: center;
-      padding: 40px 16px 30px;
-      font-size: 0.72rem;
-      letter-spacing: 0.06em;
-      color: #6d675d;
+      padding: clamp(80px, 14vh, 150px) 20px 0;
     }
-    footer a { color: #a59d8f; text-decoration: none; }
-    footer a:hover { color: #ece8df; }
+    .final-bg {
+      position: absolute; inset: 0;
+      background: url('/museario/estilo-blanca.jpg') center/cover;
+      animation: lentozoom 26s ease-in-out infinite alternate;
+    }
+    @keyframes lentozoom { from { transform: scale(1); } to { transform: scale(1.12); } }
+    .final-velo {
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg, #0b0b0d 0%, rgba(11, 11, 13, 0.68) 30%, rgba(11, 11, 13, 0.82) 100%);
+    }
+    .final-in { position: relative; display: flex; flex-direction: column; align-items: center; }
+    .final-logo { width: min(170px, 44vw); margin-bottom: 30px; opacity: 0.95; }
+    .final h2 {
+      font-family: 'DM Serif Display', serif;
+      font-weight: 400;
+      font-size: clamp(2rem, 5.6vw, 3.6rem);
+      line-height: 1.12;
+      margin: 0 0 34px;
+      text-shadow: 0 4px 30px rgba(0, 0, 0, 0.8);
+    }
+    .final h2 em { font-style: italic; color: #e8cf9d; }
+    .liquid-glass-btn {
+      background: rgba(255, 255, 255, 0.06);
+      color: #ece8df;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.18);
+    }
+    .liquid-glass-btn:hover { background: rgba(255, 255, 255, 0.16); }
+    .final-stats {
+      position: relative;
+      display: flex; align-items: center; justify-content: center;
+      gap: 14px; flex-wrap: wrap;
+      margin-top: clamp(60px, 10vh, 110px);
+      padding: 22px 16px 26px;
+      border-top: 1px solid rgba(255, 255, 255, 0.14);
+      font-size: 0.74rem;
+      color: rgba(236, 232, 223, 0.7);
+      letter-spacing: 0.04em;
+    }
+    .final-stats i { font-style: normal; color: rgba(236, 232, 223, 0.25); }
+    @media (max-width: 640px) { .final-stats i { display: none; } .final-stats { gap: 8px 18px; } }
 
     /* entradas */
     @keyframes aparecer { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
@@ -337,18 +321,14 @@
       interactiva que se recorren desde cualquier lugar. Sube tus obras,
       elige tu sala y comparte tu museo con el mundo.
     </p>
-    <form class="aviso-form" id="form-interes">
-      <input type="email" id="interes-email" placeholder="tu@correo.com" autocomplete="email" required />
-      <button type="submit">Avísame</button>
-    </form>
-    <a class="demo" href="/a/catalina/rumiaciones">
-      <img src="/museario/estilo-blanca.jpg" alt="Museo virtual 3D" />
-      <span class="play"><span>▶ &nbsp;Recorrer un museo real</span></span>
-    </a>
+    <div class="acciones">
+      <a class="btn-h btn-h-ghost" href="#populares">Ver museos ↓</a>
+      <a class="btn-h" href="/cuenta.html">Crear cuenta gratis</a>
+    </div>
   </div>
 
   <!-- galerías populares -->
-  <section class="seccion">
+  <section class="seccion" id="populares">
     <h2>Galerías <em>populares</em></h2>
     <p class="seccion-sub">Museos reales que ya viven en Museario. Entra y recórrelos.</p>
     <div class="populares">
@@ -371,28 +351,38 @@
     </div>
   </section>
 
-  <!-- mockup: mini-galería de prueba -->
+  <!-- mockup: mini-museo 3D real -->
   <section class="seccion">
     <h2>Pruébalo <em>aquí mismo</em></h2>
-    <p class="seccion-sub">Una mini-galería de verdad: toca cualquier obra, como lo harán tus visitantes.</p>
+    <p class="seccion-sub">Un museo 3D de verdad, embebido: entra, camina y acércate a las obras.</p>
     <div class="mockup">
       <div class="mock-bar">
         <span class="puntos"><i></i><i></i><i></i></span>
-        <span class="url">museario.art/a/tu-nombre/tu-coleccion</span>
+        <span class="url">museario.art/a/catalina/alma</span>
       </div>
       <div class="mock-cuerpo" id="mock-cuerpo">
-        <div class="mock-pared" id="mock-pared"></div>
-        <p class="mock-pista">↑ Haz clic en una obra para verla de cerca</p>
+        <button class="mock-play" id="mock-play">
+          <span>▶ &nbsp;Entrar al mini-museo</span>
+        </button>
       </div>
     </div>
   </section>
 
-  <footer>
-    Ya viven aquí:
-    <a href="https://museo.wailus.co/catalina.html" target="_blank" rel="noopener">Catalina Olivero</a>
-    &nbsp;·&nbsp;
-    <a href="https://museo.wailus.co/" target="_blank" rel="noopener">Danní</a>
-    &nbsp;&nbsp;—&nbsp;&nbsp; museario.art
+  <!-- cierre cinematográfico -->
+  <footer class="final">
+    <div class="final-bg"></div>
+    <div class="final-velo"></div>
+    <div class="final-in">
+      <img class="final-logo" src="/museario/logo-blanco.svg" alt="Museario" />
+      <h2>El arte no nació<br /><em>para vivir en un feed.</em></h2>
+      <a class="btn-h liquid-glass-btn" href="/cuenta.html">Crear mi museo gratis</a>
+    </div>
+    <div class="final-stats">
+      <span>2 artistas fundadoras</span><i>|</i>
+      <span>4 museos abiertos</span><i>|</i>
+      <span>Museos 3D + galerías interactivas</span><i>|</i>
+      <span>Hecho en Colombia</span>
+    </div>
   </footer>
 
   <script type="module">
@@ -456,68 +446,12 @@
       el.addEventListener('pointercancel', soltar)
     })
 
-    // ---- mockup: mini-galería interactiva ----
-    const MINI = [
-      { b: 'conexiones-posts', f: 'Océano, 2022', t: 'Océano, 2022', m: 'Óleo sobre lienzo · 60 × 90 cm', p: '1.000.000 COP' },
-      { b: 'cat-posts', f: 'Me siento conectada a este parque, 2026', t: 'Me siento conectada a este parque, 2026', m: 'Acrílico sobre lienzo sin imprimar · 60 × 94 cm', p: '500.000 COP' },
-      { b: 'alma-posts', f: 'Energia, 2024', t: 'Energía, 2024', m: 'Colección Alma', p: '2.000.000 COP' },
-      { b: 'posts', f: 'My lady', t: 'My lady', m: 'Danní', p: null },
-    ]
-    const pared = document.getElementById('mock-pared')
-    const cuerpo = document.getElementById('mock-cuerpo')
-    let visor = null
-    function abrirVisor(i) {
-      cerrarVisor()
-      const o = MINI[i]
-      visor = document.createElement('div')
-      visor.className = 'mock-visor'
-      visor.innerHTML =
-        `<button class="v-cerrar" title="Cerrar">✕</button>` +
-        `<img src="/${o.b}/full/${encodeURI(o.f)}.webp" alt="" />` +
-        `<span class="v-info">` +
-        `<span class="v-titulo">${o.t}</span>` +
-        `<span class="v-medium">${o.m}</span>` +
-        (o.p ? `<span class="v-precio">${o.p}</span>` : '<span class="v-precio"></span>') +
-        `<span class="v-nav">` +
-        `<button data-n="-1">← Anterior</button>` +
-        `<button data-n="1">Siguiente →</button>` +
-        `</span></span>`
-      cuerpo.appendChild(visor)
-      visor.querySelector('.v-cerrar').onclick = cerrarVisor
-      visor.querySelectorAll('[data-n]').forEach((b) =>
-        b.addEventListener('click', () => abrirVisor((i + Number(b.dataset.n) + MINI.length) % MINI.length)))
-      visor.addEventListener('click', (e) => { if (e.target === visor) cerrarVisor() })
-    }
-    function cerrarVisor() { if (visor) { visor.remove(); visor = null } }
-    MINI.forEach((o, i) => {
-      const b = document.createElement('button')
-      b.className = 'mock-obra'
-      b.innerHTML =
-        `<img src="/${o.b}/thumb/${encodeURI(o.f)}.webp" alt="${o.t}" loading="lazy" />` +
-        `<span class="m-placa">${o.t}</span>`
-      b.onclick = () => abrirVisor(i)
-      pared.appendChild(b)
-    })
-
-    // ---- captura de correo ----
-    const form = document.getElementById('form-interes')
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault()
-      const email = document.getElementById('interes-email').value
-      try {
-        const r = await fetch('/api/m/interes', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email }),
-        })
-        if (!r.ok) throw new Error()
-        const ok = document.createElement('p')
-        ok.className = 'aviso-ok'
-        ok.textContent = '¡Listo! Te avisamos cuando Museario abra sus puertas.'
-        form.replaceWith(ok)
-      } catch {
-        alert('No se pudo guardar tu correo. Inténtalo de nuevo.')
-      }
+    // ---- mockup: mini-museo 3D real (se carga al hacer clic) ----
+    document.getElementById('mock-play').addEventListener('click', () => {
+      const cuerpo = document.getElementById('mock-cuerpo')
+      cuerpo.innerHTML =
+        '<iframe src="/a/catalina/alma?entrar" title="Mini museo 3D"' +
+        ' allow="fullscreen; pointer-lock; gyroscope; accelerometer"></iframe>'
     })
   </script>
 </body>
