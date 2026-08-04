@@ -32,29 +32,6 @@
     /* los hijos del flex NUNCA se encogen: con height fija el footer
        quedaba recortado por su overflow:hidden */
     body > * { flex-shrink: 0; }
-    /* navbar mínima */
-    .barra {
-      position: sticky; top: 0; z-index: 20;
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 14px clamp(16px, 4vw, 38px);
-      background: rgba(11, 11, 13, 0.72);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-    }
-    .barra-logo img { height: 19px; display: block; }
-    .barra-links { display: flex; align-items: center; gap: clamp(12px, 2.5vw, 26px); }
-    .barra-links a { color: #a59d8f; text-decoration: none; font-size: 0.78rem; letter-spacing: 0.04em; transition: color .2s ease; }
-    .barra-links a:hover { color: #ece8df; }
-    .barra-cta {
-      background: #ece8df; color: #16130f !important;
-      border-radius: 999px; padding: 9px 18px;
-      font-weight: 500;
-      transition: background .2s ease;
-    }
-    .barra-cta:hover { background: #fff; }
-    @media (max-width: 560px) { .ocultar-movil-nav { display: none; } }
-
     /* fondo: cuadrícula + brillos cálidos */
     .fondo {
       position: fixed; inset: 0; pointer-events: none; z-index: 0;
@@ -117,6 +94,7 @@
       pointer-events: none;
     }
     .hero > * { pointer-events: auto; }
+    .logo { width: min(210px, 52vw); margin-bottom: 34px; }
     .chip {
       display: inline-flex; align-items: center; gap: 8px;
       font-size: 0.62rem; font-weight: 500;
@@ -170,28 +148,6 @@
       backdrop-filter: blur(6px);
     }
     .btn-h-ghost:hover { background: rgba(255, 255, 255, 0.1); }
-    .hero-demo {
-      display: block;
-      position: relative;
-      width: min(430px, 86vw);
-      margin-top: 40px;
-      border-radius: 16px;
-      overflow: hidden;
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      box-shadow: 0 26px 60px rgba(0, 0, 0, 0.6);
-      transform: rotate(-1.5deg);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    .hero-demo:hover { transform: rotate(0deg) translateY(-4px); box-shadow: 0 32px 70px rgba(0, 0, 0, 0.7); }
-    .hero-demo video { width: 100%; display: block; aspect-ratio: 16 / 9; object-fit: cover; }
-    .hero-demo span {
-      position: absolute; left: 0; right: 0; bottom: 0;
-      padding: 26px 16px 12px;
-      background: linear-gradient(180deg, transparent, rgba(8, 8, 10, 0.85));
-      color: #ece8df; font-size: 0.74rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500;
-      text-align: center;
-    }
-
     /* ---------- secciones ---------- */
     .seccion {
       position: relative; z-index: 2;
@@ -259,18 +215,20 @@
     /* ---------- galería en lienzo ---------- */
     .lienzo-demo {
       position: relative;
-      border-radius: 20px;
       overflow: hidden;
-      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
       background:
         radial-gradient(rgba(236, 232, 223, 0.07) 1px, transparent 1px) 0 0 / 26px 26px,
         #101012;
-      min-height: 430px;
+      width: 100vw;
+      margin-left: calc(50% - 50vw);
+      height: min(86vh, 820px);
       cursor: grab;
       touch-action: none;
     }
     .lienzo-demo:active { cursor: grabbing; }
-    .lienzo-mundo { position: absolute; width: 1500px; height: 950px; will-change: transform; }
+    .lienzo-mundo { position: absolute; width: 2600px; height: 1650px; will-change: transform; }
     .lienzo-obra {
       position: absolute;
       width: var(--w, 130px);
@@ -422,30 +380,20 @@
 <body>
   <div class="fondo"></div>
 
-  <nav class="barra">
-    <a href="/" class="barra-logo"><img src="/museario/logo-blanco.svg" alt="Museario" /></a>
-    <div class="barra-links">
-      <a href="#populares">Ver museos</a>
-      <a href="/cuenta.html" class="ocultar-movil-nav">Iniciar sesión</a>
-      <a href="/cuenta.html" class="barra-cta">Crear mi museo</a>
-    </div>
-  </nav>
-
   <div id="obras"></div>
 
   <div class="hero">
+    <img class="logo" src="/museario/logo-blanco.svg" alt="Museario" />
     <h1>Tu obra merece <em>su propio museo.</em></h1>
     <p class="sub">
-      Sube tus obras, elige tu sala y comparte tu museo 3D con el mundo.
+      Museario convierte tu colección en un museo virtual 3D y una galería
+      interactiva que se recorren desde cualquier lugar. Sube tus obras,
+      elige tu sala y comparte tu museo con el mundo.
     </p>
     <div class="acciones">
       <a class="btn-h btn-h-ghost" href="#populares">Ver museos<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="4" x2="12" y2="20"/><polyline points="5 13 12 20 19 13"/></svg></a>
       <a class="btn-h" href="/cuenta.html">Crear cuenta gratis<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M23.5 12.27c0-.85-.08-1.66-.22-2.45H12v4.64h6.46a5.53 5.53 0 0 1-2.4 3.63v3h3.88c2.27-2.1 3.56-5.18 3.56-8.82z"/><path fill="#34A853" d="M12 24c3.24 0 5.96-1.07 7.94-2.91l-3.88-3c-1.08.72-2.45 1.15-4.06 1.15-3.12 0-5.77-2.11-6.71-4.95H1.28v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.29 14.29a7.2 7.2 0 0 1 0-4.58v-3.1H1.28a12 12 0 0 0 0 10.78l4.01-3.1z"/><path fill="#EA4335" d="M12 4.77c1.76 0 3.34.6 4.58 1.79l3.44-3.44A11.96 11.96 0 0 0 12 0 12 12 0 0 0 1.28 6.61l4.01 3.1C6.23 6.88 8.88 4.77 12 4.77z"/></svg></a>
     </div>
-    <a class="hero-demo" href="/a/catalina/rumiaciones" title="Recorrer un museo real">
-      <video src="/museario/video.mp4" muted loop playsinline preload="metadata"></video>
-      <span>Así se ve por dentro →</span>
-    </a>
   </div>
 
   <!-- galerías populares -->
@@ -545,34 +493,60 @@
 
     // ---- demo de la galería en lienzo (mini lienzo arrastrable) ----
     {
-      const OBRAS_LIENZO = [
-        { b: 'cat-posts', f: 'Me gusta mirarte comer un helado, 2026', x: 60, y: 40, r: -3, w: 145 },
-        { b: 'conexiones-posts', f: 'Océano, 2022', x: 250, y: 110, r: 2, w: 165 },
-        { b: 'alma-posts', f: 'Energia, 2024', x: 470, y: 40, r: -2, w: 145 },
-        { b: 'posts', f: 'My lady', x: 680, y: 100, r: 3, w: 125 },
-        { b: 'cat-posts', f: 'Mi casa es mi santuario, 2026', x: 860, y: 40, r: -3, w: 155 },
-        { b: 'conexiones-posts', f: 'Colonización de X, 2023', x: 1090, y: 100, r: 2, w: 150 },
-        { b: 'alma-posts', f: 'Adultez, 2023', x: 1300, y: 40, r: -2, w: 140 },
-        { b: 'alma-posts', f: 'Apego, 2025', x: 90, y: 320, r: 3, w: 135 },
-        { b: 'posts', f: 'Muerte en rojo', x: 300, y: 380, r: -2, w: 135 },
-        { b: 'conexiones-posts', f: 'Vainilla y Chocolate, 2025', x: 510, y: 320, r: 2, w: 155 },
-        { b: 'cat-posts', f: 'Tomamos caminos diferentes, 2026', x: 740, y: 370, r: -3, w: 150 },
-        { b: 'alma-posts', f: 'Limerencia, 2022', x: 970, y: 320, r: 2, w: 145 },
-        { b: 'posts', f: 'Me', x: 1180, y: 380, r: -2, w: 115 },
-        { b: 'cat-posts', f: 'Llegaste bien 2026', x: 1340, y: 330, r: 3, w: 120 },
-        { b: 'posts', f: 'Little Dan', x: 140, y: 620, r: -2, w: 125 },
-        { b: 'cat-posts', f: 'Quiero sentir tu arte, 2026', x: 360, y: 660, r: 3, w: 145 },
-        { b: 'conexiones-posts', f: 'Maníaco, 2022', x: 590, y: 620, r: -3, w: 125 },
-        { b: 'alma-posts', f: 'Catarsis, 2024', x: 800, y: 660, r: 2, w: 155 },
-        { b: 'posts', f: 'Retrato', x: 1030, y: 620, r: -2, w: 115 },
-        { b: 'conexiones-posts', f: "C'est la vie, 2023", x: 1210, y: 660, r: 3, w: 125 },
-        { b: 'alma-posts', f: 'Angustia, 2024', x: 90, y: 830, r: 2, w: 130 },
-        { b: 'cat-posts', f: 'El sabor de tu sudor, 2026', x: 330, y: 860, r: -3, w: 135 },
-        { b: 'posts', f: 'Te amé', x: 560, y: 830, r: 2, w: 120 },
-        { b: 'conexiones-posts', f: 'Yes-No, 2022', x: 760, y: 860, r: -2, w: 115 },
-        { b: 'alma-posts', f: 'Euforia, 2023', x: 950, y: 830, r: 3, w: 140 },
-        { b: 'cat-posts', f: 'Siempre tenemos buenas conversaciones, 2026', x: 1170, y: 860, r: -2, w: 140 },
+      // catálogo base: se reparte por una cuadrícula grande con variación
+      const POOL = [
+        ['cat-posts', 'Me gusta mirarte comer un helado, 2026'],
+        ['conexiones-posts', 'Océano, 2022'],
+        ['alma-posts', 'Energia, 2024'],
+        ['posts', 'My lady'],
+        ['cat-posts', 'Mi casa es mi santuario, 2026'],
+        ['conexiones-posts', 'Colonización de X, 2023'],
+        ['alma-posts', 'Adultez, 2023'],
+        ['alma-posts', 'Apego, 2025'],
+        ['posts', 'Muerte en rojo'],
+        ['conexiones-posts', 'Vainilla y Chocolate, 2025'],
+        ['cat-posts', 'Tomamos caminos diferentes, 2026'],
+        ['alma-posts', 'Limerencia, 2022'],
+        ['posts', 'Me'],
+        ['cat-posts', 'Llegaste bien 2026'],
+        ['posts', 'Little Dan'],
+        ['cat-posts', 'Quiero sentir tu arte, 2026'],
+        ['conexiones-posts', 'Maníaco, 2022'],
+        ['alma-posts', 'Catarsis, 2024'],
+        ['posts', 'Retrato'],
+        ['conexiones-posts', "C'est la vie, 2023"],
+        ['alma-posts', 'Angustia, 2024'],
+        ['cat-posts', 'El sabor de tu sudor, 2026'],
+        ['posts', 'Te amé'],
+        ['conexiones-posts', 'Yes-No, 2022'],
+        ['alma-posts', 'Euforia, 2023'],
+        ['cat-posts', 'Siempre tenemos buenas conversaciones, 2026'],
+        ['conexiones-posts', 'La Noche de las Narices Frías, 2022'],
+        ['alma-posts', 'Infancia, 2023'],
+        ['cat-posts', 'Me siento conectada a este parque, 2026'],
+        ['posts', 'PRE_MORTE'],
+        ['conexiones-posts', 'Peut être, 2022'],
+        ['cat-posts', 'Te ví desde la distancia, 2026'],
+        ['alma-posts', 'Mañana, 2025'],
+        ['conexiones-posts', 'Aron Piper, 2022'],
+        ['cat-posts', 'Te deseo lo mejor, 2026'],
+        ['posts', 'Vacio - Óleo sobre canva'],
       ]
+      const OBRAS_LIENZO = []
+      let idx = 0
+      for (let fila = 0; fila < 6; fila++) {
+        for (let col = 0; col < 9; col++) {
+          const [b, f] = POOL[idx % POOL.length]
+          OBRAS_LIENZO.push({
+            b, f,
+            x: 40 + col * 285 + ((idx * 53) % 70),
+            y: 30 + fila * 265 + ((idx * 37) % 60),
+            r: ((idx * 7) % 9) - 4,
+            w: 110 + ((idx * 29) % 60),
+          })
+          idx++
+        }
+      }
       const demo = document.getElementById('lienzo-demo')
       const mundo = document.getElementById('lienzo-mundo')
       for (const o of OBRAS_LIENZO) {
@@ -585,9 +559,9 @@
         el.innerHTML = `<img src="/${o.b}/thumb/${encodeURI(o.f)}.webp" alt="" loading="lazy" draggable="false" />`
         mundo.appendChild(el)
       }
-      let mx = -220, my = -120, sx = 0, sy = 0, activo = false
+      let mx = -420, my = -260, sx = 0, sy = 0, activo = false
       const aplicar = () => {
-        const minX = demo.clientWidth - 1500, minY = demo.clientHeight - 950
+        const minX = demo.clientWidth - 2600, minY = demo.clientHeight - 1650
         mx = Math.min(0, Math.max(minX, mx))
         my = Math.min(0, Math.max(minY, my))
         mundo.style.transform = `translate(${mx}px, ${my}px)`
@@ -606,22 +580,6 @@
       const soltar = () => { activo = false }
       demo.addEventListener('pointerup', soltar)
       demo.addEventListener('pointercancel', soltar)
-    }
-
-    // ---- video móvil: acelerado y solo cuando se ve ----
-    {
-      const vids = [
-        { el: document.querySelector('.hero-demo video'), rate: 1 },
-      ].filter((x) => x.el)
-      const obsV = new IntersectionObserver((es) => {
-        for (const e of es) {
-          const v = vids.find((x) => x.el === e.target)
-          if (!v) continue
-          if (e.isIntersecting) { v.el.playbackRate = v.rate; v.el.play().catch(() => {}) }
-          else v.el.pause()
-        }
-      }, { threshold: 0.3 })
-      vids.forEach((x) => obsV.observe(x.el))
     }
 
     // ---- obras flotantes (reales, de Catalina y Danní) ----
