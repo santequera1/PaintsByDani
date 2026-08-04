@@ -25,7 +25,7 @@
       font-family: 'Poppins', 'Helvetica Neue', sans-serif;
       font-weight: 300;
       min-height: 100vh;
-      overflow-x: hidden;
+      overflow-x: clip;
       display: flex;
       flex-direction: column;
     }
@@ -128,7 +128,7 @@
       text-shadow: 0 2px 14px rgba(0, 0, 0, 0.8);
     }
     /* botones del hero */
-    html { scroll-behavior: smooth; overflow-x: hidden; }
+    html { scroll-behavior: smooth; overflow-x: clip; }
     .acciones { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
     .btn-h {
       display: inline-flex; align-items: center; gap: 9px;
@@ -338,7 +338,7 @@
       .obra-flotante { --w: 108px !important; touch-action: pan-y; cursor: default; }
       .ocultar-movil { display: none; }
       .solo-movil { display: block; }
-      #populares { padding-top: 120px; }
+      #populares { padding-top: 170px; }
     }
   </style>
 </head>
@@ -456,6 +456,11 @@
       { b: 'cat-posts', f: 'Llegaste bien 2026', x: '92%', y: '50%', r: 5, w: 106, m: true },
       { b: 'conexiones-posts', f: "C'est la vie, 2023", x: '90%', y: '66%', r: 6, w: 102, m: true },
       { b: 'cat-posts', f: 'Quiero sentir tu arte, 2026', x: '84%', y: '82%', r: 7, w: 138 },
+      // media altura, entre el borde y el texto (solo PC)
+      { b: 'cat-posts', f: 'Me gusta mirarte comer un helado, 2026', x: '15%', y: '31%', r: -4, w: 118, m: true },
+      { b: 'conexiones-posts', f: 'Colonización de X, 2023', x: '80%', y: '33%', r: 5, w: 116, m: true },
+      { b: 'alma-posts', f: 'Mañana, 2025', x: '13%', y: '62%', r: 5, w: 110, m: true },
+      { b: 'alma-posts', f: 'Euforia, 2023', x: '81%', y: '60%', r: -5, w: 118, m: true },
       // fila inferior
       { b: 'cat-posts', f: 'El sabor de tu sudor, 2026', x: '20%', y: '82%', r: 4, w: 106, m: true },
       { b: 'alma-posts', f: 'Catarsis, 2024', x: '33%', y: '86%', r: -5, w: 120, m: true },
@@ -463,9 +468,9 @@
       { b: 'alma-posts', f: 'Infancia, 2023', x: '60%', y: '86%', r: 5, w: 108, m: true },
       { b: 'posts', f: 'Retrato', x: '72%', y: '84%', r: 5, w: 98, m: true },
       // solo móvil: la franja entre el hero y la siguiente sección
-      { b: 'conexiones-posts', f: 'Maníaco, 2022', x: '6%', y: '95%', r: -6, w: 92, sm: true },
-      { b: 'alma-posts', f: 'Limerencia, 2022', x: '38%', y: '102%', r: 4, w: 104, sm: true },
-      { b: 'cat-posts', f: 'Te deseo lo mejor, 2026', x: '68%', y: '96%', r: 6, w: 96, sm: true },
+      { b: 'conexiones-posts', f: 'Maníaco, 2022', x: '6%', y: '90%', r: -6, w: 92, sm: true },
+      { b: 'alma-posts', f: 'Limerencia, 2022', x: '38%', y: '96%', r: 4, w: 104, sm: true },
+      { b: 'cat-posts', f: 'Te deseo lo mejor, 2026', x: '68%', y: '92%', r: 6, w: 96, sm: true },
     ]
     const cont = document.getElementById('obras')
     OBRAS.forEach((o, i) => {
