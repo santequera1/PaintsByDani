@@ -358,11 +358,11 @@
     }
     .solo-movil { display: none; }
     @media (max-width: 720px) {
-      /* en táctil las obras no se arrastran: el dedo es para hacer scroll */
-      .obra-flotante { --w: 108px !important; touch-action: pan-y; cursor: default; }
+      /* táctil: pan-y deja pasar el scroll vertical y permite arrastrar en horizontal */
+      .obra-flotante { --w: 108px !important; touch-action: pan-y; }
       .ocultar-movil { display: none; }
       .solo-movil { display: block; }
-      #populares { padding-top: 170px; }
+      #populares { padding-top: 210px; }
     }
   </style>
 </head>
@@ -493,9 +493,9 @@
       { b: 'alma-posts', f: 'Infancia, 2023', x: '60%', y: '86%', r: 5, w: 108, m: true },
       { b: 'posts', f: 'Retrato', x: '72%', y: '84%', r: 5, w: 98, m: true },
       // solo móvil: la franja entre el hero y la siguiente sección
-      { b: 'conexiones-posts', f: 'Maníaco, 2022', x: '6%', y: '90%', r: -6, w: 92, sm: true },
-      { b: 'alma-posts', f: 'Limerencia, 2022', x: '38%', y: '96%', r: 4, w: 104, sm: true },
-      { b: 'cat-posts', f: 'Te deseo lo mejor, 2026', x: '68%', y: '92%', r: 6, w: 96, sm: true },
+      { b: 'conexiones-posts', f: 'Maníaco, 2022', x: '6%', y: '84%', r: -6, w: 92, sm: true },
+      { b: 'alma-posts', f: 'Limerencia, 2022', x: '38%', y: '88%', r: 4, w: 104, sm: true },
+      { b: 'cat-posts', f: 'Te deseo lo mejor, 2026', x: '68%', y: '85%', r: 6, w: 96, sm: true },
     ]
     const cont = document.getElementById('obras')
     OBRAS.forEach((o, i) => {
@@ -513,8 +513,7 @@
       el.innerHTML = `<img src="/${o.b}/thumb/${encodeURI(o.f)}.webp" alt="" draggable="false" loading="lazy" />`
       cont.appendChild(el)
 
-      // arrastrable (solo con mouse: en táctil el dedo hace scroll)
-      if (matchMedia('(hover: none)').matches) return
+      // arrastrable (touch-action pan-y: el scroll vertical sigue siendo del dedo)
       let px = 0, py = 0, sx = 0, sy = 0
       el.addEventListener('pointerdown', (e) => {
         el.setPointerCapture(e.pointerId)

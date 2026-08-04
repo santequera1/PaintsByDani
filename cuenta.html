@@ -171,6 +171,9 @@
     try {
       const r = await fetch('/api/auth/yo')
       if (r.ok) {
+        // sesión activa: directo al panel
+        location.replace('/panel.html')
+      } else if (false) {
         const u = await r.json()
         document.getElementById('perfil-nombre').textContent = u.nombre || u.email
         document.getElementById('perfil-correo').textContent = u.email
