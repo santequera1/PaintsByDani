@@ -97,6 +97,20 @@
         transform: translateX(-50%) translateY(-44px);
       }
 
+      .dp-autor {
+        color: var(--lav);
+        font-size: 15px;
+        margin: 2px 0 0;
+      }
+      .dp-autor a {
+        color: var(--pink);
+        font-weight: 700;
+        text-decoration: none;
+      }
+      .dp-autor a:hover {
+        text-decoration: underline;
+      }
+
       /* ---------- canvas ---------- */
       #gl {
         position: fixed;
@@ -495,17 +509,18 @@
     <canvas id="gl"></canvas>
 
     <nav>
-      <a class="logo" href="/" style="text-decoration:none">Museario</a>
+      <a class="logo" href="/" style="text-decoration:none;display:flex;align-items:center"><img src="/museario/logo-blanco.svg" alt="Museario" style="height:22px;display:block" /></a>
       <div class="nav-r">
         <a class="cta" href="/" style="display:inline-flex;align-items:center;text-decoration:none">museario.art</a>
       </div>
     </nav>
 
-    <button id="openBtn">Open</button>
+    <button id="openBtn">Ver</button>
     <button id="closeBtn" aria-label="Close detail view">&#10005;</button>
 
     <div class="dp" id="dp" aria-live="polite">
       <h1 id="dpTitle"></h1>
+      <p class="dp-autor">por <span id="dpAutorNombre"></span> · <a id="dpAutorLink" href="#">ver su perfil →</a></p>
       <p id="dpDesc"></p>
       <div class="meta">
         <div class="stars" id="dpStars"></div>
@@ -1283,6 +1298,7 @@
           coverURL: "/cat-posts/full/Quiero sentir tu arte, 2026.webp",
           museo: "/a/catalina/rumiaciones",
           galeria: "/a/catalina/rumiaciones/galeria",
+          perfil: "/a/catalina",
         },
         {
           id: "conexiones",
@@ -1301,6 +1317,7 @@
           coverURL: "/conexiones-posts/full/C'est la vie, 2023.webp",
           museo: "/a/catalina/conexiones",
           galeria: "/a/catalina/conexiones/galeria",
+          perfil: "/a/catalina",
         },
         {
           id: "alma",
@@ -1319,6 +1336,7 @@
           coverURL: "/alma-posts/full/Apego, 2025.webp",
           museo: "/a/catalina/alma",
           galeria: "/a/catalina/alma/galeria",
+          perfil: "/a/catalina",
         },
         {
           id: "danni",
@@ -1337,6 +1355,7 @@
           coverURL: "/posts/full/Muerte en rojo.webp",
           museo: "/a/danni/obras",
           galeria: "/a/danni/obras/galeria",
+          perfil: "/a/danni",
         },
       ];
 
@@ -1931,7 +1950,11 @@
         '<svg viewBox="0 0 24 24" class="CLS"><path d="M12 2.6l2.8 6 6.6.6-5 4.4 1.5 6.5L12 16.7 6.1 20.1l1.5-6.5-5-4.4 6.6-.6z"/></svg>';
       const dpMuseo = document.getElementById("dpMuseo");
       const dpGaleria = document.getElementById("dpGaleria");
+      const dpAutorNombre = document.getElementById("dpAutorNombre");
+      const dpAutorLink = document.getElementById("dpAutorLink");
       function populatePanel(cfg) {
+        dpAutorNombre.textContent = cfg.author;
+        if (cfg.perfil) dpAutorLink.href = cfg.perfil;
         if (cfg.museo) dpMuseo.href = cfg.museo;
         if (cfg.galeria) dpGaleria.href = cfg.galeria;
         dpTitle.textContent = cfg.title;
@@ -2414,6 +2437,10 @@
           !isTouch() &&
           !(ptr.down && ptr.moved > 14)
         ) {
+          if (pill.dataset.libro !== state.hovered.cfg.id) {
+            pill.dataset.libro = state.hovered.cfg.id;
+            pill.textContent = "Ver " + state.hovered.cfg.title;
+          }
           const tx = ptr.cx,
             ty = ptr.cy + 34;
           if (!pillOn) {
