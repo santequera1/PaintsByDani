@@ -154,7 +154,7 @@
     .seccion-sub { color: #a59d8f; font-size: 0.9rem; margin: 0 0 36px; }
 
     /* galerías populares: la obra ES la card, texto sobre un velo */
-    #populares { padding-top: 150px; }
+    #populares { padding-top: 190px; }
     .populares {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -165,8 +165,10 @@
     @media (max-width: 500px) { .populares { grid-template-columns: 1fr; } }
     .popular {
       position: relative;
-      display: block;
-      aspect-ratio: 3 / 4;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      aspect-ratio: 3 / 4; /* preferida: si el texto necesita más, la card crece */
       border-radius: 18px;
       overflow: hidden;
       border: 1px solid rgba(255, 255, 255, 0.14);
@@ -186,10 +188,11 @@
       position: absolute; inset: 0;
       background: linear-gradient(180deg, transparent 42%, rgba(8, 8, 10, 0.88) 100%);
     }
-    .popular .p-info { position: absolute; left: 0; right: 0; bottom: 0; padding: 16px 17px 15px; }
-    .popular .p-nombre { font-family: 'DM Serif Display', serif; font-size: 1.3rem; display: block; text-shadow: 0 2px 10px rgba(0,0,0,0.6); }
-    .popular .p-artista { color: #c4bcac; font-size: 0.72rem; display: block; margin: 3px 0 9px; }
-    .popular .p-cta { color: #e8cf9d; font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500; }
+    /* el texto fluye al fondo de la card (nunca se recorta) */
+    .popular .p-info { position: relative; padding: 16px 15px 14px; }
+    .popular .p-nombre { font-family: 'DM Serif Display', serif; font-size: clamp(1.05rem, 1.7vw, 1.3rem); display: block; text-shadow: 0 2px 10px rgba(0,0,0,0.6); }
+    .popular .p-artista { color: #c4bcac; font-size: 0.7rem; line-height: 1.35; display: block; margin: 3px 0 9px; }
+    .popular .p-cta { color: #e8cf9d; font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500; }
 
     /* ---------- cierre cinematográfico ---------- */
     .final {
@@ -369,18 +372,18 @@
       { b: 'cat-posts', f: 'Quiero sentir tu arte, 2026', x: '84%', y: '70%', r: 7, w: 148 },
       { b: 'posts', f: 'My lady', x: '20%', y: '12%', r: 4, w: 108, m: true },
       { b: 'conexiones-posts', f: 'Vainilla y Chocolate, 2025', x: '70%', y: '14%', r: -4, w: 128, m: true },
-      { b: 'posts', f: 'Little Dan', x: '73%', y: '86%', r: -6, w: 110, m: true },
-      { b: 'alma-posts', f: 'Angustia, 2024', x: '22%', y: '84%', r: 5, w: 112, m: true },
+      { b: 'posts', f: 'Little Dan', x: '73%', y: '75%', r: -6, w: 110, m: true },
+      { b: 'alma-posts', f: 'Angustia, 2024', x: '22%', y: '74%', r: 5, w: 112, m: true },
       { b: 'cat-posts', f: 'Te deseo lo mejor, 2026', x: '13%', y: '26%', r: 6, w: 122, m: true },
       { b: 'conexiones-posts', f: 'Maníaco, 2022', x: '79%', y: '24%', r: 5, w: 108, m: true },
       { b: 'alma-posts', f: 'Limerencia, 2022', x: '35%', y: '5%', r: -5, w: 118, m: true },
       { b: 'posts', f: 'Me', x: '58%', y: '7%', r: 6, w: 100, m: true },
       { b: 'cat-posts', f: 'Llegaste bien 2026', x: '1%', y: '56%', r: -4, w: 104, m: true },
       { b: 'conexiones-posts', f: "C'est la vie, 2023", x: '92%', y: '56%', r: 6, w: 104, m: true },
-      { b: 'alma-posts', f: 'Catarsis, 2024', x: '36%', y: '88%', r: -5, w: 124, m: true },
-      { b: 'posts', f: 'Retrato', x: '55%', y: '86%', r: 5, w: 100, m: true },
-      { b: 'cat-posts', f: 'El sabor de tu sudor, 2026', x: '12%', y: '90%', r: 4, w: 108, m: true },
-      { b: 'conexiones-posts', f: 'Yes-No, 2022', x: '90%', y: '86%', r: -7, w: 96, m: true },
+      { b: 'alma-posts', f: 'Catarsis, 2024', x: '36%', y: '77%', r: -5, w: 124, m: true },
+      { b: 'posts', f: 'Retrato', x: '55%', y: '76%', r: 5, w: 100, m: true },
+      { b: 'cat-posts', f: 'El sabor de tu sudor, 2026', x: '10%', y: '79%', r: 4, w: 108, m: true },
+      { b: 'conexiones-posts', f: 'Yes-No, 2022', x: '90%', y: '76%', r: -7, w: 96, m: true },
       { b: 'alma-posts', f: 'Infancia, 2023', x: '14%', y: '47%', r: 5, w: 112, m: true },
       // solo móvil: la franja entre el hero y la siguiente sección
       { b: 'conexiones-posts', f: 'Maníaco, 2022', x: '6%', y: '93%', r: -6, w: 92, sm: true },
