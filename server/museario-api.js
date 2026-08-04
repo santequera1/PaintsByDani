@@ -15,8 +15,8 @@ import { createServer } from 'node:http'
 import { DatabaseSync } from 'node:sqlite'
 import { fileURLToPath } from 'node:url'
 import { resolve, dirname, join } from 'node:path'
-import { randomBytes } from 'node:crypto'
-import { mkdir, writeFile, rm } from 'node:fs/promises'
+import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto'
+import { mkdir, writeFile, rm, readFile } from 'node:fs/promises'
 
 const RAIZ = dirname(fileURLToPath(import.meta.url))
 const DB_PATH = process.env.MUSEARIO_DB || resolve(RAIZ, '..', 'museario.db')
@@ -53,6 +53,12 @@ db.exec(`
     expira_en TEXT NOT NULL
   );
 `)
+// columnas añadidas después del primer despliegue (ignorar si ya existen)
+try { db.exec('ALTER TABLE usuarios ADD COLUMN password_hash TEXT') } catch {}
+try { db.exec('ALTER TABLE colecciones ADD COLUMN portada TEXT') } catch {}
+
+// dist del sitio (para servir /a/... con metadatos OG por colección)
+const DIST_DIR = process.env.MUSEARIO_DIST || resolve(RAIZ, '..', 'dist')
 
 const qArtistas = db.prepare('SELECT * FROM artistas ORDER BY id')
 const qArtista = db.prepare('SELECT * FROM artistas WHERE slug = ?')
@@ -167,6 +173,22 @@ function usuarioActual(req) {
   return qSesion.get(token) || null
 }
 
+function crearSesion(usuarioId) {
+  const token = randomBytes(32).toString('hex')
+  insSesion.run(token, usuarioId)
+  return `museario_sesion=${token}; Max-Age=${SESION_DIAS * 86400}; Path=/; HttpOnly; SameSite=Lax${COOKIE_SECURE}`
+}
+
+const hashClave = (clave) => {
+  const sal = randomBytes(16).toString('hex')
+  return `${sal}:${scryptSync(clave, sal, 64).toString('hex')}`
+}
+const verificarClave = (clave, guardado) => {
+  const [sal, hash] = (guardado || '').split(':')
+  if (!sal || !hash) return false
+  return timingSafeEqual(Buffer.from(hash, 'hex'), scryptSync(clave, sal, 64))
+}
+
 // GET /api/auth/google | /google/callback | /yo · POST /salir
 async function rutasAuth(req, res, resto, url) {
   if (resto[1] === 'google' && resto.length === 2) {
@@ -212,12 +234,44 @@ async function rutasAuth(req, res, resto, url) {
     // El id_token llega directo de Google por TLS: el payload es confiable.
     const info = JSON.parse(Buffer.from(tok.id_token.split('.')[1], 'base64url').toString())
     const { id } = upsertUsuario.get(info.sub, info.email, info.name || null, info.picture || null)
-    const token = randomBytes(32).toString('hex')
-    insSesion.run(token, id)
-    return redirigir(res, '/cuenta.html', [
-      limpiarState,
-      `museario_sesion=${token}; Max-Age=${SESION_DIAS * 86400}; Path=/; HttpOnly; SameSite=Lax${COOKIE_SECURE}`,
-    ])
+    return redirigir(res, '/panel.html', [limpiarState, crearSesion(id)])
+  }
+
+  // POST /api/auth/registro — cuenta con correo y contraseña
+  if (resto[1] === 'registro' && req.method === 'POST') {
+    const b = await leerJSON(req)
+    const nombre = (b.nombre || '').trim()
+    const email = (b.email || '').trim().toLowerCase()
+    const clave = b.password || ''
+    if (!nombre) return privado(res, 400, { error: 'El nombre es obligatorio' })
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return privado(res, 400, { error: 'Correo no válido' })
+    if (clave.length < 8) return privado(res, 400, { error: 'La contraseña debe tener al menos 8 caracteres' })
+    const existente = db.prepare('SELECT * FROM usuarios WHERE email = ?').get(email)
+    if (existente) {
+      return privado(res, 409, {
+        error: existente.google_sub
+          ? 'Ese correo ya tiene cuenta con Google: usa "Continuar con Google"'
+          : 'Ya existe una cuenta con ese correo. Inicia sesión.',
+      })
+    }
+    const { lastInsertRowid: id } = db.prepare(
+      'INSERT INTO usuarios (email, nombre, password_hash) VALUES (?, ?, ?)'
+    ).run(email, nombre, hashClave(clave))
+    return privado(res, 200, { ok: true }, [crearSesion(id)])
+  }
+
+  // POST /api/auth/entrar — inicio de sesión con correo
+  if (resto[1] === 'entrar' && req.method === 'POST') {
+    const b = await leerJSON(req)
+    const email = (b.email || '').trim().toLowerCase()
+    const u = db.prepare('SELECT * FROM usuarios WHERE email = ?').get(email)
+    if (u && !u.password_hash && u.google_sub) {
+      return privado(res, 400, { error: 'Esta cuenta entra con Google: usa "Continuar con Google"' })
+    }
+    if (!u || !verificarClave(b.password || '', u.password_hash)) {
+      return privado(res, 401, { error: 'Correo o contraseña incorrectos' })
+    }
+    return privado(res, 200, { ok: true }, [crearSesion(u.id)])
   }
 
   if (resto[1] === 'yo') {
@@ -312,31 +366,49 @@ async function rutasPanel(req, res, resto, url) {
   if (resto[1] === 'estado' && req.method === 'GET') {
     let colecciones = []
     if (artista) {
-      colecciones = qColecciones.all(artista.id).map((c) => ({
-        slug: c.slug,
-        nombre: c.nombre,
-        subtitulo: c.subtitulo,
-        imgBase: c.img_base,
-        publicada: !!c.publicada,
-        estilo: parse(c.estilo),
-        obras: qObras.all(c.id).map((o) => ({
-          id: o.id, slug: o.slug, filename: o.filename, ratio: o.ratio,
-          title: o.titulo, medium: o.medium, price: o.precio,
-        })),
-      }))
+      colecciones = qColecciones.all(artista.id).map((c) => {
+        const primera = qPortada.get(c.id)?.filename
+        return {
+          slug: c.slug,
+          nombre: c.nombre,
+          subtitulo: c.subtitulo,
+          imgBase: c.img_base,
+          publicada: !!c.publicada,
+          estilo: parse(c.estilo),
+          portadaUrl: c.portada
+            ? `/${c.portada}`
+            : (primera ? `/${c.img_base}/thumb/${encodeURI(primera.replace(/\.[^.]+$/, ''))}.webp` : null),
+          obras: qObras.all(c.id).map((o) => ({
+            id: o.id, slug: o.slug, filename: o.filename, ratio: o.ratio,
+            title: o.titulo, medium: o.medium, price: o.precio,
+          })),
+        }
+      })
     }
     return privado(res, 200, {
       usuario: { email: u.email, nombre: u.nombre, foto: u.foto },
+      limiteMuseos: 5,
       artista: artista && {
         slug: artista.slug, nombre: artista.nombre, handle: artista.handle,
         instagramUrl: artista.instagram_url, website: artista.website, bioEs: artista.bio_es,
+        foto: artista.profile_image,
         colecciones,
       },
     })
   }
 
+  // GET /api/panel/qr?texto=... — código QR en PNG (para compartir un museo)
+  if (resto[1] === 'qr' && req.method === 'GET') {
+    const texto = url.searchParams.get('texto') || ''
+    if (!texto.startsWith(BASE_URL)) return privado(res, 400, { error: 'URL no válida' })
+    const QR = (await import('qrcode')).default
+    const png = await QR.toBuffer(texto, { width: 640, margin: 2, errorCorrectionLevel: 'M' })
+    res.writeHead(200, { 'Content-Type': 'image/png', 'Cache-Control': 'private, max-age=3600' })
+    return res.end(png)
+  }
+
   // POST /api/panel/artista — crear o actualizar el perfil del artista
-  if (resto[1] === 'artista' && req.method === 'POST') {
+  if (resto[1] === 'artista' && resto.length === 2 && req.method === 'POST') {
     const b = await leerJSON(req)
     const nombre = (b.nombre || '').trim()
     if (!nombre) return privado(res, 400, { error: 'El nombre es obligatorio' })
@@ -361,8 +433,27 @@ async function rutasPanel(req, res, resto, url) {
   // Todo lo demás requiere perfil de artista
   if (!artista) return privado(res, 400, { error: 'Crea primero tu perfil de artista' })
 
-  // POST /api/panel/colecciones — crear colección
+  // POST /api/panel/artista/foto — foto o logo del artista (portada del recorrido)
+  if (resto[1] === 'artista' && resto[2] === 'foto' && req.method === 'POST') {
+    const sharp = (await import('sharp')).default
+    const cuerpo = await leerBinario(req)
+    if (!cuerpo.length) return privado(res, 400, { error: 'Imagen vacía' })
+    const dir = join(MEDIA_DIR, artista.slug)
+    await mkdir(dir, { recursive: true })
+    // fit inside (sin recortar): sirve igual para un logo que para una foto
+    await sharp(cuerpo, { failOn: 'none' }).rotate()
+      .resize({ width: 640, height: 640, fit: 'inside', withoutEnlargement: true })
+      .webp({ quality: 84 }).toFile(join(dir, 'perfil.webp'))
+    const ruta = `/media/${artista.slug}/perfil.webp?v=${Date.now()}`
+    db.prepare('UPDATE artistas SET profile_image = ? WHERE id = ?').run(ruta, artista.id)
+    return privado(res, 200, { ok: true, foto: ruta })
+  }
+
+  // POST /api/panel/colecciones — crear colección (máximo 5 por artista)
   if (resto[1] === 'colecciones' && resto.length === 2 && req.method === 'POST') {
+    if (qColecciones.all(artista.id).length >= 5) {
+      return privado(res, 400, { error: 'Por ahora el límite es de 5 museos por artista' })
+    }
     const b = await leerJSON(req)
     const nombre = (b.nombre || '').trim()
     if (!nombre) return privado(res, 400, { error: 'El nombre es obligatorio' })
@@ -379,18 +470,94 @@ async function rutasPanel(req, res, resto, url) {
     return privado(res, 200, { ok: true, slug })
   }
 
-  // PATCH /api/panel/colecciones/:slug — editar / publicar u ocultar
+  // PATCH /api/panel/colecciones/:slug — nombre, subtítulo, publicada, estilo y texturas
   if (resto[1] === 'colecciones' && resto[2] && req.method === 'PATCH') {
     const col = qColeccionPanel.get(artista.id, resto[2])
     if (!col) return privado(res, 404, { error: 'Colección no encontrada' })
     const b = await leerJSON(req)
-    db.prepare('UPDATE colecciones SET nombre=?, subtitulo=?, publicada=? WHERE id=?').run(
+
+    let estilo = parse(col.estilo) || {}
+    if (b.estiloBase && ESTILOS[b.estiloBase]) {
+      estilo = { ...estilo, ...ESTILOS[b.estiloBase] }
+    }
+    if (b.texturas !== undefined) {
+      // valores: null (por defecto del estilo), id del sistema, o URL /media/ ya subida
+      const SISTEMA = {
+        piso: { concreto: '/texturas/piso-rumiaciones-2k.webp' },
+        pared: { yeso: '/texturas/pared-rumiaciones-2k.webp' },
+      }
+      const tex = { ...(estilo.texturas || {}) }
+      for (const tipo of ['piso', 'pared']) {
+        if (b.texturas[tipo] === undefined) continue
+        const v = b.texturas[tipo]
+        if (!v) delete tex[tipo]
+        else if (SISTEMA[tipo][v]) tex[tipo] = SISTEMA[tipo][v]
+        else if (typeof v === 'string' && v.startsWith(`/media/${artista.slug}/`)) tex[tipo] = v
+      }
+      estilo.texturas = Object.keys(tex).length ? tex : undefined
+      if (!estilo.texturas) delete estilo.texturas
+    }
+
+    db.prepare('UPDATE colecciones SET nombre=?, subtitulo=?, publicada=?, estilo=? WHERE id=?').run(
       (b.nombre ?? col.nombre) || col.nombre,
       b.subtitulo !== undefined ? ((b.subtitulo || '').trim() || null) : col.subtitulo,
       b.publicada !== undefined ? (b.publicada ? 1 : 0) : col.publicada,
+      JSON.stringify(estilo),
       col.id
     )
     return privado(res, 200, { ok: true })
+  }
+
+  // DELETE /api/panel/colecciones/:slug — eliminar museo completo
+  if (resto[1] === 'colecciones' && resto[2] && resto.length === 3 && req.method === 'DELETE') {
+    const col = qColeccionPanel.get(artista.id, resto[2])
+    if (!col) return privado(res, 404, { error: 'Colección no encontrada' })
+    if (!col.img_base.startsWith('media/')) {
+      return privado(res, 400, { error: 'Esta colección se administra desde el sistema' })
+    }
+    db.prepare('DELETE FROM obras WHERE coleccion_id=?').run(col.id)
+    db.prepare('DELETE FROM colecciones WHERE id=?').run(col.id)
+    await rm(join(MEDIA_DIR, artista.slug, col.slug), { recursive: true, force: true })
+    return privado(res, 200, { ok: true })
+  }
+
+  // POST /api/panel/colecciones/:slug/portada — imagen de portada (cards y compartir)
+  if (resto[1] === 'colecciones' && resto[2] && resto[3] === 'portada' && req.method === 'POST') {
+    const col = qColeccionPanel.get(artista.id, resto[2])
+    if (!col) return privado(res, 404, { error: 'Colección no encontrada' })
+    const sharp = (await import('sharp')).default
+    const cuerpo = await leerBinario(req)
+    if (!cuerpo.length) return privado(res, 400, { error: 'Imagen vacía' })
+    const dir = join(MEDIA_DIR, artista.slug, col.slug)
+    await mkdir(dir, { recursive: true })
+    // 1200×630: el tamaño que esperan WhatsApp y las redes al compartir
+    await sharp(cuerpo, { failOn: 'none' }).rotate()
+      .resize(1200, 630, { fit: 'cover' })
+      .jpeg({ quality: 84 }).toFile(join(dir, 'portada.jpg'))
+    const ruta = `media/${artista.slug}/${col.slug}/portada.jpg`
+    db.prepare('UPDATE colecciones SET portada=? WHERE id=?').run(ruta, col.id)
+    return privado(res, 200, { ok: true, portadaUrl: `/${ruta}?v=${Date.now()}` })
+  }
+
+  // POST /api/panel/colecciones/:slug/textura?tipo=piso|pared — textura propia
+  if (resto[1] === 'colecciones' && resto[2] && resto[3] === 'textura' && req.method === 'POST') {
+    const col = qColeccionPanel.get(artista.id, resto[2])
+    if (!col) return privado(res, 404, { error: 'Colección no encontrada' })
+    const tipo = url.searchParams.get('tipo')
+    if (tipo !== 'piso' && tipo !== 'pared') return privado(res, 400, { error: 'Tipo no válido' })
+    const sharp = (await import('sharp')).default
+    const cuerpo = await leerBinario(req)
+    if (!cuerpo.length) return privado(res, 400, { error: 'Imagen vacía' })
+    const dir = join(MEDIA_DIR, artista.slug, col.slug)
+    await mkdir(dir, { recursive: true })
+    await sharp(cuerpo, { failOn: 'none' }).rotate()
+      .resize({ width: 2048, height: 2048, fit: 'inside', withoutEnlargement: true })
+      .webp({ quality: 85 }).toFile(join(dir, `textura-${tipo}.webp`))
+    const ruta = `/media/${artista.slug}/${col.slug}/textura-${tipo}.webp?v=${Date.now()}`
+    const estilo = parse(col.estilo) || {}
+    estilo.texturas = { ...(estilo.texturas || {}), [tipo]: ruta }
+    db.prepare('UPDATE colecciones SET estilo=? WHERE id=?').run(JSON.stringify(estilo), col.id)
+    return privado(res, 200, { ok: true, url: ruta })
   }
 
   // POST /api/panel/colecciones/:slug/obras?filename=&title=&medium=&price=
@@ -476,6 +643,59 @@ async function rutasPanel(req, res, resto, url) {
   return privado(res, 404, { error: 'No encontrado' })
 }
 
+// ============================================================
+// Páginas /a/:artista/:coleccion(/galeria) con OG por colección
+// (nginx nos proxya estas rutas; inyectamos título, portada y
+// favicon del artista sobre el m.html/g.html construidos)
+// ============================================================
+const tplCache = {}
+async function plantilla(nombre) {
+  const c = tplCache[nombre]
+  if (c && Date.now() - c.ts < 60000) return c.html
+  const html = await readFile(join(DIST_DIR, nombre), 'utf8')
+  tplCache[nombre] = { html, ts: Date.now() }
+  return html
+}
+
+const escHtml = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;')
+
+async function paginaMuseo(res, partes) {
+  const esGaleria = partes[3] === 'galeria'
+  let html = await plantilla(esGaleria ? 'g.html' : 'm.html')
+  const a = qArtista.get(partes[1])
+  const col = a ? qColeccion.get(a.id, partes[2]) : null
+  if (a && col) {
+    const titulo = `${col.nombre} · ${a.nombre} — ${esGaleria ? 'Galería' : 'Museo Virtual 3D'}`
+    const desc = esGaleria
+      ? `Recorre la galería interactiva de ${col.nombre}, de ${a.nombre}, en Museario.`
+      : `Camina por ${col.nombre}, el museo 3D de ${a.nombre}, en Museario.`
+    const primera = qPortada.get(col.id)?.filename
+    const imgRel = col.portada
+      ? `/${col.portada}`
+      : (primera ? `/${col.img_base}/full/${primera.replace(/\.[^.]+$/, '')}.webp` : null)
+    const urlPag = `${BASE_URL}/a/${a.slug}/${col.slug}${esGaleria ? '/galeria' : ''}`
+    const favicon = a.profile_image ? encodeURI(a.profile_image.split('?')[0]) : '/museario/favicon.svg'
+    const og = [
+      `  <meta property="og:type" content="website" />`,
+      `  <meta property="og:site_name" content="Museario" />`,
+      `  <meta property="og:title" content="${escHtml(titulo)}" />`,
+      `  <meta property="og:description" content="${escHtml(desc)}" />`,
+      `  <meta property="og:url" content="${urlPag}" />`,
+      imgRel && `  <meta property="og:image" content="${BASE_URL}${encodeURI(imgRel)}" />`,
+      imgRel && `  <meta property="og:image:width" content="1200" />`,
+      imgRel && `  <meta name="twitter:card" content="summary_large_image" />`,
+      imgRel && `  <meta name="twitter:image" content="${BASE_URL}${encodeURI(imgRel)}" />`,
+    ].filter(Boolean).join('\n')
+    html = html
+      .replace(/<title>[^<]*<\/title>/, `<title>${escHtml(titulo)}</title>`)
+      .replace(/\s*<meta property="og:[^"]+"[^>]*\/>/g, '')
+      .replace(/\s*<link rel="icon"[^>]*\/>/, `\n  <link rel="icon" href="${favicon}" />`)
+      .replace('</head>', `${og}\n</head>`)
+  }
+  res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache, must-revalidate' })
+  res.end(html)
+}
+
 const server = createServer(async (req, res) => {
   let partes, url
   try {
@@ -483,6 +703,16 @@ const server = createServer(async (req, res) => {
     partes = url.pathname.split('/').filter(Boolean).map(decodeURIComponent)
   } catch {
     return responder(res, 400, { error: 'URL inválida' })
+  }
+
+  // /a/:artista/:coleccion(/galeria) — página con OG dinámico
+  if (partes[0] === 'a' && partes[1] && partes[2]) {
+    try {
+      return await paginaMuseo(res, partes)
+    } catch (e) {
+      console.error(e)
+      return responder(res, 500, { error: 'Error interno' })
+    }
   }
 
   // /api/auth/... (cuentas y sesiones)

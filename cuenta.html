@@ -82,6 +82,29 @@
       line-height: 1.55;
     }
     .error { color: #d98a7f; font-size: 0.8rem; margin: 0 0 16px; }
+    .separador {
+      display: flex; align-items: center; gap: 12px;
+      margin: 22px 0 16px; color: #6d675d; font-size: 0.7rem;
+      letter-spacing: 0.1em; text-transform: uppercase;
+    }
+    .separador::before, .separador::after {
+      content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.12);
+    }
+    .tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+    .tab {
+      flex: 1; padding: 9px 0; background: transparent;
+      border: 1px solid rgba(255,255,255,0.16); color: #8d8579;
+      font-family: inherit; font-size: 0.72rem; letter-spacing: 0.08em;
+      text-transform: uppercase; cursor: pointer;
+    }
+    .tab.activo { color: #ece8df; border-color: rgba(236,232,223,0.55); }
+    .form-correo { display: flex; flex-direction: column; gap: 10px; }
+    .form-correo input {
+      background: #0e0e10; border: 1px solid rgba(255,255,255,0.14);
+      color: #ece8df; padding: 11px 12px; font-size: 0.88rem; font-family: inherit;
+    }
+    .form-correo input:focus { outline: 1px solid rgba(236,232,223,0.45); }
+    .form-correo .btn { margin-top: 4px; }
     .pie { margin-top: 26px; font-size: 0.74rem; letter-spacing: 0.08em; color: #6d675d; }
     .pie a { color: #a59d8f; text-decoration: none; }
     .pie a:hover { color: #ece8df; }
@@ -100,6 +123,26 @@
       <svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M23.5 12.27c0-.85-.08-1.66-.22-2.45H12v4.64h6.46a5.53 5.53 0 0 1-2.4 3.63v3h3.88c2.27-2.1 3.56-5.18 3.56-8.82z"/><path fill="#34A853" d="M12 24c3.24 0 5.96-1.07 7.94-2.91l-3.88-3c-1.08.72-2.45 1.15-4.06 1.15-3.12 0-5.77-2.11-6.71-4.95H1.28v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.29 14.29a7.2 7.2 0 0 1 0-4.58v-3.1H1.28a12 12 0 0 0 0 10.78l4.01-3.1z"/><path fill="#EA4335" d="M12 4.77c1.76 0 3.34.6 4.58 1.79l3.44-3.44A11.96 11.96 0 0 0 12 0 12 12 0 0 0 1.28 6.61l4.01 3.1C6.23 6.88 8.88 4.77 12 4.77z"/></svg>
       Continuar con Google
     </a>
+
+    <div class="separador"><span>o con tu correo</span></div>
+
+    <div class="tabs">
+      <button class="tab activo" data-tab="entrar">Entrar</button>
+      <button class="tab" data-tab="registro">Crear cuenta</button>
+    </div>
+
+    <form id="form-entrar" class="form-correo">
+      <input type="email" id="en-email" placeholder="Correo" autocomplete="email" required />
+      <input type="password" id="en-clave" placeholder="Contraseña" autocomplete="current-password" required />
+      <button class="btn" type="submit">Entrar</button>
+    </form>
+
+    <form id="form-registro" class="form-correo" hidden>
+      <input type="text" id="re-nombre" placeholder="Tu nombre" autocomplete="name" required />
+      <input type="email" id="re-email" placeholder="Correo" autocomplete="email" required />
+      <input type="password" id="re-clave" placeholder="Contraseña (mínimo 8 caracteres)" autocomplete="new-password" minlength="8" required />
+      <button class="btn" type="submit">Crear mi cuenta</button>
+    </form>
   </div>
 
   <!-- Con sesión -->
@@ -144,6 +187,45 @@
     document.getElementById('btn-salir').addEventListener('click', async () => {
       await fetch('/api/auth/salir', { method: 'POST' })
       location.reload()
+    })
+
+    // --- correo: tabs + envío ---
+    const mostrarError = (msg) => {
+      const el = document.getElementById('login-error')
+      el.textContent = msg
+      el.hidden = false
+    }
+    document.querySelectorAll('.tab').forEach((t) => {
+      t.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('activo', x === t))
+        document.getElementById('form-entrar').hidden = t.dataset.tab !== 'entrar'
+        document.getElementById('form-registro').hidden = t.dataset.tab !== 'registro'
+      })
+    })
+    async function enviar(ruta, cuerpo) {
+      const r = await fetch(ruta, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(cuerpo),
+      })
+      const d = await r.json().catch(() => ({}))
+      if (!r.ok) return mostrarError(d.error || 'No se pudo completar. Inténtalo de nuevo.')
+      location.href = '/panel.html'
+    }
+    document.getElementById('form-entrar').addEventListener('submit', (e) => {
+      e.preventDefault()
+      enviar('/api/auth/entrar', {
+        email: document.getElementById('en-email').value,
+        password: document.getElementById('en-clave').value,
+      })
+    })
+    document.getElementById('form-registro').addEventListener('submit', (e) => {
+      e.preventDefault()
+      enviar('/api/auth/registro', {
+        nombre: document.getElementById('re-nombre').value,
+        email: document.getElementById('re-email').value,
+        password: document.getElementById('re-clave').value,
+      })
     })
   </script>
 </body>

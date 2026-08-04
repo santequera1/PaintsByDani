@@ -5,7 +5,7 @@
   <base href="/" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="color-scheme" content="dark" />
-  <title>Panel de artista · Museario</title>
+  <title>Dashboard · Museario</title>
   <link rel="icon" type="image/svg+xml" href="/museario/favicon.svg" />
   <link rel="alternate icon" type="image/png" href="/museario/favicon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -13,267 +13,366 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <style>
     * { box-sizing: border-box; }
+    :root {
+      --fondo: #0c0c0e;
+      --panel: #141416;
+      --panel-2: #0e0e10;
+      --borde: rgba(255,255,255,0.1);
+      --tinta: #ece8df;
+      --tinta-2: #8d8579;
+      --tinta-3: #6d675d;
+    }
     body {
       margin: 0;
-      background: #0c0c0e;
-      color: #ece8df;
+      background: var(--fondo);
+      color: var(--tinta);
       font-family: 'Poppins', 'Helvetica Neue', sans-serif;
       font-weight: 300;
       min-height: 100vh;
     }
-    h1, h2 { font-family: 'DM Serif Display', serif; font-weight: 400; }
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 16px 22px;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
+    h1, h2, h3 { font-family: 'DM Serif Display', serif; font-weight: 400; }
+
+    /* ---------- layout dashboard ---------- */
+    .shell { display: flex; min-height: 100vh; }
+    aside {
+      width: 232px; flex-shrink: 0;
+      border-right: 1px solid var(--borde);
+      display: flex; flex-direction: column;
+      padding: 22px 16px 18px;
+      position: sticky; top: 0; height: 100vh;
     }
-    .marca { display: flex; align-items: baseline; gap: 14px; }
-    .marca img { height: 30px; display: block; }
-    .marca span { font-size: 0.7rem; letter-spacing: 0.28em; text-transform: uppercase; color: #8d8579; }
-    .usuario { display: flex; align-items: center; gap: 10px; font-size: 0.78rem; color: #a59d8f; }
-    .usuario img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
-    .usuario button { background: none; border: 0; color: #6d675d; cursor: pointer; font-size: 0.76rem; font-family: inherit; text-decoration: underline; }
-    main { max-width: 880px; margin: 0 auto; padding: 30px 18px 60px; }
-    h1 { font-size: 1.9rem; margin: 0 0 4px; }
-    h2 { font-size: 1.35rem; margin: 0 0 14px; }
-    .sub { color: #8d8579; font-size: 0.84rem; margin: 0 0 26px; line-height: 1.55; }
-    .card {
-      background: #141416;
-      border: 1px solid rgba(255,255,255,0.1);
-      padding: 24px 22px;
-      margin-bottom: 22px;
+    aside .logo { padding: 2px 8px 24px; }
+    aside .logo img { width: 150px; display: block; }
+    .nav { display: flex; flex-direction: column; gap: 4px; }
+    .nav button {
+      display: flex; align-items: center; gap: 11px;
+      background: none; border: 0; color: var(--tinta-2);
+      font-family: inherit; font-size: 0.84rem; font-weight: 400;
+      padding: 11px 12px; cursor: pointer; text-align: left;
+      border-left: 2px solid transparent;
     }
-    label { display: block; font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: #8d8579; margin: 14px 0 6px; font-weight: 400; }
-    input[type="text"], textarea, select {
-      width: 100%;
-      background: #0e0e10;
-      border: 1px solid rgba(255,255,255,0.14);
-      color: #ece8df;
-      padding: 10px 11px;
-      font-size: 0.88rem;
-      font-family: inherit;
-      font-weight: 300;
+    .nav button:hover { color: var(--tinta); background: rgba(255,255,255,0.04); }
+    .nav button.activo { color: var(--tinta); border-left-color: var(--tinta); background: rgba(255,255,255,0.05); }
+    .nav svg { flex-shrink: 0; opacity: 0.8; }
+    aside .abajo { margin-top: auto; }
+    .chip {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 8px; border-top: 1px solid var(--borde);
+      font-size: 0.76rem; color: var(--tinta-2);
+    }
+    .chip img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; background: #1b1b1e; }
+    .chip .nom { line-height: 1.25; overflow: hidden; }
+    .chip .nom b { display: block; color: var(--tinta); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .chip button { background: none; border: 0; color: var(--tinta-3); cursor: pointer; font-size: 0.72rem; font-family: inherit; text-decoration: underline; padding: 0; }
+    main { flex: 1; padding: 30px 34px 70px; max-width: 1060px; }
+
+    @media (max-width: 760px) {
+      .shell { flex-direction: column; }
+      aside { width: 100%; height: auto; position: static; flex-direction: row; align-items: center; gap: 8px; padding: 12px 14px; border-right: 0; border-bottom: 1px solid var(--borde); }
+      aside .logo { padding: 0 8px 0 0; }
+      aside .logo img { width: 108px; }
+      .nav { flex-direction: row; }
+      .nav button { padding: 8px 10px; border-left: 0; border-bottom: 2px solid transparent; }
+      .nav button.activo { border-bottom-color: var(--tinta); }
+      aside .abajo { margin: 0 0 0 auto; }
+      .chip { border-top: 0; padding: 0; }
+      .chip .nom { display: none; }
+      main { padding: 22px 16px 60px; }
+    }
+
+    /* ---------- componentes ---------- */
+    h1 { font-size: 1.8rem; margin: 0 0 4px; }
+    .sub { color: var(--tinta-2); font-size: 0.84rem; margin: 0 0 26px; line-height: 1.55; }
+    .card { background: var(--panel); border: 1px solid var(--borde); padding: 22px 20px; margin-bottom: 20px; }
+    label { display: block; font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--tinta-2); margin: 14px 0 6px; font-weight: 400; }
+    input[type="text"], input[type="password"], textarea, select {
+      width: 100%; background: var(--panel-2);
+      border: 1px solid rgba(255,255,255,0.14); color: var(--tinta);
+      padding: 10px 11px; font-size: 0.86rem; font-family: inherit; font-weight: 300;
     }
     textarea { min-height: 88px; resize: vertical; }
     input:focus, textarea:focus, select:focus { outline: 1px solid rgba(236,232,223,0.45); }
     .btn {
       display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-      background: #ece8df; color: #16130f;
-      border: 0; padding: 12px 22px;
-      font-size: 0.76rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
-      font-family: inherit;
-      cursor: pointer; text-decoration: none; transition: background .2s ease;
-      margin-top: 18px;
+      background: var(--tinta); color: #16130f;
+      border: 0; padding: 11px 20px;
+      font-size: 0.74rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
+      font-family: inherit; cursor: pointer; text-decoration: none;
+      transition: background .2s ease; margin-top: 16px;
     }
     .btn:hover { background: #fff; }
-    .btn-ghost { background: transparent; color: #ece8df; border: 1px solid rgba(255,255,255,0.3); }
+    .btn-ghost { background: transparent; color: var(--tinta); border: 1px solid rgba(255,255,255,0.3); }
     .btn-ghost:hover { background: rgba(255,255,255,0.09); }
     .btn-mini {
-      background: transparent; color: #a59d8f; border: 1px solid rgba(255,255,255,0.2);
-      padding: 6px 12px; font-size: 0.64rem; letter-spacing: 0.1em; text-transform: uppercase;
+      background: transparent; color: var(--tinta-2); border: 1px solid rgba(255,255,255,0.2);
+      padding: 7px 13px; font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase;
       font-family: inherit; cursor: pointer; margin: 0;
+      display: inline-flex; align-items: center; gap: 6px;
     }
-    .btn-mini:hover { color: #ece8df; background: rgba(255,255,255,0.07); }
+    .btn-mini:hover { color: var(--tinta); background: rgba(255,255,255,0.07); }
     .btn-peligro:hover { color: #e6a79b; border-color: rgba(230,167,155,0.5); background: rgba(230,167,155,0.06); }
     .fila { display: flex; gap: 14px; flex-wrap: wrap; }
     .fila > div { flex: 1; min-width: 200px; }
-    .col-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
-    .col-head .enlaces { display: flex; gap: 14px; font-size: 0.76rem; }
-    .col-head .enlaces a { color: #a59d8f; text-decoration: none; }
-    .col-head .enlaces a:hover { color: #ece8df; }
-    .estado-pub { font-family: 'Poppins', sans-serif; font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; vertical-align: middle; }
-    .estado-pub.si { color: #9fc49b; }
-    .estado-pub.no { color: #c9a35c; }
+    .badge { font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 4px 9px; border: 1px solid; }
+    .badge.si { color: #9fc49b; border-color: rgba(159,196,155,0.4); }
+    .badge.no { color: #c9a35c; border-color: rgba(201,163,92,0.4); }
+    .guardado { font-size: 0.66rem; color: #9fc49b; opacity: 0; transition: opacity .3s ease; }
+    .guardado.visible { opacity: 1; }
+    [hidden] { display: none !important; }
 
-    /* Selector visual de estilo de sala */
+    /* ---------- cards de museos ---------- */
+    .museos { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 18px; }
+    .museo-card {
+      background: var(--panel); border: 1px solid var(--borde);
+      display: flex; flex-direction: column;
+      transition: border-color .2s ease;
+    }
+    .museo-card:hover { border-color: rgba(255,255,255,0.3); }
+    .museo-card .portada {
+      width: 100%; aspect-ratio: 1200/630; object-fit: cover; display: block;
+      background: linear-gradient(135deg, #1b1b1e, #232326);
+      cursor: pointer;
+    }
+    .museo-card .cuerpo { padding: 14px 16px 16px; display: flex; flex-direction: column; flex: 1; }
+    .museo-card h3 { font-size: 1.15rem; margin: 0; cursor: pointer; }
+    .museo-card .meta { font-size: 0.72rem; color: var(--tinta-2); margin: 3px 0 12px; }
+    .museo-card .pie-card { margin-top: auto; display: flex; gap: 7px; flex-wrap: wrap; }
+    .museo-nuevo {
+      border: 1px dashed rgba(255,255,255,0.25); background: transparent;
+      display: flex; align-items: center; justify-content: center;
+      min-height: 200px; cursor: pointer; color: var(--tinta-2);
+      font-family: inherit; font-size: 0.8rem; gap: 8px;
+    }
+    .museo-nuevo:hover { color: var(--tinta); border-color: rgba(255,255,255,0.45); }
+
+    /* ---------- selector de estilo / texturas ---------- */
     .estilos { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 6px; }
     .estilo {
-      flex: 1; min-width: 220px;
-      background: #0e0e10;
-      border: 1px solid rgba(255,255,255,0.14);
-      cursor: pointer;
-      padding: 0 0 12px;
-      transition: border-color .2s ease, transform .2s ease;
-      position: relative;
+      flex: 1; min-width: 200px; background: var(--panel-2);
+      border: 1px solid rgba(255,255,255,0.14); cursor: pointer;
+      padding: 0 0 12px; transition: border-color .2s ease; position: relative;
     }
     .estilo:hover { border-color: rgba(255,255,255,0.35); }
-    .estilo.activo { border-color: #ece8df; }
+    .estilo.activo { border-color: var(--tinta); }
     .estilo.activo::after {
-      content: '✓';
-      position: absolute; top: 8px; right: 10px;
-      width: 22px; height: 22px;
-      background: #ece8df; color: #16130f;
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 0.75rem; font-weight: 600;
+      content: '✓'; position: absolute; top: 8px; right: 10px;
+      width: 22px; height: 22px; background: var(--tinta); color: #16130f;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 0.72rem; font-weight: 600;
     }
     .estilo img { width: 100%; aspect-ratio: 8/5; object-fit: cover; display: block; opacity: .92; }
-    .estilo strong { display: block; font-weight: 500; font-size: 0.85rem; margin: 10px 12px 2px; }
-    .estilo small { display: block; color: #8d8579; font-size: 0.72rem; margin: 0 12px; line-height: 1.45; }
+    .estilo strong { display: block; font-weight: 500; font-size: 0.82rem; margin: 10px 12px 2px; }
+    .estilo small { display: block; color: var(--tinta-2); font-size: 0.7rem; margin: 0 12px; line-height: 1.45; }
+    .tex-fila { display: flex; gap: 14px; flex-wrap: wrap; }
+    .tex-fila > div { flex: 1; min-width: 220px; }
+    .tex-acciones { display: flex; gap: 8px; margin-top: 8px; align-items: center; }
 
-    /* Obras */
+    /* ---------- obras ---------- */
     .obras { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; margin-top: 18px; }
-    .obra { background: #0e0e10; border: 1px solid rgba(255,255,255,0.09); padding: 10px; }
+    .obra { background: var(--panel-2); border: 1px solid rgba(255,255,255,0.09); padding: 10px; }
     .obra .img-wrap { position: relative; }
     .obra img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; background: #1b1b1e; }
-    .obra input[type="text"] { margin-top: 7px; padding: 7px 8px; font-size: 0.76rem; }
+    .obra input[type="text"] { margin-top: 7px; padding: 7px 8px; font-size: 0.74rem; }
     .obra .precio-fila { display: flex; align-items: center; gap: 8px; margin-top: 7px; }
     .obra .precio-fila input[type="text"] { margin-top: 0; flex: 1; }
     .vendido {
       display: flex; align-items: center; gap: 5px;
-      font-size: 0.66rem; letter-spacing: 0.06em; text-transform: uppercase; color: #8d8579;
+      font-size: 0.64rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--tinta-2);
       cursor: pointer; user-select: none; white-space: nowrap;
     }
     .vendido input { accent-color: #c97f72; width: 14px; height: 14px; cursor: pointer; }
     .obra .acciones { display: flex; justify-content: space-between; align-items: center; margin-top: 9px; }
-    .guardado { font-size: 0.64rem; color: #9fc49b; opacity: 0; transition: opacity .3s ease; }
-    .guardado.visible { opacity: 1; }
-
-    /* Subida con preview y barra */
     .obra.subiendo img { opacity: 0.45; }
-    .barra {
-      position: absolute; left: 8px; right: 8px; bottom: 8px;
-      height: 5px; background: rgba(255,255,255,0.18);
-      overflow: hidden;
-    }
-    .barra i { display: block; height: 100%; width: 0%; background: #ece8df; transition: width .15s ease; }
-    .obra .estado-subida { font-size: 0.66rem; color: #8d8579; margin-top: 7px; min-height: 1em; }
+    .barra { position: absolute; left: 8px; right: 8px; bottom: 8px; height: 5px; background: rgba(255,255,255,0.18); overflow: hidden; }
+    .barra i { display: block; height: 100%; width: 0%; background: var(--tinta); transition: width .15s ease; }
+    .obra .estado-subida { font-size: 0.64rem; color: var(--tinta-2); margin-top: 7px; min-height: 1em; }
     .obra.error-subida { border-color: rgba(230,167,155,0.5); }
     .subir { margin-top: 18px; padding: 16px; border: 1px dashed rgba(255,255,255,0.22); text-align: center; }
-    .subir input { display: none; }
+
+    /* ---------- portada / perfil foto ---------- */
+    .portada-editor { display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
+    .portada-editor img.prev { width: 260px; aspect-ratio: 1200/630; object-fit: cover; background: #1b1b1e; border: 1px solid var(--borde); }
+    .foto-perfil { width: 92px; height: 92px; object-fit: contain; background: #1b1b1e; border: 1px solid var(--borde); }
+
+    /* ---------- modal compartir ---------- */
+    .modal-fondo {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.72);
+      display: flex; align-items: center; justify-content: center; z-index: 20;
+      padding: 18px;
+    }
+    .modal {
+      background: var(--panel); border: 1px solid rgba(255,255,255,0.18);
+      padding: 26px 24px; width: min(420px, 94vw); text-align: center; position: relative;
+    }
+    .modal h3 { font-size: 1.3rem; margin: 0 0 16px; }
+    .modal .cerrar { position: absolute; top: 10px; right: 12px; background: none; border: 0; color: var(--tinta-2); font-size: 1.1rem; cursor: pointer; }
+    .enlace-caja {
+      display: flex; gap: 8px; margin-bottom: 14px;
+    }
+    .enlace-caja input { flex: 1; font-size: 0.76rem; }
+    .modal img.qr { width: 210px; height: 210px; background: #fff; padding: 8px; margin: 6px auto 10px; display: block; }
+    .modal .acciones-modal { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+
+    .peligro { border-color: rgba(230,167,155,0.28); }
+    .peligro h2 { color: #d9a89d; }
+
+    .volver { background: none; border: 0; color: var(--tinta-2); font-family: inherit; font-size: 0.78rem; cursor: pointer; padding: 0; margin-bottom: 16px; display: inline-flex; align-items: center; gap: 7px; }
+    .volver:hover { color: var(--tinta); }
 
     .aviso {
       position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
-      background: #ece8df; color: #16130f;
+      background: var(--tinta); color: #16130f;
       padding: 10px 18px; font-size: 0.8rem; font-weight: 500;
       opacity: 0; pointer-events: none; transition: opacity .25s ease;
-      max-width: 90vw; z-index: 10;
+      max-width: 90vw; z-index: 30;
     }
     .aviso.error { background: #c97f72; color: #fff; }
     .aviso.visible { opacity: 1; }
-    .pie { text-align: center; margin-top: 30px; font-size: 0.74rem; }
-    .pie a { color: #a59d8f; text-decoration: none; }
-    [hidden] { display: none !important; }
   </style>
 </head>
 <body>
-  <header>
-    <span class="marca">
-      <img src="/museario/logo-blanco.svg" alt="Museario" />
-      <span>Panel</span>
-    </span>
-    <span class="usuario" id="chip-usuario" hidden>
-      <img id="chip-foto" src="" alt="" />
-      <span id="chip-nombre"></span>
-      <button id="btn-salir">salir</button>
-    </span>
-  </header>
+  <!-- Sin sesión -->
+  <div id="v-sesion" class="card" style="max-width:420px;margin:80px auto" hidden>
+    <h2>Necesitas iniciar sesión</h2>
+    <p class="sub">Entra con tu cuenta para administrar tus museos.</p>
+    <a class="btn" href="/cuenta.html">Ir a iniciar sesión</a>
+  </div>
 
-  <main>
-    <!-- Sin sesión -->
-    <div id="v-sesion" class="card" hidden>
-      <h2>Necesitas iniciar sesión</h2>
-      <p class="sub">Entra con tu cuenta de Google para administrar tu museo.</p>
-      <a class="btn" href="/cuenta.html">Ir a iniciar sesión</a>
-    </div>
-
-    <!-- Crear perfil -->
-    <div id="v-nuevo" hidden>
-      <h1>Crea tu perfil de artista</h1>
-      <p class="sub">Con esto se arma tu página pública. Podrás editarlo cuando quieras.</p>
-      <div class="card">
-        <label>Nombre artístico *</label>
-        <input type="text" id="np-nombre" placeholder="Ej: Catalina Olivero" />
-        <div class="fila">
-          <div>
-            <label>Usuario de Instagram</label>
-            <input type="text" id="np-handle" placeholder="@miusuario" />
-          </div>
-          <div>
-            <label>Enlace de Instagram</label>
-            <input type="text" id="np-instagram" placeholder="https://www.instagram.com/miusuario/" />
-          </div>
+  <!-- Crear perfil -->
+  <div id="v-nuevo" style="max-width:560px;margin:50px auto;padding:0 16px" hidden>
+    <h1>Crea tu perfil de artista</h1>
+    <p class="sub">Con esto se arma tu página pública. Podrás editarlo cuando quieras.</p>
+    <div class="card">
+      <label>Nombre artístico *</label>
+      <input type="text" id="np-nombre" placeholder="Ej: Catalina Olivero" />
+      <div class="fila">
+        <div>
+          <label>Usuario de Instagram</label>
+          <input type="text" id="np-handle" placeholder="@miusuario" />
         </div>
-        <label>Sitio web (opcional)</label>
-        <input type="text" id="np-web" placeholder="https://..." />
-        <label>Bio (opcional)</label>
-        <textarea id="np-bio" placeholder="Cuéntale al mundo quién eres y qué pintas..."></textarea>
-        <button class="btn" id="np-crear">Crear mi perfil</button>
+        <div>
+          <label>Enlace de Instagram</label>
+          <input type="text" id="np-instagram" placeholder="https://www.instagram.com/miusuario/" />
+        </div>
       </div>
+      <label>Sitio web (opcional)</label>
+      <input type="text" id="np-web" placeholder="https://..." />
+      <label>Bio (opcional)</label>
+      <textarea id="np-bio" placeholder="Cuéntale al mundo quién eres y qué pintas..."></textarea>
+      <button class="btn" id="np-crear">Crear mi perfil</button>
     </div>
+  </div>
 
-    <!-- Panel -->
-    <div id="v-panel" hidden>
-      <h1 id="p-titulo"></h1>
-      <p class="sub">Administra tu perfil, tus colecciones y tus obras. Los cambios se guardan y publican al instante.</p>
-
-      <div class="card">
-        <h2>Mi perfil</h2>
-        <div class="fila">
-          <div>
-            <label>Nombre artístico</label>
-            <input type="text" id="pf-nombre" />
-          </div>
-          <div>
-            <label>Usuario de Instagram</label>
-            <input type="text" id="pf-handle" />
-          </div>
+  <!-- Dashboard -->
+  <div class="shell" id="v-dash" hidden>
+    <aside>
+      <div class="logo"><img src="/museario/logo-blanco.svg" alt="Museario" /></div>
+      <nav class="nav">
+        <button data-v="museos" class="activo">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/></svg>
+          Mis museos
+        </button>
+        <button data-v="perfil">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>
+          Mi perfil
+        </button>
+      </nav>
+      <div class="abajo">
+        <div class="chip">
+          <img id="chip-foto" src="" alt="" />
+          <span class="nom"><b id="chip-nombre"></b><button id="btn-salir">cerrar sesión</button></span>
         </div>
-        <div class="fila">
-          <div>
-            <label>Enlace de Instagram</label>
-            <input type="text" id="pf-instagram" />
-          </div>
-          <div>
-            <label>Sitio web</label>
-            <input type="text" id="pf-web" />
-          </div>
-        </div>
-        <label>Bio</label>
-        <textarea id="pf-bio"></textarea>
-        <button class="btn" id="pf-guardar">Guardar perfil</button>
       </div>
+    </aside>
 
-      <div id="lista-colecciones"></div>
+    <main>
+      <!-- vista: museos -->
+      <section id="vista-museos">
+        <h1>Mis museos</h1>
+        <p class="sub" id="museos-contador"></p>
+        <div class="museos" id="museos-grid"></div>
 
-      <div class="card">
-        <h2>Nueva colección</h2>
-        <div class="fila">
-          <div>
-            <label>Nombre *</label>
-            <input type="text" id="nc-nombre" placeholder="Ej: Rumiaciones" />
+        <div class="card" id="form-nuevo-museo" hidden>
+          <h2>Nuevo museo</h2>
+          <div class="fila">
+            <div>
+              <label>Nombre *</label>
+              <input type="text" id="nc-nombre" placeholder="Ej: Rumiaciones" />
+            </div>
+            <div>
+              <label>Subtítulo / años</label>
+              <input type="text" id="nc-subtitulo" placeholder="Ej: 2026" />
+            </div>
           </div>
-          <div>
-            <label>Subtítulo / años</label>
-            <input type="text" id="nc-subtitulo" placeholder="Ej: 2026" />
+          <label>Estilo de la sala 3D</label>
+          <div class="estilos" id="nc-estilos">
+            <div class="estilo activo" data-estilo="blanca">
+              <img src="/museario/estilo-blanca.jpg" alt="Galería blanca" />
+              <strong>Galería blanca</strong>
+              <small>Cubo blanco con concreto pulido y obras en lienzo flotante, sin marco.</small>
+            </div>
+            <div class="estilo" data-estilo="clasica">
+              <img src="/museario/estilo-clasica.jpg" alt="Sala clásica" />
+              <strong>Sala clásica</strong>
+              <small>Piso de madera oscura, obras enmarcadas y zócalo tradicional.</small>
+            </div>
           </div>
+          <button class="btn" id="nc-crear">Crear museo</button>
+          <button class="btn btn-ghost" id="nc-cancelar" style="margin-left:8px">Cancelar</button>
         </div>
-        <label>Estilo de la sala 3D</label>
-        <div class="estilos" id="nc-estilos">
-          <div class="estilo activo" data-estilo="blanca">
-            <img src="/museario/estilo-blanca.jpg" alt="Galería blanca" />
-            <strong>Galería blanca</strong>
-            <small>Cubo blanco con concreto pulido y obras en lienzo flotante, sin marco.</small>
-          </div>
-          <div class="estilo" data-estilo="clasica">
-            <img src="/museario/estilo-clasica.jpg" alt="Sala clásica" />
-            <strong>Sala clásica</strong>
-            <small>Piso de madera oscura, obras enmarcadas y zócalo tradicional.</small>
-          </div>
-        </div>
-        <button class="btn" id="nc-crear">Crear colección</button>
-      </div>
+      </section>
 
-      <p class="pie"><a href="/cuenta.html">← Mi cuenta</a></p>
-    </div>
-  </main>
+      <!-- vista: detalle de museo -->
+      <section id="vista-detalle" hidden></section>
+
+      <!-- vista: perfil -->
+      <section id="vista-perfil" hidden>
+        <h1>Mi perfil</h1>
+        <p class="sub">Estos datos aparecen en tus museos, galerías y catálogos.</p>
+        <div class="card">
+          <label>Foto o logo</label>
+          <div class="portada-editor">
+            <img class="foto-perfil" id="pf-foto" src="" alt="" />
+            <div>
+              <p class="sub" style="margin:4px 0 0">Aparece en la portada de tus museos, antes de entrar al recorrido.<br />Puede ser tu foto o tu logo (PNG con fondo transparente se ve mejor).</p>
+              <button class="btn btn-ghost" id="pf-foto-btn" style="margin-top:12px">Subir imagen</button>
+              <input type="file" id="pf-foto-input" accept="image/*" hidden />
+            </div>
+          </div>
+          <div class="fila">
+            <div>
+              <label>Nombre artístico</label>
+              <input type="text" id="pf-nombre" />
+            </div>
+            <div>
+              <label>Usuario de Instagram</label>
+              <input type="text" id="pf-handle" />
+            </div>
+          </div>
+          <div class="fila">
+            <div>
+              <label>Enlace de Instagram</label>
+              <input type="text" id="pf-instagram" />
+            </div>
+            <div>
+              <label>Sitio web</label>
+              <input type="text" id="pf-web" />
+            </div>
+          </div>
+          <label>Bio</label>
+          <textarea id="pf-bio"></textarea>
+          <button class="btn" id="pf-guardar">Guardar perfil</button>
+        </div>
+      </section>
+    </main>
+  </div>
 
   <div class="aviso" id="aviso"></div>
+  <div id="modal-zona"></div>
 
   <script type="module">
     const $ = (id) => document.getElementById(id)
+    const BASE_PUB = 'https://museario.art'
     const aviso = $('aviso')
     let avisoTimer
     function avisar(msg, esError = false) {
@@ -295,14 +394,14 @@
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(cuerpo),
     })
-
-    // subida con progreso real (XHR permite el evento progress)
-    function subirObra(colSlug, archivo, alProgresar) {
+    function esc(s) {
+      return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;')
+    }
+    function subirBinario(ruta, archivo, alProgresar) {
       return new Promise((resolver, rechazar) => {
-        const q = new URLSearchParams({ filename: archivo.name, title: archivo.name.replace(/\.[^.]+$/, '') })
         const xhr = new XMLHttpRequest()
-        xhr.open('POST', `/api/panel/colecciones/${colSlug}/obras?${q}`)
-        xhr.upload.onprogress = (e) => {
+        xhr.open('POST', ruta)
+        if (alProgresar) xhr.upload.onprogress = (e) => {
           if (e.lengthComputable) alProgresar(Math.round((e.loaded / e.total) * 100))
         }
         xhr.onload = () => {
@@ -315,8 +414,17 @@
         xhr.send(archivo)
       })
     }
+    function pedirArchivo(alElegir, multiple = false) {
+      const inp = document.createElement('input')
+      inp.type = 'file'
+      inp.accept = 'image/*'
+      inp.multiple = multiple
+      inp.onchange = () => alElegir([...inp.files])
+      inp.click()
+    }
 
     let estado = null
+    let colActual = null // slug del museo abierto en detalle
 
     async function cargar() {
       let r
@@ -326,87 +434,267 @@
         return avisar('Sin conexión con el servidor', true)
       }
       if (r.status === 401) { $('v-sesion').hidden = false; return }
-      estado = await r.json()
-
-      $('chip-usuario').hidden = false
-      $('chip-nombre').textContent = estado.usuario.nombre || estado.usuario.email
-      if (estado.usuario.foto) $('chip-foto').src = estado.usuario.foto
+      estado = await r.json().catch(() => null)
+      if (!estado || !estado.usuario) { $('v-sesion').hidden = false; return }
 
       if (!estado.artista) {
-        $('v-panel').hidden = true
+        $('v-dash').hidden = true
         $('v-nuevo').hidden = false
         return
       }
       $('v-nuevo').hidden = true
-      $('v-panel').hidden = false
-      pintarPanel()
+      $('v-dash').hidden = false
+      pintar()
     }
 
-    function pintarPanel() {
+    function pintar() {
       const a = estado.artista
-      $('p-titulo').textContent = a.nombre
+      $('chip-nombre').textContent = a.nombre
+      $('chip-foto').src = a.foto || estado.usuario.foto || ''
+
+      // perfil
       $('pf-nombre').value = a.nombre || ''
       $('pf-handle').value = a.handle || ''
       $('pf-instagram').value = a.instagramUrl || ''
       $('pf-web').value = a.website || ''
       $('pf-bio').value = a.bioEs || ''
+      $('pf-foto').src = a.foto || estado.usuario.foto || ''
 
-      const cont = $('lista-colecciones')
-      cont.innerHTML = ''
-      for (const col of a.colecciones) cont.appendChild(cardColeccion(a, col))
+      // museos
+      $('museos-contador').textContent =
+        `${a.colecciones.length} de ${estado.limiteMuseos} museos. Cada museo tiene su sala 3D y su galería.`
+      const grid = $('museos-grid')
+      grid.innerHTML = ''
+      for (const col of a.colecciones) grid.appendChild(cardMuseo(a, col))
+      if (a.colecciones.length < estado.limiteMuseos) {
+        const nuevo = document.createElement('button')
+        nuevo.className = 'museo-nuevo'
+        nuevo.innerHTML = '<span style="font-size:1.3rem;line-height:1">+</span> Nuevo museo'
+        nuevo.onclick = () => { $('form-nuevo-museo').hidden = false; $('nc-nombre').focus() }
+        grid.appendChild(nuevo)
+      }
+
+      // si hay un detalle abierto, refrescarlo
+      if (colActual) {
+        const col = a.colecciones.find((c) => c.slug === colActual)
+        if (col) pintarDetalle(a, col)
+        else verVista('museos')
+      }
     }
 
-    function cardColeccion(a, col) {
-      const card = document.createElement('div')
-      card.className = 'card'
+    // ---------- vistas ----------
+    function verVista(v) {
+      if (v !== 'detalle') colActual = null
+      $('vista-museos').hidden = v !== 'museos'
+      $('vista-detalle').hidden = v !== 'detalle'
+      $('vista-perfil').hidden = v !== 'perfil'
+      document.querySelectorAll('.nav button').forEach((b) =>
+        b.classList.toggle('activo', b.dataset.v === (v === 'detalle' ? 'museos' : v)))
+    }
+    document.querySelectorAll('.nav button').forEach((b) =>
+      b.addEventListener('click', () => verVista(b.dataset.v)))
+
+    // ---------- cards de museos ----------
+    function cardMuseo(a, col) {
+      const el = document.createElement('div')
+      el.className = 'museo-card'
+      const img = col.portadaUrl
+        ? `<img class="portada" src="${esc(col.portadaUrl)}" alt="" loading="lazy" />`
+        : `<div class="portada" style="display:flex;align-items:center;justify-content:center;color:#4a4a4e;font-size:0.72rem">Sin portada</div>`
+      el.innerHTML =
+        img +
+        `<div class="cuerpo">` +
+        `<h3>${esc(col.nombre)}</h3>` +
+        `<div class="meta">${esc(col.subtitulo || '')} · ${col.obras.length} obra${col.obras.length === 1 ? '' : 's'} · ` +
+        `<span class="badge ${col.publicada ? 'si' : 'no'}">${col.publicada ? 'publicado' : 'oculto'}</span></div>` +
+        `<div class="pie-card"></div>` +
+        `</div>`
+      el.querySelector('.portada').addEventListener('click', () => abrirDetalle(col.slug))
+      el.querySelector('h3').addEventListener('click', () => abrirDetalle(col.slug))
+      const pie = el.querySelector('.pie-card')
+      const bAdmin = document.createElement('button')
+      bAdmin.className = 'btn-mini'
+      bAdmin.textContent = 'Administrar'
+      bAdmin.onclick = () => abrirDetalle(col.slug)
+      const bCompartir = document.createElement('button')
+      bCompartir.className = 'btn-mini'
+      bCompartir.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></svg> Compartir'
+      bCompartir.onclick = () => modalCompartir(a, col)
+      const bVer = document.createElement('a')
+      bVer.className = 'btn-mini'
+      bVer.textContent = 'Ver ↗'
+      bVer.href = `/a/${a.slug}/${col.slug}`
+      bVer.target = '_blank'
+      pie.appendChild(bAdmin); pie.appendChild(bCompartir); pie.appendChild(bVer)
+      return el
+    }
+
+    function abrirDetalle(slug) {
+      colActual = slug
+      const a = estado.artista
+      const col = a.colecciones.find((c) => c.slug === slug)
+      if (!col) return
+      pintarDetalle(a, col)
+      verVista('detalle')
+      window.scrollTo(0, 0)
+    }
+
+    // ---------- detalle de museo ----------
+    function pintarDetalle(a, col) {
+      const cont = $('vista-detalle')
+      cont.innerHTML = ''
+
+      const volver = document.createElement('button')
+      volver.className = 'volver'
+      volver.innerHTML = '← Mis museos'
+      volver.onclick = () => verVista('museos')
+      cont.appendChild(volver)
 
       const head = document.createElement('div')
-      head.className = 'col-head'
       head.innerHTML =
-        `<h2>${esc(col.nombre)} <span class="estado-pub ${col.publicada ? 'si' : 'no'}">· ${col.publicada ? 'publicada' : 'oculta'}</span></h2>` +
-        `<span class="enlaces">` +
-        `<a href="/a/${a.slug}/${col.slug}" target="_blank">Museo 3D ↗</a>` +
-        `<a href="/a/${a.slug}/${col.slug}/galeria" target="_blank">Galería ↗</a>` +
-        `</span>`
-      card.appendChild(head)
+        `<h1>${esc(col.nombre)}</h1>` +
+        `<p class="sub">${esc(col.subtitulo || '')} · ${col.obras.length} obra${col.obras.length === 1 ? '' : 's'} · ` +
+        `<span class="badge ${col.publicada ? 'si' : 'no'}">${col.publicada ? 'publicado' : 'oculto'}</span></p>`
+      cont.appendChild(head)
 
-      const acciones = document.createElement('div')
-      acciones.style.marginTop = '10px'
-      const btnPub = document.createElement('button')
-      btnPub.className = 'btn-mini'
-      btnPub.textContent = col.publicada ? 'Ocultar colección' : 'Publicar colección'
-      btnPub.onclick = async () => {
+      // --- datos + portada ---
+      const cDatos = document.createElement('div')
+      cDatos.className = 'card'
+      cDatos.innerHTML =
+        `<h2>Datos y portada</h2>` +
+        `<div class="fila">` +
+        `<div><label>Nombre</label><input type="text" id="d-nombre" value="${esc(col.nombre)}" /></div>` +
+        `<div><label>Subtítulo / años</label><input type="text" id="d-subtitulo" value="${esc(col.subtitulo || '')}" /></div>` +
+        `</div>` +
+        `<label>Portada (sale en tu panel y al compartir por WhatsApp o redes)</label>` +
+        `<div class="portada-editor">` +
+        (col.portadaUrl
+          ? `<img class="prev" id="d-portada-img" src="${esc(col.portadaUrl)}" alt="" />`
+          : `<div class="prev" id="d-portada-img" style="width:260px;aspect-ratio:1200/630;background:#1b1b1e;border:1px solid var(--borde);display:flex;align-items:center;justify-content:center;color:#4a4a4e;font-size:0.72rem">Sin portada</div>`) +
+        `<div><button class="btn btn-ghost" id="d-portada-btn" style="margin-top:4px">Subir portada</button>` +
+        `<p class="sub" style="margin:10px 0 0">Ideal 1200×630 (se recorta sola).</p></div>` +
+        `</div>` +
+        `<div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap">` +
+        `<button class="btn-mini" id="d-publicar"></button>` +
+        `<button class="btn-mini" id="d-compartir">Compartir</button>` +
+        `<a class="btn-mini" href="/a/${a.slug}/${col.slug}" target="_blank">Museo 3D ↗</a>` +
+        `<a class="btn-mini" href="/a/${a.slug}/${col.slug}/galeria" target="_blank">Galería ↗</a>` +
+        `<span class="guardado" id="d-guardado">Guardado ✓</span>` +
+        `</div>`
+      cont.appendChild(cDatos)
+
+      const marcarGuardado = () => {
+        const g = $('d-guardado')
+        g.classList.add('visible')
+        setTimeout(() => g.classList.remove('visible'), 2200)
+      }
+      const patchCol = async (cuerpo) => {
         try {
-          await api(`/api/panel/colecciones/${col.slug}`, json('PATCH', { publicada: !col.publicada }))
-          avisar(col.publicada ? 'Colección oculta' : 'Colección publicada')
-          cargar()
+          await api(`/api/panel/colecciones/${col.slug}`, json('PATCH', cuerpo))
+          marcarGuardado()
+          await cargar()
         } catch (e) { avisar(e.message, true) }
       }
-      acciones.appendChild(btnPub)
-      card.appendChild(acciones)
+      $('d-nombre').addEventListener('change', () => patchCol({ nombre: $('d-nombre').value }))
+      $('d-subtitulo').addEventListener('change', () => patchCol({ subtitulo: $('d-subtitulo').value }))
+      const bPub = $('d-publicar')
+      bPub.textContent = col.publicada ? 'Ocultar museo' : 'Publicar museo'
+      bPub.onclick = () => patchCol({ publicada: !col.publicada })
+      $('d-compartir').onclick = () => modalCompartir(a, col)
+      $('d-portada-btn').onclick = () => pedirArchivo(async ([f]) => {
+        if (!f) return
+        try {
+          await subirBinario(`/api/panel/colecciones/${col.slug}/portada`, f)
+          avisar('Portada actualizada')
+          await cargar()
+        } catch (e) { avisar(e.message, true) }
+      })
 
+      // --- editor de sala ---
+      const est = col.estilo || {}
+      const baseActual = est.minimal === false ? 'clasica' : 'blanca'
+      const tex = est.texturas || {}
+      const estadoTex = (v) => !v ? 'defecto' : (String(v).startsWith('/media/') ? 'propia' : 'sistema')
+
+      const cSala = document.createElement('div')
+      cSala.className = 'card'
+      cSala.innerHTML =
+        `<h2>Sala 3D</h2>` +
+        `<label>Estilo base</label>` +
+        `<div class="estilos" id="d-estilos">` +
+        `<div class="estilo ${baseActual === 'blanca' ? 'activo' : ''}" data-estilo="blanca">` +
+        `<img src="/museario/estilo-blanca.jpg" alt="" /><strong>Galería blanca</strong>` +
+        `<small>Concreto pulido, lienzo flotante sin marco.</small></div>` +
+        `<div class="estilo ${baseActual === 'clasica' ? 'activo' : ''}" data-estilo="clasica">` +
+        `<img src="/museario/estilo-clasica.jpg" alt="" /><strong>Sala clásica</strong>` +
+        `<small>Madera oscura, marcos y zócalo.</small></div>` +
+        `</div>` +
+        `<div class="tex-fila" style="margin-top:18px">` +
+        `<div><label>Textura del piso</label>` +
+        `<select id="d-tex-piso">` +
+        `<option value="">La del estilo (por defecto)</option>` +
+        `<option value="concreto">Concreto pulido</option>` +
+        `<option value="propia" ${estadoTex(tex.piso) === 'propia' ? '' : 'disabled'}>Mi textura subida</option>` +
+        `</select>` +
+        `<div class="tex-acciones"><button class="btn-mini" id="d-subir-piso">Subir mi textura de piso</button></div></div>` +
+        `<div><label>Textura de la pared</label>` +
+        `<select id="d-tex-pared">` +
+        `<option value="">La del estilo (por defecto)</option>` +
+        `<option value="yeso">Yeso pintado</option>` +
+        `<option value="propia" ${estadoTex(tex.pared) === 'propia' ? '' : 'disabled'}>Mi textura subida</option>` +
+        `</select>` +
+        `<div class="tex-acciones"><button class="btn-mini" id="d-subir-pared">Subir mi textura de pared</button></div></div>` +
+        `</div>` +
+        `<p class="sub" style="margin:14px 0 0">Los cambios se aplican al instante: abre el Museo 3D para verlos. Las texturas subidas se repiten por la superficie — funcionan mejor las fotos de material tomadas de frente.</p>`
+      cont.appendChild(cSala)
+
+      // valores actuales de los selects
+      const selPiso = cSala.querySelector('#d-tex-piso')
+      const selPared = cSala.querySelector('#d-tex-pared')
+      selPiso.value = estadoTex(tex.piso) === 'propia' ? 'propia' : (estadoTex(tex.piso) === 'sistema' ? 'concreto' : '')
+      selPared.value = estadoTex(tex.pared) === 'propia' ? 'propia' : (estadoTex(tex.pared) === 'sistema' ? 'yeso' : '')
+
+      cSala.querySelector('#d-estilos').addEventListener('click', (e) => {
+        const c = e.target.closest('.estilo')
+        if (!c) return
+        patchCol({ estiloBase: c.dataset.estilo })
+      })
+      selPiso.addEventListener('change', () => {
+        if (selPiso.value === 'propia') return // ya está aplicada
+        patchCol({ texturas: { piso: selPiso.value || null } })
+      })
+      selPared.addEventListener('change', () => {
+        if (selPared.value === 'propia') return
+        patchCol({ texturas: { pared: selPared.value || null } })
+      })
+      const subirTextura = (tipo) => pedirArchivo(async ([f]) => {
+        if (!f) return
+        try {
+          await subirBinario(`/api/panel/colecciones/${col.slug}/textura?tipo=${tipo}`, f)
+          avisar(`Textura de ${tipo} aplicada`)
+          await cargar()
+        } catch (e) { avisar(e.message, true) }
+      })
+      cSala.querySelector('#d-subir-piso').onclick = () => subirTextura('piso')
+      cSala.querySelector('#d-subir-pared').onclick = () => subirTextura('pared')
+
+      // --- obras ---
+      const cObras = document.createElement('div')
+      cObras.className = 'card'
+      cObras.innerHTML = `<h2>Obras</h2>`
       const grid = document.createElement('div')
       grid.className = 'obras'
       for (const o of col.obras) grid.appendChild(cardObra(col, o))
-      card.appendChild(grid)
+      cObras.appendChild(grid)
 
-      // subir obras: preview inmediata + barra de progreso por imagen
       const subir = document.createElement('div')
       subir.className = 'subir'
-      const inp = document.createElement('input')
-      inp.type = 'file'
-      inp.accept = 'image/*'
-      inp.multiple = true
-      const btn = document.createElement('button')
-      btn.className = 'btn btn-ghost'
-      btn.style.marginTop = '0'
-      btn.textContent = 'Subir obras (fotos)'
-      btn.onclick = () => inp.click()
-      inp.onchange = async () => {
-        const archivos = [...inp.files]
-        inp.value = ''
+      const btnSubir = document.createElement('button')
+      btnSubir.className = 'btn btn-ghost'
+      btnSubir.style.marginTop = '0'
+      btnSubir.textContent = 'Subir obras (fotos)'
+      btnSubir.onclick = () => pedirArchivo(async (archivos) => {
         let subidas = 0
-        // pinta todas las previews de una vez
         const pendientes = archivos.map((f) => {
           const el = document.createElement('div')
           el.className = 'obra subiendo'
@@ -421,8 +709,8 @@
           const barra = p.el.querySelector('.barra i')
           const estadoEl = p.el.querySelector('.estado-subida')
           try {
-            estadoEl.textContent = 'Subiendo…'
-            await subirObra(col.slug, p.f, (pct) => {
+            const q = new URLSearchParams({ filename: p.f.name, title: p.f.name.replace(/\.[^.]+$/, '') })
+            await subirBinario(`/api/panel/colecciones/${col.slug}/obras?${q}`, p.f, (pct) => {
               barra.style.width = pct + '%'
               estadoEl.textContent = pct < 100 ? `Subiendo… ${pct}%` : 'Optimizando…'
             })
@@ -439,11 +727,32 @@
         }
         if (subidas) avisar(`${subidas} obra${subidas > 1 ? 's' : ''} subida${subidas > 1 ? 's' : ''} y optimizada${subidas > 1 ? 's' : ''}`)
         cargar()
-      }
-      subir.appendChild(btn); subir.appendChild(inp)
-      card.appendChild(subir)
+      }, true)
+      subir.appendChild(btnSubir)
+      cObras.appendChild(subir)
+      cont.appendChild(cObras)
 
-      return card
+      // --- zona de peligro ---
+      const cPeligro = document.createElement('div')
+      cPeligro.className = 'card peligro'
+      cPeligro.innerHTML = `<h2>Eliminar museo</h2><p class="sub" style="margin-bottom:0">Se borran el museo, su galería y todas sus obras. No se puede deshacer.</p>`
+      const bBorrar = document.createElement('button')
+      bBorrar.className = 'btn-mini btn-peligro'
+      bBorrar.style.marginTop = '14px'
+      bBorrar.textContent = 'Eliminar este museo'
+      bBorrar.onclick = async () => {
+        if (!confirm(`¿Eliminar el museo "${col.nombre}" con sus ${col.obras.length} obras? Esta acción no se puede deshacer.`)) return
+        if (!confirm('¿Seguro seguro? Se borra todo.')) return
+        try {
+          await api(`/api/panel/colecciones/${col.slug}`, { method: 'DELETE' })
+          avisar('Museo eliminado')
+          colActual = null
+          verVista('museos')
+          cargar()
+        } catch (e) { avisar(e.message, true) }
+      }
+      cPeligro.appendChild(bBorrar)
+      cont.appendChild(cPeligro)
     }
 
     function cardObra(col, o) {
@@ -459,7 +768,6 @@
         `<input type="text" data-c="price" value="${esc(vendido ? '' : (o.price || ''))}" placeholder="Precio" ${vendido ? 'disabled' : ''} />` +
         `<label class="vendido"><input type="checkbox" data-c="vendido" ${vendido ? 'checked' : ''} />Vendido</label>` +
         `</div>`
-
       const acc = document.createElement('div')
       acc.className = 'acciones'
       const chk = document.createElement('span')
@@ -479,7 +787,6 @@
       acc.appendChild(chk); acc.appendChild(bb)
       el.appendChild(acc)
 
-      // autoguardado: cualquier cambio se guarda solo
       const inTitle = el.querySelector('input[data-c="title"]')
       const inMedium = el.querySelector('input[data-c="medium"]')
       const inPrice = el.querySelector('input[data-c="price"]')
@@ -503,15 +810,42 @@
       inMedium.addEventListener('change', autoguardar)
       inPrice.addEventListener('change', autoguardar)
       inVendido.addEventListener('change', autoguardar)
-
       return el
     }
 
-    function esc(s) {
-      return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;')
+    // ---------- compartir ----------
+    function modalCompartir(a, col) {
+      const url = `${BASE_PUB}/a/${a.slug}/${col.slug}`
+      const zona = $('modal-zona')
+      zona.innerHTML =
+        `<div class="modal-fondo"><div class="modal">` +
+        `<button class="cerrar" title="Cerrar">✕</button>` +
+        `<h3>Compartir "${esc(col.nombre)}"</h3>` +
+        `<div class="enlace-caja"><input type="text" readonly value="${esc(url)}" /><button class="btn-mini" id="mc-copiar">Copiar</button></div>` +
+        `<img class="qr" src="/api/panel/qr?texto=${encodeURIComponent(url)}" alt="Código QR" />` +
+        `<div class="acciones-modal">` +
+        `<a class="btn-mini" href="https://wa.me/?text=${encodeURIComponent(`Recorre "${col.nombre}", el museo virtual de ${a.nombre}: ${url}`)}" target="_blank" rel="noopener">WhatsApp</a>` +
+        `<a class="btn-mini" id="mc-descargar" href="/api/panel/qr?texto=${encodeURIComponent(url)}" download="qr-${esc(col.slug)}.png">Descargar QR</a>` +
+        `</div>` +
+        `</div></div>`
+      const cerrar = () => { zona.innerHTML = '' }
+      zona.querySelector('.cerrar').onclick = cerrar
+      zona.querySelector('.modal-fondo').addEventListener('click', (e) => {
+        if (e.target === zona.querySelector('.modal-fondo')) cerrar()
+      })
+      zona.querySelector('#mc-copiar').onclick = async () => {
+        try {
+          await navigator.clipboard.writeText(url)
+          avisar('Enlace copiado')
+        } catch {
+          zona.querySelector('.enlace-caja input').select()
+          document.execCommand('copy')
+          avisar('Enlace copiado')
+        }
+      }
     }
 
-    // selector visual de estilo
+    // ---------- crear museo ----------
     let estiloElegido = 'blanca'
     $('nc-estilos').addEventListener('click', (e) => {
       const card = e.target.closest('.estilo')
@@ -520,23 +854,34 @@
       document.querySelectorAll('#nc-estilos .estilo').forEach((el) =>
         el.classList.toggle('activo', el === card))
     })
-
-    // crear perfil
-    $('np-crear').addEventListener('click', async () => {
+    $('nc-cancelar').addEventListener('click', () => { $('form-nuevo-museo').hidden = true })
+    $('nc-crear').addEventListener('click', async () => {
       try {
-        await api('/api/panel/artista', json('POST', {
-          nombre: $('np-nombre').value,
-          handle: $('np-handle').value,
-          instagramUrl: $('np-instagram').value,
-          website: $('np-web').value,
-          bioEs: $('np-bio').value,
+        const r = await api('/api/panel/colecciones', json('POST', {
+          nombre: $('nc-nombre').value,
+          subtitulo: $('nc-subtitulo').value,
+          estilo: estiloElegido,
         }))
-        avisar('¡Perfil creado! Ahora crea tu primera colección.')
-        cargar()
+        $('nc-nombre').value = ''; $('nc-subtitulo').value = ''
+        $('form-nuevo-museo').hidden = true
+        avisar('Museo creado — sube tus obras')
+        await cargar()
+        abrirDetalle(r.slug)
       } catch (e) { avisar(e.message, true) }
     })
 
-    // guardar perfil
+    // ---------- perfil ----------
+    $('pf-foto-btn').addEventListener('click', () => $('pf-foto-input').click())
+    $('pf-foto-input').addEventListener('change', async () => {
+      const f = $('pf-foto-input').files[0]
+      if (!f) return
+      try {
+        const r = await subirBinario('/api/panel/artista/foto', f)
+        avisar('Imagen actualizada')
+        $('pf-foto-input').value = ''
+        cargar()
+      } catch (e) { avisar(e.message, true) }
+    })
     $('pf-guardar').addEventListener('click', async () => {
       try {
         await api('/api/panel/artista', json('POST', {
@@ -551,16 +896,17 @@
       } catch (e) { avisar(e.message, true) }
     })
 
-    // crear colección
-    $('nc-crear').addEventListener('click', async () => {
+    // ---------- crear perfil ----------
+    $('np-crear').addEventListener('click', async () => {
       try {
-        await api('/api/panel/colecciones', json('POST', {
-          nombre: $('nc-nombre').value,
-          subtitulo: $('nc-subtitulo').value,
-          estilo: estiloElegido,
+        await api('/api/panel/artista', json('POST', {
+          nombre: $('np-nombre').value,
+          handle: $('np-handle').value,
+          instagramUrl: $('np-instagram').value,
+          website: $('np-web').value,
+          bioEs: $('np-bio').value,
         }))
-        $('nc-nombre').value = ''; $('nc-subtitulo').value = ''
-        avisar('Colección creada — sube tus obras')
+        avisar('¡Perfil creado! Ahora crea tu primer museo.')
         cargar()
       } catch (e) { avisar(e.message, true) }
     })

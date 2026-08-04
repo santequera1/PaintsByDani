@@ -508,6 +508,8 @@ export async function buildSalaPremium(config, renderer) {
     hangBottomMin = null,
     zocalo = true,           // false: la pared muere limpia en el piso, sin borde
     sinMarco = false,        // true: lienzo sin marco, flotando con canto y sombra
+    texPiso = null,          // URL de textura de piso (del sistema o subida por el artista)
+    texPared = null,         // URL de textura de pared
   } = config
 
   // paleta según estilo (los valores "encendidos"; setDark usa los oscuros)
@@ -517,9 +519,9 @@ export async function buildSalaPremium(config, renderer) {
     : { wall: 0xefece5, ceil: 0xf4f1ea, floor: 0xd8c9b4, floorDark: 0x8a7a68, base: 0x211e1b, sky: 0xf5efdd, frame: 0x362b21, mat: 0xffffff, spot: 5.5, tSpot: 4, spotCol: 0xfff2dd, amb: 0.22, hemi: 0.28, rectI: 1.4, refOp: 0.86 }
 
   // El tinte cálido del piso de nogal mancharía el concreto: cuando el piso
-  // usa el estilo Rumiaciones va en blanco puro para respetar la textura.
-  const FLOOR_COL = floorMinimal ? 0xffffff : PAL.floor
-  const FLOOR_COL_DARK = floorMinimal ? 0x55555a : PAL.floorDark
+  // usa el estilo Rumiaciones (o una textura propia) va en blanco puro.
+  const FLOOR_COL = (floorMinimal || texPiso) ? 0xffffff : PAL.floor
+  const FLOOR_COL_DARK = (floorMinimal || texPiso) ? 0x55555a : PAL.floorDark
 
   // altura del eje de colgado (centro de la obra), estándar de museo
   const HANG_CENTER_Y = 1.62
@@ -566,10 +568,10 @@ export async function buildSalaPremium(config, renderer) {
     dithering: true,
   })
   const kind = LOW_TEX ? '1k' : '2k'
-  if (floorMinimal) {
+  const cargarPiso = (url) => {
     // textura fotográfica real del piso (la procedural queda de respaldo
     // mientras carga o si falla). MirroredRepeat oculta las costuras.
-    texLoader.load(`/texturas/piso-rumiaciones-${kind}.webp`, (t) => {
+    texLoader.load(url, (t) => {
       t.colorSpace = THREE.SRGBColorSpace
       t.wrapS = t.wrapT = THREE.MirroredRepeatWrapping
       t.anisotropy = 8
@@ -578,15 +580,27 @@ export async function buildSalaPremium(config, renderer) {
       floorMat.needsUpdate = true
     })
   }
-  if (minimal) {
+  if (texPiso) cargarPiso(texPiso)
+  else if (floorMinimal) cargarPiso(`/texturas/piso-rumiaciones-${kind}.webp`)
+
+  // cada tile de pared cubre ~2.15 m
+  const wallTexSetup = (t, srgb) => {
+    if (srgb) t.colorSpace = THREE.SRGBColorSpace
+    t.wrapS = t.wrapT = THREE.RepeatWrapping
+    t.anisotropy = 8
+    t.repeat.set(7, 2)
+  }
+  if (texPared) {
+    // textura elegida o subida por el artista: base blanca para no teñirla
+    wallMat.color.set(0xffffff)
+    texLoader.load(texPared, (t) => {
+      wallTexSetup(t, true)
+      wallMat.map = t
+      wallMat.needsUpdate = true
+    })
+  } else if (minimal) {
     // paredes: yeso pintado PBR (Poliigon PlasterPainted 7664, tileable);
-    // cada tile cubre ~2.15 m, relieve y brillo reales solo en desktop
-    const wallTexSetup = (t, srgb) => {
-      if (srgb) t.colorSpace = THREE.SRGBColorSpace
-      t.wrapS = t.wrapT = THREE.RepeatWrapping
-      t.anisotropy = 8
-      t.repeat.set(7, 2)
-    }
+    // relieve y brillo reales solo en desktop
     texLoader.load(`/texturas/pared-rumiaciones-${kind}.webp`, (t) => {
       wallTexSetup(t, true)
       wallMat.map = t
@@ -605,6 +619,8 @@ export async function buildSalaPremium(config, renderer) {
         wallMat.needsUpdate = true
       })
     }
+  }
+  if (minimal) {
     // techo: el mismo estuco de la pared, aún más claro (casi blanco)
     texLoader.load('/texturas/techo-rumiaciones-color.webp', (t) => {
       t.colorSpace = THREE.SRGBColorSpace

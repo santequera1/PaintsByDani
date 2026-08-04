@@ -240,6 +240,8 @@ async function main() {
           minimal: est.minimal !== false,
           sinMarco: est.sinMarco !== false,
           zocalo: !!est.zocalo,
+          texPiso: (est.texturas && est.texturas.piso) || null,
+          texPared: (est.texturas && est.texturas.pared) || null,
           ...(est.hangBottomMin ? { hangBottomMin: est.hangBottomMin } : {}),
         },
         engine.renderer
