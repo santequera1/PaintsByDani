@@ -26,6 +26,7 @@ export default defineConfig({
         panel: resolve(__dirname, 'panel.html'),
         museario: resolve(__dirname, 'museario.html'),
         perfil: resolve(__dirname, 'perfil.html'),
+        libros: resolve(__dirname, 'libros.html'),
       },
     },
   },
