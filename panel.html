@@ -1051,7 +1051,7 @@
       // --- obras ---
       const cObras = document.createElement('div')
       cObras.className = 'card'
-      cObras.innerHTML = `<h2>Obras</h2>`
+      cObras.innerHTML = `<h2>Obras <span class="estado-pub" style="color:var(--tinta-2)">· ${col.obras.length} de 30</span></h2>`
       const grid = document.createElement('div')
       grid.className = 'obras'
       for (const o of col.obras) grid.appendChild(cardObra(col, o))

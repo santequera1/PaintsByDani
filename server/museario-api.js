@@ -671,6 +671,9 @@ async function rutasPanel(req, res, resto, url) {
   if (resto[1] === 'colecciones' && resto[2] && resto[3] === 'obras' && req.method === 'POST') {
     const col = qColeccionPanel.get(artista.id, resto[2])
     if (!col) return privado(res, 404, { error: 'Colección no encontrada' })
+    if (qObras.all(col.id).length >= 30) {
+      return privado(res, 400, { error: 'Límite de 30 obras por museo. Puedes crear otro museo o eliminar alguna obra.' })
+    }
     let sharp
     try {
       sharp = (await import('sharp')).default
