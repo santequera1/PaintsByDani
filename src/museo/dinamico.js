@@ -139,10 +139,19 @@ async function main() {
   document.title = `${EN ? 'Virtual Museum' : 'Museo Virtual'} · ${TITULO} | ${artista.nombre}`
   const artistPhoto = document.getElementById('artist-photo')
   if (artistPhoto) {
-    artistPhoto.src = artista.logoBlanco || artista.profileImage || ''
+    // logo del artista (subido o de marca) → wordmark; foto → círculo;
+    // sin nada (o si falla la carga) → logo de Museario
+    const LOGO_MUSEARIO = '/museario/logo-blanco.svg'
+    const subido = (artista.profileImage || '').startsWith('/media/')
+    artistPhoto.src = artista.logoBlanco || artista.profileImage || LOGO_MUSEARIO
     artistPhoto.alt = artista.nombre
-    artistPhoto.className = artista.logoBlanco ? 'artist-logo' : ''
-    artistPhoto.hidden = !artistPhoto.src
+    artistPhoto.className = artista.logoBlanco || subido || !artista.profileImage ? 'artist-logo' : ''
+    artistPhoto.hidden = false
+    artistPhoto.onerror = () => {
+      artistPhoto.onerror = null
+      artistPhoto.src = LOGO_MUSEARIO
+      artistPhoto.className = 'artist-logo'
+    }
   }
   const h1 = document.querySelector('#overlay-brand h1')
   if (h1) h1.textContent = TITULO
