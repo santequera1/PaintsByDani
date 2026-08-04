@@ -34,9 +34,11 @@ async function main() {
   // --- Portada / selector de colecciones ---
   const introLogo = document.getElementById('pg-intro-logo')
   if (introLogo) {
-    introLogo.src = artista.logoNegro || artista.profileImage || ''
+    // sin logo ni foto propios: el logo de Museario (la portada es clara)
+    introLogo.src = artista.logoNegro || artista.profileImage || '/museario/logo-negro.svg'
     introLogo.alt = artista.nombre
-    introLogo.hidden = !introLogo.src
+    introLogo.hidden = false
+    introLogo.onerror = () => { introLogo.onerror = null; introLogo.src = '/museario/logo-negro.svg' }
   }
   const choices = document.getElementById('pg-intro-choices')
   if (choices) {
@@ -75,8 +77,15 @@ async function main() {
   // --- Marca / panel del artista ---
   const brandLogo = document.getElementById('pg-brand-logo')
   if (brandLogo) {
-    brandLogo.src = artista.logoNegro || artista.profileImage || ''
-    brandLogo.alt = artista.nombre
+    const propio = artista.logoNegro || artista.profileImage
+    if (propio) {
+      brandLogo.src = propio
+      brandLogo.alt = artista.nombre
+      brandLogo.onerror = () => { brandLogo.onerror = null; brandLogo.style.display = 'none' }
+    } else {
+      // sin imagen: el nombre del artista ya está al lado, la imagen sobra
+      brandLogo.style.display = 'none'
+    }
   }
   const set = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt }
   set('pg-brand-name', artista.nombre)

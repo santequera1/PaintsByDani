@@ -112,7 +112,7 @@
     h1 {
       font-family: 'DM Serif Display', serif;
       font-weight: 400;
-      font-size: clamp(2.3rem, 7.2vw, 4.4rem);
+      font-size: clamp(2rem, 7.2vw, 4.4rem);
       line-height: 1.06;
       margin: 0 0 18px;
       max-width: 13em;
@@ -287,6 +287,19 @@
     }
     @media (max-width: 760px) {
       .final-fotos { display: none; }
+      .final { margin-top: 40px; padding: 70px 20px 20px; }
+      .final-velo {
+        background: linear-gradient(180deg, #0b0b0d 0%, rgba(11, 11, 13, 0.86) 30%, rgba(11, 11, 13, 0.94) 100%);
+      }
+      .final-logo { width: min(140px, 40vw); margin-bottom: 22px; }
+      .final h2 { margin-bottom: 26px; }
+      .liquid-glass-btn {
+        background: #ece8df; color: #16130f;
+        border: 0; box-shadow: none;
+        backdrop-filter: none; -webkit-backdrop-filter: none;
+      }
+      .liquid-glass-btn:hover { background: #fff; }
+      .final-stats { margin-top: 0; border-top: 0; padding-top: 6px; }
     }
     /* revelado al hacer scroll */
     .revela { opacity: 0; }
@@ -321,7 +334,8 @@
     }
     .solo-movil { display: none; }
     @media (max-width: 720px) {
-      .obra-flotante { --w: 84px !important; }
+      /* en táctil las obras no se arrastran: el dedo es para hacer scroll */
+      .obra-flotante { --w: 108px !important; touch-action: pan-y; cursor: default; }
       .ocultar-movil { display: none; }
       .solo-movil { display: block; }
       #populares { padding-top: 120px; }
@@ -428,7 +442,7 @@
       { b: 'cat-posts', f: 'Me siento conectada a este parque, 2026', x: '3%', y: '5%', r: -7, w: 146 },
       { b: 'posts', f: 'My lady', x: '16%', y: '11%', r: 4, w: 104, m: true },
       { b: 'alma-posts', f: 'Limerencia, 2022', x: '29%', y: '4%', r: -5, w: 116, m: true },
-      { b: 'posts', f: 'Me', x: '43%', y: '8%', r: 6, w: 96, m: true },
+      { b: 'posts', f: 'Me', x: '43%', y: '8%', r: 6, w: 96 },
       { b: 'conexiones-posts', f: 'Vainilla y Chocolate, 2025', x: '56%', y: '4%', r: -4, w: 122, m: true },
       { b: 'conexiones-posts', f: 'Maníaco, 2022', x: '70%', y: '10%', r: 5, w: 104, m: true },
       { b: 'alma-posts', f: 'Energia, 2024', x: '85%', y: '5%', r: 6, w: 134 },
@@ -445,7 +459,7 @@
       // fila inferior
       { b: 'cat-posts', f: 'El sabor de tu sudor, 2026', x: '20%', y: '82%', r: 4, w: 106, m: true },
       { b: 'alma-posts', f: 'Catarsis, 2024', x: '33%', y: '86%', r: -5, w: 120, m: true },
-      { b: 'posts', f: 'Little Dan', x: '47%', y: '88%', r: -6, w: 104, m: true },
+      { b: 'posts', f: 'Little Dan', x: '47%', y: '88%', r: -6, w: 104 },
       { b: 'alma-posts', f: 'Infancia, 2023', x: '60%', y: '86%', r: 5, w: 108, m: true },
       { b: 'posts', f: 'Retrato', x: '72%', y: '84%', r: 5, w: 98, m: true },
       // solo móvil: la franja entre el hero y la siguiente sección
@@ -469,7 +483,8 @@
       el.innerHTML = `<img src="/${o.b}/thumb/${encodeURI(o.f)}.webp" alt="" draggable="false" loading="lazy" />`
       cont.appendChild(el)
 
-      // arrastrable
+      // arrastrable (solo con mouse: en táctil el dedo hace scroll)
+      if (matchMedia('(hover: none)').matches) return
       let px = 0, py = 0, sx = 0, sy = 0
       el.addEventListener('pointerdown', (e) => {
         el.setPointerCapture(e.pointerId)
