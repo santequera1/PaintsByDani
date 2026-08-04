@@ -319,8 +319,8 @@ async function rutasAuth(req, res, resto, url) {
 const ESTILOS = {
   // Galería blanca: cubo blanco, concreto, lienzo flotante sin marco
   blanca: { minimal: true, sinMarco: true, zocalo: false },
-  // Clásica: piso de madera, marcos y zócalo
-  clasica: { minimal: false, sinMarco: false, zocalo: true },
+  // Clásica: piso de madera y marcos (la línea del piso se elige aparte)
+  clasica: { minimal: false, sinMarco: false, zocalo: false },
 }
 
 function slugificar(texto) {
@@ -530,6 +530,7 @@ async function rutasPanel(req, res, resto, url) {
     }
     if (b.sinMarco !== undefined) estilo.sinMarco = !!b.sinMarco
     if (b.banca !== undefined) estilo.banca = !!b.banca
+    if (b.zocalo !== undefined) estilo.zocalo = !!b.zocalo
     if (b.texturas !== undefined) {
       // valores: null (por defecto del estilo), id del sistema, o URL /media/ ya subida
       const SISTEMA = {

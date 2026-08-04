@@ -889,6 +889,11 @@
         swatch('si', null, 'Con banca', est.banca !== false) +
         swatch('no', null, 'Sin banca', est.banca === false) +
         `</div>` +
+        `<label>Línea divisoria del piso (zócalo)</label>` +
+        `<div class="swatches" id="d-zocalo">` +
+        swatch('no', null, 'Sin línea — la pared muere limpia en el piso', !est.zocalo) +
+        swatch('si', null, 'Con línea negra, estilo galería clásica', !!est.zocalo) +
+        `</div>` +
         `<label>Textura del piso</label>` +
         `<div class="swatches" id="d-piso">` +
         swatch('', baseActual === 'clasica' ? '/museario/tex-madera.jpg' : '/museario/tex-concreto.jpg', 'La del estilo', ePiso === 'defecto') +
@@ -920,6 +925,11 @@
         const c = e.target.closest('.swatch')
         if (!c) return
         patchCol({ banca: c.dataset.v === 'si' })
+      })
+      cSala.querySelector('#d-zocalo').addEventListener('click', (e) => {
+        const c = e.target.closest('.swatch')
+        if (!c) return
+        patchCol({ zocalo: c.dataset.v === 'si' })
       })
       const subirTextura = (tipo) => pedirArchivo(async ([f]) => {
         if (!f) return
