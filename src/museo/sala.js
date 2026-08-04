@@ -511,6 +511,10 @@ export async function buildSalaPremium(config, renderer) {
     texPiso = null,          // URL de textura de piso (del sistema o subida por el artista)
     texPared = null,         // URL de textura de pared
     banca = true,            // false: sala sin bancas
+    colorPared = null,       // tinte de la pared (int 0xRRGGBB)
+    colorMarco = null,       // color del marco de las obras
+    luz = null,              // 'calida' | 'neutra' | 'fria' (null: la del estilo)
+    placas = true,           // false: obras sin cartela
   } = config
 
   // paleta según estilo (los valores "encendidos"; setDark usa los oscuros)
@@ -518,6 +522,13 @@ export async function buildSalaPremium(config, renderer) {
   const PAL = minimal
     ? { wall: 0xffffff, ceil: 0xffffff, floor: 0xffffff, floorDark: 0x55555a, base: 0x141416, sky: 0xffffff, frame: 0x4a3423, mat: 0xffffff, spot: 1.2, tSpot: 1.4, spotCol: 0xffffff, amb: 0.5, hemi: 0.5, rectI: 1.6, refOp: 0.9 }
     : { wall: 0xefece5, ceil: 0xf4f1ea, floor: 0xd8c9b4, floorDark: 0x8a7a68, base: 0x211e1b, sky: 0xf5efdd, frame: 0x362b21, mat: 0xffffff, spot: 5.5, tSpot: 4, spotCol: 0xfff2dd, amb: 0.22, hemi: 0.28, rectI: 1.4, refOp: 0.86 }
+
+  // personalización del artista sobre la paleta del estilo
+  if (colorPared != null) { PAL.wall = colorPared; PAL.ceil = colorPared }
+  if (colorMarco != null) PAL.frame = colorMarco
+  if (luz === 'calida') PAL.spotCol = 0xfff2dd
+  else if (luz === 'fria') PAL.spotCol = 0xdfe9ff
+  else if (luz === 'neutra') PAL.spotCol = 0xffffff
 
   // El tinte cálido del piso de nogal mancharía el concreto: cuando el piso
   // usa el estilo Rumiaciones (o una textura propia) va en blanco puro.
@@ -816,14 +827,17 @@ export async function buildSalaPremium(config, renderer) {
     fg.add(imgMesh)
     paintingMeshes.push(imgMesh)
 
-    const plaque = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.92, 0.36), // proporción del canvas 1024×400
-      new THREE.MeshBasicMaterial({ map: makePlaque(p.art.title, p.art.medium, p.art.price, font, minimal) })
-    )
-    plaque.userData.artwork = p.art
-    plaque.userData.plaqueFor = imgMesh
-    plaqueMeshes.push(plaque)
-    fg.add(plaque)
+    let plaque = null
+    if (placas) {
+      plaque = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.92, 0.36), // proporción del canvas 1024×400
+        new THREE.MeshBasicMaterial({ map: makePlaque(p.art.title, p.art.medium, p.art.price, font, minimal) })
+      )
+      plaque.userData.artwork = p.art
+      plaque.userData.plaqueFor = imgMesh
+      plaqueMeshes.push(plaque)
+      fg.add(plaque)
+    }
 
     const sizeFrame = (ratio) => {
       let iw, ih
@@ -878,7 +892,7 @@ export async function buildSalaPremium(config, renderer) {
 
       imgMesh.geometry.dispose()
       imgMesh.geometry = new THREE.PlaneGeometry(iw, ih)
-      plaque.position.set(0, -(outH / 2) - 0.34, 0.012)
+      if (plaque) plaque.position.set(0, -(outH / 2) - 0.34, 0.012)
 
       // obras verticales/altas: subir el conjunto para que la placa nunca
       // quede pegada al piso (placa a ≥ ~0.6 m de altura)

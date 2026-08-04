@@ -547,6 +547,20 @@ async function rutasPanel(req, res, resto, url) {
     if (b.sinMarco !== undefined) estilo.sinMarco = !!b.sinMarco
     if (b.banca !== undefined) estilo.banca = !!b.banca
     if (b.zocalo !== undefined) estilo.zocalo = !!b.zocalo
+    if (b.placas !== undefined) estilo.placas = !!b.placas
+    if (b.sinVitrina !== undefined) estilo.sinVitrina = !!b.sinVitrina
+    if (b.inicioOscuro !== undefined) estilo.inicioOscuro = !!b.inicioOscuro
+    if (b.reflejos !== undefined) estilo.reflect = b.reflejos ? 'desktop' : false
+    if (b.luz !== undefined) {
+      estilo.luz = ['calida', 'neutra', 'fria'].includes(b.luz) ? b.luz : undefined
+      if (!estilo.luz) delete estilo.luz
+    }
+    for (const campo of ['colorPared', 'colorMarco']) {
+      if (b[campo] !== undefined) {
+        if (typeof b[campo] === 'string' && /^#[0-9a-fA-F]{6}$/.test(b[campo])) estilo[campo] = b[campo]
+        else delete estilo[campo]
+      }
+    }
     if (b.texturas !== undefined) {
       // valores: null (por defecto del estilo), id del sistema, o URL /media/ ya subida
       const SISTEMA = {

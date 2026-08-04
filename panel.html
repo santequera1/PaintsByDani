@@ -299,6 +299,20 @@
       font-size: 0.66rem; padding: 8px; font-family: inherit; background: transparent;
     }
     .swatch.subir:hover { color: var(--tinta); }
+    .chips { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+    .chip-color {
+      width: 36px; height: 36px; border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.18);
+      cursor: pointer; padding: 0; position: relative;
+      transition: transform .15s ease, border-color .15s ease;
+    }
+    .chip-color:hover { transform: scale(1.12); }
+    .chip-color.activo { border-color: var(--tinta); box-shadow: 0 0 0 3px rgba(236,232,223,0.25); }
+    .chip-color.defecto {
+      background: repeating-conic-gradient(#26262a 0 25%, #1a1a1d 0 50%) 0 0 / 12px 12px;
+      color: var(--tinta-2); font-size: 0.85rem; font-family: inherit;
+      display: grid; place-content: center;
+    }
 
     /* animaciones (el panel debe sentirse vivo) */
     @keyframes aparecer { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
@@ -894,6 +908,44 @@
         swatch('no', null, 'Sin línea — la pared muere limpia en el piso', !est.zocalo) +
         swatch('si', null, 'Con línea negra, estilo galería clásica', !!est.zocalo) +
         `</div>` +
+        `<label>Color de la pared</label>` +
+        `<div class="chips" id="d-color-pared">` +
+        `<button class="chip-color defecto" data-c="" title="La del estilo">✕</button>` +
+        ['#ffffff', '#efece5', '#e3d5bd', '#ccd5c8', '#c9ccd8', '#d8c2c2', '#8f9aa8', '#2b2b30']
+          .map((c) => `<button class="chip-color" data-c="${c}" style="background:${c}"></button>`).join('') +
+        `</div>` +
+        `<label>Color del marco (si las obras van con marco)</label>` +
+        `<div class="chips" id="d-color-marco">` +
+        `<button class="chip-color defecto" data-c="" title="El del estilo">✕</button>` +
+        ['#1c1a17', '#4a3423', '#7a5a35', '#b08d3f', '#e8e4da', '#5a6155']
+          .map((c) => `<button class="chip-color" data-c="${c}" style="background:${c}"></button>`).join('') +
+        `</div>` +
+        `<label>Temperatura de la luz</label>` +
+        `<div class="swatches" id="d-luz">` +
+        swatch('calida', null, 'Cálida — dorada, de galería', est.luz === 'calida') +
+        swatch('', null, 'La del estilo', !est.luz) +
+        swatch('fria', null, 'Fría — azulada, de museo moderno', est.luz === 'fria') +
+        `</div>` +
+        `<label>Cartelas (placas con título y precio)</label>` +
+        `<div class="swatches" id="d-placas">` +
+        swatch('si', null, 'Con cartelas', est.placas !== false) +
+        swatch('no', null, 'Sin cartelas — solo la obra', est.placas === false) +
+        `</div>` +
+        `<label>Vitrina central con catálogo</label>` +
+        `<div class="swatches" id="d-vitrina">` +
+        swatch('si', null, 'Con vitrina', !est.sinVitrina) +
+        swatch('no', null, 'Sin vitrina', !!est.sinVitrina) +
+        `</div>` +
+        `<label>Reflejos en el piso (escritorio)</label>` +
+        `<div class="swatches" id="d-reflejos">` +
+        swatch('si', null, 'Con reflejos', est.reflect === 'desktop' || est.reflect === true) +
+        swatch('no', null, 'Piso mate', !est.reflect) +
+        `</div>` +
+        `<label>Al entrar</label>` +
+        `<div class="swatches" id="d-inicio">` +
+        swatch('luz', null, 'Luces encendidas', !est.inicioOscuro) +
+        swatch('oscuro', null, 'Luces apagadas — modo nocturno', !!est.inicioOscuro) +
+        `</div>` +
         `<label>Textura del piso</label>` +
         `<div class="swatches" id="d-piso">` +
         swatch('', baseActual === 'clasica' ? '/museario/tex-madera.jpg' : '/museario/tex-concreto.jpg', 'La del estilo', ePiso === 'defecto') +
@@ -910,6 +962,13 @@
         `</div>` +
         `<p class="sub" style="margin:16px 0 0">Los cambios se aplican al instante: abre el Museo 3D para verlos. Las texturas subidas se repiten por la superficie — funcionan mejor las fotos de material tomadas de frente.</p>`
       cont.appendChild(cSala)
+      // chips de color activos según el estilo guardado
+      const marcarChips = (idc, valor) => {
+        cSala.querySelectorAll(idc + ' .chip-color').forEach((ch) =>
+          ch.classList.toggle('activo', (ch.dataset.c || '') === (valor || '')))
+      }
+      marcarChips('#d-color-pared', est.colorPared)
+      marcarChips('#d-color-marco', est.colorMarco)
 
       cSala.querySelector('#d-estilos').addEventListener('click', (e) => {
         const c = e.target.closest('.estilo')
@@ -930,6 +989,40 @@
         const c = e.target.closest('.swatch')
         if (!c) return
         patchCol({ zocalo: c.dataset.v === 'si' })
+      })
+      const chipHandler = (idc, campo) => {
+        cSala.querySelector(idc).addEventListener('click', (e) => {
+          const c = e.target.closest('.chip-color')
+          if (!c) return
+          patchCol({ [campo]: c.dataset.c || null })
+        })
+      }
+      chipHandler('#d-color-pared', 'colorPared')
+      chipHandler('#d-color-marco', 'colorMarco')
+      cSala.querySelector('#d-luz').addEventListener('click', (e) => {
+        const c = e.target.closest('.swatch')
+        if (!c || c.dataset.v === undefined) return
+        patchCol({ luz: c.dataset.v || null })
+      })
+      cSala.querySelector('#d-placas').addEventListener('click', (e) => {
+        const c = e.target.closest('.swatch')
+        if (!c) return
+        patchCol({ placas: c.dataset.v === 'si' })
+      })
+      cSala.querySelector('#d-vitrina').addEventListener('click', (e) => {
+        const c = e.target.closest('.swatch')
+        if (!c) return
+        patchCol({ sinVitrina: c.dataset.v === 'no' })
+      })
+      cSala.querySelector('#d-reflejos').addEventListener('click', (e) => {
+        const c = e.target.closest('.swatch')
+        if (!c) return
+        patchCol({ reflejos: c.dataset.v === 'si' })
+      })
+      cSala.querySelector('#d-inicio').addEventListener('click', (e) => {
+        const c = e.target.closest('.swatch')
+        if (!c) return
+        patchCol({ inicioOscuro: c.dataset.v === 'oscuro' })
       })
       const subirTextura = (tipo) => pedirArchivo(async ([f]) => {
         if (!f) return

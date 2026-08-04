@@ -212,7 +212,7 @@ async function main() {
   // (declaradas antes de construir la sala: applyLights/updateArtworkCounter
   //  se invocan apenas termina el build)
   const lightsBtn = document.getElementById('lights-btn')
-  let darkMode = false
+  let darkMode = !!est.inicioOscuro
   const seenObras = new Set()
 
   // ============================================================
@@ -237,9 +237,12 @@ async function main() {
         engine.renderer
       )
     } else {
-      const vitrina = est.vitrina
-        ? { ...est.vitrina, sub: EN ? (est.vitrina.sub || '').replace('Catálogo', 'Catalogue') : est.vitrina.sub }
-        : { title: coleccion.nombre.toUpperCase(), sub: EN ? 'Catalogue' : 'Catálogo' }
+      const vitrina = est.sinVitrina
+        ? null
+        : est.vitrina
+          ? { ...est.vitrina, sub: EN ? (est.vitrina.sub || '').replace('Catálogo', 'Catalogue') : est.vitrina.sub }
+          : { title: coleccion.nombre.toUpperCase(), sub: EN ? 'Catalogue' : 'Catálogo' }
+      const hexAInt = (h) => (typeof h === 'string' && /^#[0-9a-fA-F]{6}$/.test(h) ? parseInt(h.slice(1), 16) : null)
       sala = await buildSalaPremium(
         {
           artworks: OBRAS,
@@ -258,6 +261,10 @@ async function main() {
           texPiso: (est.texturas && est.texturas.piso) || null,
           texPared: (est.texturas && est.texturas.pared) || null,
           banca: est.banca !== false,
+          colorPared: hexAInt(est.colorPared),
+          colorMarco: hexAInt(est.colorMarco),
+          luz: est.luz || null,
+          placas: est.placas !== false,
           ...(est.hangBottomMin ? { hangBottomMin: est.hangBottomMin } : {}),
         },
         engine.renderer
