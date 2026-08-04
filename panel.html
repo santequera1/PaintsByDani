@@ -93,16 +93,6 @@
       width: 22px; height: 22px; border-radius: 7px; flex-shrink: 0;
       background: #232326 center/cover; border: 1px solid var(--borde);
     }
-    .side-qr {
-      margin: 18px 8px 12px;
-      text-align: center;
-    }
-    .side-qr img {
-      width: 116px; height: 116px;
-      background: #fff; border-radius: 14px; padding: 7px;
-      display: block; margin: 0 auto 8px;
-    }
-    .side-qr span { font-size: 0.64rem; color: var(--tinta-3); line-height: 1.45; letter-spacing: 0.04em; }
     aside .abajo { margin-top: auto; }
     .chip {
       display: flex; align-items: center; gap: 10px;
@@ -124,7 +114,7 @@
       .nav button { padding: 9px 13px; white-space: nowrap; font-size: 0.78rem; }
       /* en móvil el perfil se abre tocando la foto, no con texto */
       .nav button[data-v="perfil"] { display: none; }
-      .nav-museos, .side-qr { display: none; }
+      .nav-museos { display: none; }
       aside .abajo { margin: 0 0 0 auto; }
       .chip { border-top: 0; padding: 0; }
       .chip .nom { display: none; }
@@ -461,10 +451,6 @@
           Mi perfil
         </button>
       </nav>
-      <div class="side-qr" id="side-qr" hidden>
-        <img id="side-qr-img" src="" alt="QR de tu perfil" />
-        <span>Escanéame:<br />tu perfil público</span>
-      </div>
       <div class="abajo">
         <div class="chip">
           <img id="chip-foto" src="" alt="" />
@@ -726,10 +712,6 @@
         navM.appendChild(b)
       }
 
-      // QR del perfil en el sidebar
-      const qrBox = $('side-qr')
-      qrBox.hidden = false
-      $('side-qr-img').src = `/api/panel/qr?texto=${encodeURIComponent(`${BASE_PUB}/a/${a.slug}`)}`
 
       // si hay un detalle abierto, refrescarlo
       if (colActual) {
