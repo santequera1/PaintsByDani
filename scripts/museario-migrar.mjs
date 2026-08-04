@@ -110,6 +110,9 @@ db.exec(`
 `)
 
 // Borrar solo los datos de los artistas semilla (se reinsertan abajo).
+// Si una cuenta de usuario está vinculada a un artista semilla, se recuerda
+// para re-vincularla al ID nuevo al final (los IDs cambian al reinsertar).
+const vinculosPorSlug = {}
 {
   const delObras = db.prepare(
     'DELETE FROM obras WHERE coleccion_id IN (SELECT id FROM colecciones WHERE artista_id = ?)'
@@ -119,6 +122,12 @@ db.exec(`
   for (const slug of SEMILLA) {
     const fila = db.prepare('SELECT id FROM artistas WHERE slug = ?').get(slug)
     if (!fila) continue
+    try {
+      vinculosPorSlug[slug] = db
+        .prepare('SELECT id FROM usuarios WHERE artista_id = ?')
+        .all(fila.id)
+        .map((u) => u.id)
+    } catch { /* la tabla usuarios aún no existe en bases nuevas */ }
     delObras.run(fila.id)
     delColecciones.run(fila.id)
     delArtista.run(fila.id)
@@ -214,6 +223,17 @@ const colAlma = insColeccion.run(
   }), 2
 ).lastInsertRowid
 agregarObras(colAlma, OBRAS_ALMA)
+
+// --- re-vincular cuentas de usuario a los artistas semilla reinsertados ---
+for (const [slug, usuarios] of Object.entries(vinculosPorSlug)) {
+  if (!usuarios.length) continue
+  const nuevo = db.prepare('SELECT id FROM artistas WHERE slug = ?').get(slug)
+  if (!nuevo) continue
+  for (const uid of usuarios) {
+    db.prepare('UPDATE usuarios SET artista_id = ? WHERE id = ?').run(nuevo.id, uid)
+  }
+  console.log(`  vínculo restaurado: ${usuarios.length} cuenta(s) → ${slug}`)
+}
 
 // --- resumen ---
 const n = (sql) => db.prepare(sql).get().n
