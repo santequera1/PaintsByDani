@@ -56,6 +56,7 @@ db.exec(`
 // columnas añadidas después del primer despliegue (ignorar si ya existen)
 try { db.exec('ALTER TABLE usuarios ADD COLUMN password_hash TEXT') } catch {}
 try { db.exec('ALTER TABLE colecciones ADD COLUMN portada TEXT') } catch {}
+try { db.exec('ALTER TABLE artistas ADD COLUMN redes TEXT') } catch {}
 
 // correos interesados desde la landing ("avísame cuando abra")
 db.exec(`
@@ -110,6 +111,7 @@ const pubArtista = (a) => ({
   logoNegro: a.logo_negro,
   bioEs: a.bio_es,
   bioEn: a.bio_en,
+  redes: parse(a.redes) || {},
 })
 
 const pubColeccion = (c, { conEstilo = false } = {}) => ({
@@ -119,6 +121,12 @@ const pubColeccion = (c, { conEstilo = false } = {}) => ({
   imgBase: c.img_base,
   pdfUrl: c.pdf_url,
   portada: qPortada.get(c.id)?.filename ?? null,
+  portadaUrl: c.portada
+    ? `/${c.portada}`
+    : (() => {
+        const f = qPortada.get(c.id)?.filename
+        return f ? `/${c.img_base}/thumb/${encodeURI(f.replace(/\.[^.]+$/, ''))}.webp` : null
+      })(),
   estilo: parse(c.estilo),
   ...(conEstilo && {
     statementEs: parse(c.statement_es),
@@ -399,8 +407,10 @@ async function rutasPanel(req, res, resto, url) {
       limiteMuseos: 5,
       artista: artista && {
         slug: artista.slug, nombre: artista.nombre, handle: artista.handle,
-        instagramUrl: artista.instagram_url, website: artista.website, bioEs: artista.bio_es,
+        instagramUrl: artista.instagram_url, website: artista.website,
+        substack: artista.substack, bioEs: artista.bio_es,
         foto: artista.profile_image,
+        redes: parse(artista.redes) || {},
         colecciones,
       },
     })
@@ -424,17 +434,28 @@ async function rutasPanel(req, res, resto, url) {
     const handle = (b.handle || '').trim() || null
     const instagram = (b.instagramUrl || '').trim() || null
     const website = (b.website || '').trim() || null
+    const substack = (b.substack || '').trim() || null
     const bio = (b.bioEs || '').trim() || null
+    // redes opcionales (linktree del artista)
+    let redes = null
+    if (b.redes && typeof b.redes === 'object') {
+      const limpio = {}
+      for (const k of ['telefono', 'behance', 'youtube', 'tiktok', 'facebook', 'x']) {
+        const v = (b.redes[k] || '').toString().trim()
+        if (v) limpio[k] = v.slice(0, 200)
+      }
+      redes = Object.keys(limpio).length ? JSON.stringify(limpio) : null
+    }
     if (artista) {
       db.prepare(
-        'UPDATE artistas SET nombre=?, handle=?, instagram_url=?, website=?, bio_es=? WHERE id=?'
-      ).run(nombre, handle, instagram, website, bio, artista.id)
+        'UPDATE artistas SET nombre=?, handle=?, instagram_url=?, website=?, substack=?, bio_es=?, redes=? WHERE id=?'
+      ).run(nombre, handle, instagram, website, substack, bio, redes, artista.id)
       return privado(res, 200, { ok: true, slug: artista.slug })
     }
     const slug = slugUnico(slugificar(nombre), (s) => !!qArtista.get(s))
     const { lastInsertRowid: id } = db.prepare(
-      'INSERT INTO artistas (slug, nombre, handle, instagram_url, website, bio_es) VALUES (?,?,?,?,?,?)'
-    ).run(slug, nombre, handle, instagram, website, bio)
+      'INSERT INTO artistas (slug, nombre, handle, instagram_url, website, substack, bio_es, redes) VALUES (?,?,?,?,?,?,?,?)'
+    ).run(slug, nombre, handle, instagram, website, substack, bio, redes)
     db.prepare('UPDATE usuarios SET artista_id=? WHERE id=?').run(id, u.id)
     return privado(res, 200, { ok: true, slug })
   }
@@ -691,6 +712,34 @@ async function plantilla(nombre) {
 
 const escHtml = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;')
 
+// /a/:artista — perfil público del artista (tipo linktree)
+async function paginaPerfil(res, slug) {
+  let html = await plantilla('perfil.html')
+  const a = qArtista.get(slug)
+  if (a) {
+    const titulo = `${a.nombre} — Museario`
+    const desc = (a.bio_es || `Museos y galerías de ${a.nombre} en Museario.`).slice(0, 200)
+    const imgRel = a.profile_image ? a.profile_image.split('?')[0] : null
+    const urlPag = `${BASE_URL}/a/${a.slug}`
+    const favicon = imgRel ? encodeURI(imgRel) : '/museario/favicon.svg'
+    const og = [
+      `  <meta property="og:type" content="profile" />`,
+      `  <meta property="og:site_name" content="Museario" />`,
+      `  <meta property="og:title" content="${escHtml(titulo)}" />`,
+      `  <meta property="og:description" content="${escHtml(desc)}" />`,
+      `  <meta property="og:url" content="${urlPag}" />`,
+      imgRel && `  <meta property="og:image" content="${BASE_URL}${encodeURI(imgRel)}" />`,
+    ].filter(Boolean).join('\n')
+    html = html
+      .replace(/<title>[^<]*<\/title>/, `<title>${escHtml(titulo)}</title>`)
+      .replace(/\s*<meta property="og:[^"]+"[^>]*\/>/g, '')
+      .replace(/\s*<link rel="icon"[^>]*\/>/, `\n  <link rel="icon" href="${favicon}" />`)
+      .replace('</head>', `${og}\n</head>`)
+  }
+  res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache, must-revalidate' })
+  res.end(html)
+}
+
 async function paginaMuseo(res, partes) {
   const esGaleria = partes[3] === 'galeria'
   let html = await plantilla(esGaleria ? 'g.html' : 'm.html')
@@ -737,10 +786,11 @@ const server = createServer(async (req, res) => {
     return responder(res, 400, { error: 'URL inválida' })
   }
 
-  // /a/:artista/:coleccion(/galeria) — página con OG dinámico
-  if (partes[0] === 'a' && partes[1] && partes[2]) {
+  // /a/:artista(/:coleccion(/galeria)) — páginas públicas con OG dinámico
+  if (partes[0] === 'a' && partes[1]) {
     try {
-      return await paginaMuseo(res, partes)
+      if (partes[2]) return await paginaMuseo(res, partes)
+      return await paginaPerfil(res, partes[1])
     } catch (e) {
       console.error(e)
       return responder(res, 500, { error: 'Error interno' })

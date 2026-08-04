@@ -90,16 +90,20 @@
 
     @media (max-width: 760px) {
       .shell { flex-direction: column; }
-      aside { width: auto; height: auto; position: static; flex-direction: row; align-items: center; gap: 8px; padding: 12px 14px; margin: 10px; border-radius: 18px; }
-      aside .logo { padding: 0 8px 0 0; }
-      aside .logo img { width: 108px; }
+      aside { width: auto; height: auto; position: static; flex-direction: row; align-items: center; gap: 8px; padding: 10px 14px; margin: 10px; border-radius: 18px; }
+      aside .logo { padding: 0 6px 0 0; }
+      aside .logo img { width: 104px; }
       .nav { flex-direction: row; }
-      .nav button { padding: 8px 10px; border-left: 0; border-bottom: 2px solid transparent; }
-      .nav button.activo { border-bottom-color: var(--tinta); }
+      .nav button { padding: 9px 13px; white-space: nowrap; font-size: 0.78rem; }
+      /* en móvil el perfil se abre tocando la foto, no con texto */
+      .nav button[data-v="perfil"] { display: none; }
       aside .abajo { margin: 0 0 0 auto; }
       .chip { border-top: 0; padding: 0; }
       .chip .nom { display: none; }
-      main { padding: 22px 16px 60px; }
+      .chip img { width: 38px; height: 38px; cursor: pointer; border: 1px solid rgba(255,255,255,0.25); }
+      main { padding: 22px 14px 60px; }
+      .banner-in { padding: 28px 20px 24px; }
+      .card { padding: 20px 16px; }
     }
 
     /* ---------- componentes ---------- */
@@ -327,8 +331,11 @@
 
     /* ---------- portada / perfil foto ---------- */
     .portada-editor { display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
-    .portada-editor img.prev { width: 260px; aspect-ratio: 1200/630; object-fit: cover; background: #1b1b1e; border: 1px solid var(--borde); }
-    .foto-perfil { width: 92px; height: 92px; object-fit: contain; background: #1b1b1e; border: 1px solid var(--borde); }
+    .portada-editor img.prev { width: 260px; aspect-ratio: 1200/630; object-fit: cover; background: #1b1b1e; border: 1px solid var(--borde); border-radius: 14px; }
+    .foto-perfil { width: 96px; height: 96px; object-fit: cover; background: #1b1b1e; border: 1px solid var(--borde); border-radius: 26px; }
+    /* los previews de marco son verticales: más altos para que se vean completos */
+    #d-marcos .swatch { width: 158px; }
+    #d-marcos .swatch img { height: 168px; object-position: center 25%; }
 
     /* ---------- modal compartir ---------- */
     .modal-fondo {
@@ -498,7 +505,30 @@
           </div>
           <label>Bio</label>
           <textarea id="pf-bio"></textarea>
-          <button class="btn" id="pf-guardar">Guardar perfil</button>
+
+          <label style="margin-top:22px">Redes y contacto — opcionales, salen en tu perfil público</label>
+          <div class="fila">
+            <div><input type="text" id="pf-telefono" placeholder="WhatsApp (ej: 573001234567)" /></div>
+            <div><input type="text" id="pf-substack" placeholder="Substack (URL o usuario)" /></div>
+          </div>
+          <div class="fila" style="margin-top:10px">
+            <div><input type="text" id="pf-behance" placeholder="Behance" /></div>
+            <div><input type="text" id="pf-youtube" placeholder="YouTube" /></div>
+          </div>
+          <div class="fila" style="margin-top:10px">
+            <div><input type="text" id="pf-tiktok" placeholder="TikTok" /></div>
+            <div><input type="text" id="pf-facebook" placeholder="Facebook" /></div>
+          </div>
+          <div class="fila" style="margin-top:10px">
+            <div><input type="text" id="pf-x" placeholder="X (Twitter)" /></div>
+            <div></div>
+          </div>
+
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+            <button class="btn" id="pf-guardar">Guardar perfil</button>
+            <button class="btn btn-ghost" id="pf-compartir">Compartir mi perfil</button>
+            <a class="btn btn-ghost" id="pf-ver" href="#" target="_blank">Ver mi página ↗</a>
+          </div>
         </div>
       </section>
     </main>
@@ -596,6 +626,15 @@
       $('pf-web').value = a.website || ''
       $('pf-bio').value = a.bioEs || ''
       $('pf-foto').src = a.foto || estado.usuario.foto || ''
+      $('pf-substack').value = a.substack || ''
+      const r = a.redes || {}
+      $('pf-telefono').value = r.telefono || ''
+      $('pf-behance').value = r.behance || ''
+      $('pf-youtube').value = r.youtube || ''
+      $('pf-tiktok').value = r.tiktok || ''
+      $('pf-facebook').value = r.facebook || ''
+      $('pf-x').value = r.x || ''
+      $('pf-ver').href = `/a/${a.slug}`
 
       // museos
       $('museos-contador').textContent =
@@ -1016,18 +1055,17 @@
     }
 
     // ---------- compartir ----------
-    function modalCompartir(a, col) {
-      const url = `${BASE_PUB}/a/${a.slug}/${col.slug}`
+    function modalCompartirUrl(titulo, url, textoWhatsApp) {
       const zona = $('modal-zona')
       zona.innerHTML =
         `<div class="modal-fondo"><div class="modal">` +
         `<button class="cerrar" title="Cerrar">✕</button>` +
-        `<h3>Compartir "${esc(col.nombre)}"</h3>` +
+        `<h3>Compartir ${esc(titulo)}</h3>` +
         `<div class="enlace-caja"><input type="text" readonly value="${esc(url)}" /><button class="btn-mini" id="mc-copiar">Copiar</button></div>` +
         `<img class="qr" src="/api/panel/qr?texto=${encodeURIComponent(url)}" alt="Código QR" />` +
         `<div class="acciones-modal">` +
-        `<a class="btn-mini" href="https://wa.me/?text=${encodeURIComponent(`Recorre "${col.nombre}", el museo virtual de ${a.nombre}: ${url}`)}" target="_blank" rel="noopener">WhatsApp</a>` +
-        `<a class="btn-mini" id="mc-descargar" href="/api/panel/qr?texto=${encodeURIComponent(url)}" download="qr-${esc(col.slug)}.png">Descargar QR</a>` +
+        `<a class="btn-mini" href="https://wa.me/?text=${encodeURIComponent(`${textoWhatsApp} ${url}`)}" target="_blank" rel="noopener">WhatsApp</a>` +
+        `<a class="btn-mini" id="mc-descargar" href="/api/panel/qr?texto=${encodeURIComponent(url)}" download="qr-museario.png">Descargar QR</a>` +
         `</div>` +
         `</div></div>`
       const cerrar = () => { zona.innerHTML = '' }
@@ -1045,6 +1083,13 @@
           avisar('Enlace copiado')
         }
       }
+    }
+    function modalCompartir(a, col) {
+      modalCompartirUrl(
+        `"${col.nombre}"`,
+        `${BASE_PUB}/a/${a.slug}/${col.slug}`,
+        `Recorre "${col.nombre}", el museo virtual de ${a.nombre}:`
+      )
     }
 
     // ---------- crear museo ----------
@@ -1092,11 +1137,32 @@
           instagramUrl: $('pf-instagram').value,
           website: $('pf-web').value,
           bioEs: $('pf-bio').value,
+          substack: $('pf-substack').value,
+          redes: {
+            telefono: $('pf-telefono').value,
+            behance: $('pf-behance').value,
+            youtube: $('pf-youtube').value,
+            tiktok: $('pf-tiktok').value,
+            facebook: $('pf-facebook').value,
+            x: $('pf-x').value,
+          },
         }))
         avisar('Perfil guardado')
         cargar()
       } catch (e) { avisar(e.message, true) }
     })
+
+    // compartir perfil público (linktree del artista)
+    $('pf-compartir').addEventListener('click', () => {
+      if (!estado || !estado.artista) return
+      modalCompartirUrl(
+        'mi perfil',
+        `${BASE_PUB}/a/${estado.artista.slug}`,
+        `Conoce los museos de ${estado.artista.nombre} en Museario:`
+      )
+    })
+    // la foto del chip abre el perfil (en móvil es el único acceso)
+    $('chip-foto').addEventListener('click', () => verVista('perfil'))
 
     // ---------- crear perfil ----------
     $('np-crear').addEventListener('click', async () => {

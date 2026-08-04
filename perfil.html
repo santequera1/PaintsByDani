@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <base href="/" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="dark" />
+  <title>Perfil · Museario</title>
+  <link rel="icon" type="image/svg+xml" href="/museario/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #0b0b0d;
+      color: #ece8df;
+      font-family: 'Poppins', 'Helvetica Neue', sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image:
+        radial-gradient(ellipse 70% 45% at 50% -8%, rgba(201, 163, 92, 0.08), transparent 55%),
+        linear-gradient(rgba(236, 232, 223, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(236, 232, 223, 0.03) 1px, transparent 1px);
+      background-size: 100% 100%, 44px 44px, 44px 44px;
+      mask-image: radial-gradient(ellipse 95% 90% at 50% 20%, black 55%, transparent);
+    }
+    main {
+      position: relative; z-index: 1;
+      max-width: 620px;
+      margin: 0 auto;
+      padding: 54px 18px 60px;
+      text-align: center;
+    }
+    .foto {
+      width: 116px; height: 116px;
+      border-radius: 32px;
+      object-fit: cover;
+      background: #1b1b1e;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      margin-bottom: 18px;
+      animation: aparecer 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    h1 {
+      font-family: 'DM Serif Display', serif;
+      font-weight: 400;
+      font-size: 2.1rem;
+      margin: 0 0 4px;
+    }
+    .handle { color: #c9a35c; font-size: 0.82rem; margin: 0 0 16px; }
+    .bio { color: #a59d8f; font-size: 0.88rem; line-height: 1.65; margin: 0 auto 26px; max-width: 34em; }
+    /* redes */
+    .redes { display: flex; gap: 9px; flex-wrap: wrap; justify-content: center; margin-bottom: 38px; }
+    .red {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 999px;
+      color: #ece8df; text-decoration: none;
+      font-size: 0.74rem; font-weight: 400;
+      padding: 9px 16px;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+    .red:hover { background: rgba(255, 255, 255, 0.14); transform: translateY(-2px); }
+    /* museos */
+    .titulo-sec {
+      font-size: 0.66rem; letter-spacing: 0.28em; text-transform: uppercase;
+      color: #8d8579; margin: 0 0 18px;
+    }
+    .museos { display: flex; flex-direction: column; gap: 16px; margin-bottom: 44px; }
+    .museo {
+      position: relative;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: #141416 center/cover;
+      text-align: left;
+      transition: transform 0.3s ease, border-color 0.3s ease;
+    }
+    .museo:hover { transform: translateY(-3px); border-color: rgba(255, 255, 255, 0.32); }
+    .museo .velo {
+      position: absolute; inset: 0;
+      background: linear-gradient(90deg, rgba(8, 8, 10, 0.88) 25%, rgba(8, 8, 10, 0.3));
+    }
+    .museo .in { position: relative; padding: 22px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .museo h2 { font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 1.35rem; margin: 0; }
+    .museo .meta { color: #b8b0a1; font-size: 0.72rem; margin-top: 2px; }
+    .museo .acciones { display: flex; gap: 8px; }
+    .museo .btn-m {
+      background: #ece8df; color: #16130f;
+      border-radius: 999px; text-decoration: none;
+      font-size: 0.64rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 9px 16px;
+      transition: background 0.2s ease;
+    }
+    .museo .btn-m:hover { background: #fff; }
+    .museo .btn-m.ghost { background: rgba(12, 12, 14, 0.55); color: #ece8df; border: 1px solid rgba(255, 255, 255, 0.35); }
+    .museo .btn-m.ghost:hover { background: rgba(255, 255, 255, 0.14); }
+    .pie { color: #6d675d; font-size: 0.72rem; }
+    .pie a { color: #a59d8f; text-decoration: none; }
+    .pie a:hover { color: #ece8df; }
+    .error-carga { color: #a59d8f; padding: 60px 0; }
+    @keyframes aparecer { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+    .anim { animation: aparecer 0.6s cubic-bezier(0.22, 1, 0.36, 1) both; }
+    @media (prefers-reduced-motion: reduce) { .anim, .foto { animation: none; } }
+  </style>
+</head>
+<body>
+  <main id="main">
+    <p class="error-carga" id="cargando">Cargando…</p>
+  </main>
+
+  <script type="module">
+    const API_BASE = ['5173', '4173'].includes(location.port) ? 'https://museario.art' : ''
+    const slug = (location.pathname.match(/^\/a\/([^/]+)/) || [])[1] ||
+      new URLSearchParams(location.search).get('a') || ''
+    const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;')
+
+    const ICONOS = {
+      instagram: 'Instagram', web: 'Sitio web', substack: 'Substack', behance: 'Behance',
+      youtube: 'YouTube', tiktok: 'TikTok', facebook: 'Facebook', x: 'X', whatsapp: 'WhatsApp',
+    }
+    const urlRed = (tipo, v) => {
+      if (/^https?:\/\//i.test(v)) return v
+      const u = v.replace(/^@/, '')
+      switch (tipo) {
+        case 'behance': return `https://www.behance.net/${u}`
+        case 'youtube': return `https://www.youtube.com/@${u}`
+        case 'tiktok': return `https://www.tiktok.com/@${u}`
+        case 'facebook': return `https://www.facebook.com/${u}`
+        case 'x': return `https://x.com/${u}`
+        case 'substack': return `https://${u}.substack.com`
+        default: return v
+      }
+    }
+
+    async function cargar() {
+      const main = document.getElementById('main')
+      let a
+      try {
+        const r = await fetch(`${API_BASE}/api/m/a/${encodeURIComponent(slug)}`)
+        if (!r.ok) throw new Error()
+        a = await r.json()
+      } catch {
+        main.innerHTML = '<p class="error-carga">No encontramos este perfil.<br /><br /><a style="color:#a59d8f" href="/">← Volver a Museario</a></p>'
+        return
+      }
+      document.title = `${a.nombre} — Museario`
+
+      const foto = a.profileImage || a.logoBlanco
+      const redes = []
+      if (a.instagramUrl) redes.push(['instagram', a.instagramUrl])
+      if (a.website) redes.push(['web', a.website])
+      if (a.substack) redes.push(['substack', a.substack])
+      for (const k of ['behance', 'youtube', 'tiktok', 'facebook', 'x']) {
+        if (a.redes && a.redes[k]) redes.push([k, urlRed(k, a.redes[k])])
+      }
+      if (a.redes && a.redes.telefono) {
+        redes.push(['whatsapp', `https://wa.me/${a.redes.telefono.replace(/[^\d]/g, '')}`])
+      }
+
+      main.innerHTML =
+        (foto ? `<img class="foto" src="${esc(foto)}" alt="${esc(a.nombre)}" />` : '') +
+        `<h1 class="anim" style="animation-delay:.05s">${esc(a.nombre)}</h1>` +
+        (a.handle ? `<p class="handle anim" style="animation-delay:.1s">${esc(a.handle)}</p>` : '') +
+        (a.bioEs ? `<p class="bio anim" style="animation-delay:.15s">${esc(a.bioEs)}</p>` : '') +
+        (redes.length
+          ? `<div class="redes anim" style="animation-delay:.2s">` +
+            redes.map(([k, u]) =>
+              `<a class="red" href="${esc(u)}" target="_blank" rel="noopener noreferrer">${ICONOS[k] || k}</a>`).join('') +
+            `</div>`
+          : '') +
+        (a.colecciones.length
+          ? `<p class="titulo-sec anim" style="animation-delay:.25s">Museos</p><div class="museos" id="museos"></div>`
+          : '') +
+        `<p class="pie anim" style="animation-delay:.4s">Hecho con <a href="/">Museario</a> — cada artista, su museo</p>`
+
+      const cont = document.getElementById('museos')
+      if (cont) {
+        a.colecciones.forEach((c, i) => {
+          const el = document.createElement('div')
+          el.className = 'museo anim'
+          el.style.animationDelay = `${0.28 + i * 0.07}s`
+          if (c.portadaUrl) el.style.backgroundImage = `url('${esc(c.portadaUrl)}')`
+          el.innerHTML =
+            `<div class="velo"></div><div class="in">` +
+            `<div><h2>${esc(c.nombre)}</h2><div class="meta">${esc(c.subtitulo || '')}</div></div>` +
+            `<div class="acciones">` +
+            `<a class="btn-m" href="/a/${esc(a.slug)}/${esc(c.slug)}">Museo 3D</a>` +
+            `<a class="btn-m ghost" href="/a/${esc(a.slug)}/${esc(c.slug)}/galeria">Galería</a>` +
+            `</div></div>`
+          cont.appendChild(el)
+        })
+      }
+    }
+    cargar()
+  </script>
+</body>
+</html>
