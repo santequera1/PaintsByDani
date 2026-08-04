@@ -120,47 +120,118 @@
     .guardado.visible { opacity: 1; }
     [hidden] { display: none !important; }
 
-    /* ---------- cards de museos: cada museo es un CUADRO enmarcado ---------- */
-    .museos { display: grid; grid-template-columns: repeat(auto-fill, minmax(265px, 1fr)); gap: 28px 24px; }
-    .museo-card { display: flex; flex-direction: column; }
-    .museo-card .cuadro {
-      /* marco de madera oscura con luz lateral */
-      background: linear-gradient(155deg, #38291a, #1d150e 55%, #2a1f13);
-      padding: 13px;
-      border: 1px solid rgba(255, 255, 255, 0.09);
-      box-shadow: 0 16px 34px rgba(0, 0, 0, 0.55), inset 0 0 0 1px rgba(0, 0, 0, 0.65);
-      cursor: pointer;
-      transform-style: preserve-3d;
+    /* ---------- cards de museos: glass 3D (referencia de Stiven) ---------- */
+    .museos { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 34px 26px; }
+    .mcard {
+      width: 100%;
+      height: 285px;
+      perspective: 1000px;
+      perspective-origin: 50% 50%;
+      filter: drop-shadow(0 26px 46px rgba(0, 0, 0, 0.5));
     }
-    .museo-card .paspartu {
-      background: #ece8df;
-      padding: 11px;
-      box-shadow: inset 0 1px 5px rgba(0, 0, 0, 0.4);
-    }
-    .museo-card .portada { width: 100%; aspect-ratio: 1200/630; object-fit: cover; display: block; background: #1b1b1e; }
-    .museo-card .sin-portada {
-      aspect-ratio: 1200/630; display: flex; align-items: center; justify-content: center;
-      color: #8a8478; font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase;
-      background: repeating-linear-gradient(45deg, #ddd8cc, #ddd8cc 12px, #d5d0c4 12px, #d5d0c4 24px);
-    }
-    /* placa de museo bajo el cuadro */
-    .museo-card .placa {
-      background: var(--panel);
-      border: 1px solid var(--borde);
-      width: 88%;
-      margin: -8px auto 0;
-      padding: 13px 14px 14px;
-      text-align: center;
+    .mcard-card {
       position: relative;
-      z-index: 1;
+      height: 100%;
+      border-radius: 42px;
+      background: linear-gradient(135deg, #efe9db 0%, #c9c0ad 100%);
+      transform-style: preserve-3d;
+      transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.55s ease;
+      box-shadow: rgba(0, 0, 0, 0) 40px 50px 25px -40px, rgba(0, 0, 0, 0.3) 0 25px 25px -5px;
+      cursor: pointer;
+      overflow: visible;
     }
-    .museo-card h3 { font-size: 1.25rem; margin: 0; cursor: pointer; }
-    .museo-card .meta { font-size: 0.7rem; color: var(--tinta-2); margin: 4px 0 11px; }
-    .museo-card .pie-card { display: flex; gap: 7px; flex-wrap: wrap; justify-content: center; }
+    .mcard:hover .mcard-card {
+      transform: rotate3d(1, 1, 0, 22deg);
+      box-shadow: rgba(0, 0, 0, 0.5) 26px 44px 26px -36px, rgba(236, 232, 223, 0.12) 0 0 60px -10px;
+    }
+    /* la portada del museo como fondo de la card */
+    .mcard-fondo {
+      position: absolute; inset: 0;
+      border-radius: 42px;
+      background-size: cover; background-position: center;
+      background-color: #d9d2c2;
+    }
+    /* capa de vidrio esmerilado */
+    .mcard-glass {
+      transform-style: preserve-3d;
+      position: absolute; inset: 8px;
+      border-radius: 46px;
+      border-top-right-radius: 100%;
+      background: linear-gradient(0deg, rgba(250, 248, 242, 0.44) 0%, rgba(250, 248, 242, 0.85) 100%);
+      transform: translate3d(0, 0, 25px);
+      border-left: 1px solid rgba(255, 255, 255, 0.85);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.75);
+      transition: all 0.5s ease-in-out;
+      pointer-events: none;
+    }
+    /* círculos concéntricos (esquina superior derecha) */
+    .mcard-logo { position: absolute; right: 0; top: 0; transform-style: preserve-3d; pointer-events: none; z-index: 2; }
+    .mcard-circle {
+      display: block; position: absolute; aspect-ratio: 1; border-radius: 50%;
+      top: 0; right: 0;
+      background: rgba(255, 255, 255, 0.28);
+      box-shadow: rgba(60, 55, 45, 0.25) -10px 10px 22px 0;
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      transition: all 0.5s ease-in-out;
+    }
+    .mcard-circle:nth-child(1) { width: 152px; transform: translate3d(0,0,20px); top: 8px; right: 8px; }
+    .mcard-circle:nth-child(2) { width: 124px; transform: translate3d(0,0,40px); top: 10px; right: 10px; transition-delay: .05s; }
+    .mcard-circle:nth-child(3) { width: 96px; transform: translate3d(0,0,60px); top: 17px; right: 17px; transition-delay: .1s; }
+    .mcard-circle:nth-child(4) { width: 68px; transform: translate3d(0,0,80px); top: 23px; right: 23px; transition-delay: .15s; }
+    .mcard-circle:nth-child(5) {
+      width: 44px; transform: translate3d(0,0,100px); top: 29px; right: 29px;
+      display: grid; place-content: center; transition-delay: .2s;
+      background: #16130f;
+      font-family: 'DM Serif Display', serif; font-size: 1.15rem; color: #ece8df;
+    }
+    .mcard:hover .mcard-circle:nth-child(2) { transform: translate3d(0,0,60px); }
+    .mcard:hover .mcard-circle:nth-child(3) { transform: translate3d(0,0,80px); }
+    .mcard:hover .mcard-circle:nth-child(4) { transform: translate3d(0,0,100px); }
+    .mcard:hover .mcard-circle:nth-child(5) { transform: translate3d(0,0,120px); }
+    /* contenido */
+    .mcard-content {
+      padding: 88px 3.4rem 0 1.7rem;
+      transform: translate3d(0, 0, 26px);
+      position: relative; z-index: 3;
+    }
+    .mcard-title { display: block; color: #201c16; font-family: 'DM Serif Display', serif; font-size: 1.55rem; line-height: 1.1; text-shadow: 0 1px 8px rgba(255,255,255,0.65); }
+    .mcard-text { display: block; margin-top: 0.55rem; color: rgba(46, 40, 32, 0.85); font-size: 0.8rem; font-weight: 400; text-shadow: 0 1px 6px rgba(255,255,255,0.6); }
+    .mcard-text .badge { margin-left: 2px; }
+    .mcard-text .badge.si { color: #2c6e33; border-color: rgba(44,110,51,0.45); }
+    .mcard-text .badge.no { color: #8a6420; border-color: rgba(138,100,32,0.45); }
+    /* barra inferior */
+    .mcard-bottom {
+      padding: 10px 12px;
+      transform-style: preserve-3d;
+      position: absolute; bottom: 18px; left: 18px; right: 18px;
+      display: flex; align-items: center; justify-content: space-between;
+      transform: translate3d(0, 0, 26px);
+      z-index: 4;
+    }
+    .mcard-social { display: flex; gap: 10px; transform-style: preserve-3d; }
+    .mcard-social-btn {
+      width: 34px; aspect-ratio: 1; padding: 6px;
+      background: #fff; border-radius: 50%; border: none;
+      display: grid; place-content: center; cursor: pointer;
+      box-shadow: rgba(0, 0, 0, 0.4) 0 8px 6px -5px;
+      transition: transform 0.2s ease-in-out, background 0.2s;
+      color: #3a332a; text-decoration: none;
+    }
+    .mcard-social-btn svg { width: 15px; height: 15px; }
+    .mcard-social-btn:hover { background: #16130f; color: #ece8df; transform: translateY(-2px); }
+    .mcard-cta {
+      background: none; border: 0; cursor: pointer;
+      font-family: inherit; font-weight: 600; font-size: 0.72rem;
+      letter-spacing: 0.08em; text-transform: uppercase; color: #201c16;
+      padding: 8px 10px; text-shadow: 0 1px 6px rgba(255,255,255,0.65);
+    }
+    .mcard-cta:hover { text-decoration: underline; }
     .museo-nuevo {
       border: 1px dashed rgba(255,255,255,0.25); background: transparent;
+      border-radius: 42px;
       display: flex; align-items: center; justify-content: center;
-      min-height: 230px; cursor: pointer; color: var(--tinta-2);
+      min-height: 285px; cursor: pointer; color: var(--tinta-2);
       font-family: inherit; font-size: 0.8rem; gap: 8px;
     }
     .museo-nuevo:hover { color: var(--tinta); border-color: rgba(255,255,255,0.45); }
@@ -391,7 +462,6 @@
   <div id="modal-zona"></div>
 
   <script type="module">
-    import VanillaTilt from 'vanilla-tilt'
     const $ = (id) => document.getElementById(id)
     const BASE_PUB = 'https://museario.art'
     const aviso = $('aviso')
@@ -495,15 +565,6 @@
         grid.appendChild(nuevo)
       }
 
-      // efecto 3D de cuadro (igual que en las galerías)
-      if (window.matchMedia('(hover: hover)').matches &&
-          !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        VanillaTilt.init([...grid.querySelectorAll('.cuadro')], {
-          max: 9, speed: 900, scale: 1.03, perspective: 900,
-          glare: true, 'max-glare': 0.18, gyroscope: false,
-        })
-      }
-
       // si hay un detalle abierto, refrescarlo
       if (colActual) {
         const col = a.colecciones.find((c) => c.slug === colActual)
@@ -527,35 +588,36 @@
     // ---------- cards de museos ----------
     function cardMuseo(a, col) {
       const el = document.createElement('div')
-      el.className = 'museo-card'
-      const img = col.portadaUrl
-        ? `<img class="portada" src="${esc(col.portadaUrl)}" alt="" loading="lazy" />`
-        : `<div class="sin-portada">Sin portada</div>`
+      el.className = 'mcard'
+      const fondo = col.portadaUrl ? ` style="background-image:url('${esc(col.portadaUrl)}')"` : ''
       el.innerHTML =
-        `<div class="cuadro"><div class="paspartu">${img}</div></div>` +
-        `<div class="placa">` +
-        `<h3>${esc(col.nombre)}</h3>` +
-        `<div class="meta">${esc(col.subtitulo || '')} · ${col.obras.length} obra${col.obras.length === 1 ? '' : 's'} · ` +
-        `<span class="badge ${col.publicada ? 'si' : 'no'}">${col.publicada ? 'publicado' : 'oculto'}</span></div>` +
-        `<div class="pie-card"></div>` +
+        `<div class="mcard-card">` +
+        `<div class="mcard-fondo"${fondo}></div>` +
+        `<div class="mcard-glass"></div>` +
+        `<div class="mcard-logo">` +
+        `<span class="mcard-circle"></span><span class="mcard-circle"></span>` +
+        `<span class="mcard-circle"></span><span class="mcard-circle"></span>` +
+        `<span class="mcard-circle">M</span>` +
+        `</div>` +
+        `<div class="mcard-content">` +
+        `<span class="mcard-title">${esc(col.nombre)}</span>` +
+        `<span class="mcard-text">${esc(col.subtitulo || '')}${col.subtitulo ? ' · ' : ''}${col.obras.length} obra${col.obras.length === 1 ? '' : 's'} ` +
+        `<span class="badge ${col.publicada ? 'si' : 'no'}">${col.publicada ? 'publicado' : 'oculto'}</span></span>` +
+        `</div>` +
+        `<div class="mcard-bottom">` +
+        `<div class="mcard-social">` +
+        `<button class="mcard-social-btn" data-acc="compartir" title="Compartir">` +
+        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></svg></button>` +
+        `<a class="mcard-social-btn" href="/a/${a.slug}/${col.slug}" target="_blank" title="Ver museo" data-acc="ver">` +
+        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></a>` +
+        `</div>` +
+        `<button class="mcard-cta">Administrar →</button>` +
+        `</div>` +
         `</div>`
-      el.querySelector('.cuadro').addEventListener('click', () => abrirDetalle(col.slug))
-      el.querySelector('h3').addEventListener('click', () => abrirDetalle(col.slug))
-      const pie = el.querySelector('.pie-card')
-      const bAdmin = document.createElement('button')
-      bAdmin.className = 'btn-mini'
-      bAdmin.textContent = 'Administrar'
-      bAdmin.onclick = () => abrirDetalle(col.slug)
-      const bCompartir = document.createElement('button')
-      bCompartir.className = 'btn-mini'
-      bCompartir.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></svg> Compartir'
-      bCompartir.onclick = () => modalCompartir(a, col)
-      const bVer = document.createElement('a')
-      bVer.className = 'btn-mini'
-      bVer.textContent = 'Ver ↗'
-      bVer.href = `/a/${a.slug}/${col.slug}`
-      bVer.target = '_blank'
-      pie.appendChild(bAdmin); pie.appendChild(bCompartir); pie.appendChild(bVer)
+      el.querySelector('.mcard-card').addEventListener('click', () => abrirDetalle(col.slug))
+      el.querySelector('.mcard-cta').addEventListener('click', (e) => { e.stopPropagation(); abrirDetalle(col.slug) })
+      el.querySelector('[data-acc="compartir"]').addEventListener('click', (e) => { e.stopPropagation(); modalCompartir(a, col) })
+      el.querySelector('[data-acc="ver"]').addEventListener('click', (e) => e.stopPropagation())
       return el
     }
 
