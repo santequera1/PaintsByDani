@@ -57,6 +57,7 @@ db.exec(`
 try { db.exec('ALTER TABLE usuarios ADD COLUMN password_hash TEXT') } catch {}
 try { db.exec('ALTER TABLE colecciones ADD COLUMN portada TEXT') } catch {}
 try { db.exec('ALTER TABLE artistas ADD COLUMN redes TEXT') } catch {}
+try { db.exec('ALTER TABLE artistas ADD COLUMN fondo TEXT') } catch {}
 
 // correos interesados desde la landing ("avísame cuando abra")
 db.exec(`
@@ -112,6 +113,7 @@ const pubArtista = (a) => ({
   bioEs: a.bio_es,
   bioEn: a.bio_en,
   redes: parse(a.redes) || {},
+  fondo: a.fondo,
 })
 
 const pubColeccion = (c, { conEstilo = false } = {}) => ({
@@ -411,6 +413,7 @@ async function rutasPanel(req, res, resto, url) {
         substack: artista.substack, bioEs: artista.bio_es,
         foto: artista.profile_image,
         redes: parse(artista.redes) || {},
+        fondo: artista.fondo,
         colecciones,
       },
     })
@@ -479,6 +482,21 @@ async function rutasPanel(req, res, resto, url) {
     return privado(res, 200, { ok: true, foto: ruta })
   }
 
+  // POST /api/panel/artista/fondo — foto de fondo del perfil público (vertical)
+  if (resto[1] === 'artista' && resto[2] === 'fondo' && req.method === 'POST') {
+    const sharp = (await import('sharp')).default
+    const cuerpo = await leerBinario(req)
+    if (!cuerpo.length) return privado(res, 400, { error: 'Imagen vacía' })
+    const dir = join(MEDIA_DIR, artista.slug)
+    await mkdir(dir, { recursive: true })
+    await sharp(cuerpo, { failOn: 'none' }).rotate()
+      .resize({ width: 1080, height: 1700, fit: 'cover' })
+      .webp({ quality: 80 }).toFile(join(dir, 'fondo.webp'))
+    const ruta = `/media/${artista.slug}/fondo.webp?v=${Date.now()}`
+    db.prepare('UPDATE artistas SET fondo = ? WHERE id = ?').run(ruta, artista.id)
+    return privado(res, 200, { ok: true, fondo: ruta })
+  }
+
   // POST /api/panel/colecciones — crear colección (máximo 5 por artista)
   if (resto[1] === 'colecciones' && resto.length === 2 && req.method === 'POST') {
     if (qColecciones.all(artista.id).length >= 5) {
@@ -511,6 +529,7 @@ async function rutasPanel(req, res, resto, url) {
       estilo = { ...estilo, ...ESTILOS[b.estiloBase] }
     }
     if (b.sinMarco !== undefined) estilo.sinMarco = !!b.sinMarco
+    if (b.banca !== undefined) estilo.banca = !!b.banca
     if (b.texturas !== undefined) {
       // valores: null (por defecto del estilo), id del sistema, o URL /media/ ya subida
       const SISTEMA = {
@@ -719,7 +738,7 @@ async function paginaPerfil(res, slug) {
   if (a) {
     const titulo = `${a.nombre} — Museario`
     const desc = (a.bio_es || `Museos y galerías de ${a.nombre} en Museario.`).slice(0, 200)
-    const imgRel = a.profile_image ? a.profile_image.split('?')[0] : null
+    const imgRel = (a.fondo || a.profile_image) ? (a.fondo || a.profile_image).split('?')[0] : null
     const urlPag = `${BASE_URL}/a/${a.slug}`
     const favicon = imgRel ? encodeURI(imgRel) : '/museario/favicon.svg'
     const og = [

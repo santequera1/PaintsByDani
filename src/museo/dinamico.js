@@ -251,6 +251,7 @@ async function main() {
           zocalo: !!est.zocalo,
           texPiso: (est.texturas && est.texturas.piso) || null,
           texPared: (est.texturas && est.texturas.pared) || null,
+          banca: est.banca !== false,
           ...(est.hangBottomMin ? { hangBottomMin: est.hangBottomMin } : {}),
         },
         engine.renderer

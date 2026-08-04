@@ -13,6 +13,7 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <style>
     * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
     :root {
       --fondo: #0b0b0d;
       --panel: #151517;
@@ -363,6 +364,17 @@
     .volver { background: none; border: 0; color: var(--tinta-2); font-family: inherit; font-size: 0.78rem; cursor: pointer; padding: 0; margin-bottom: 16px; display: inline-flex; align-items: center; gap: 7px; }
     .volver:hover { color: var(--tinta); }
 
+    .fondo-prev { width: 96px; aspect-ratio: 9/16; object-fit: cover; background: #1b1b1e; border: 1px solid var(--borde); border-radius: 14px; }
+    .ver-flotante {
+      position: fixed; right: 22px; bottom: 22px; z-index: 15;
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--tinta); color: #16130f;
+      border-radius: 999px; padding: 13px 22px;
+      font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+      text-decoration: none; box-shadow: 0 12px 30px rgba(0,0,0,0.5);
+      transition: transform .2s ease, background .2s ease;
+    }
+    .ver-flotante:hover { background: #fff; transform: translateY(-2px); }
     .aviso {
       position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
       background: var(--tinta); color: #16130f;
@@ -483,6 +495,15 @@
               <input type="file" id="pf-foto-input" accept="image/*" hidden />
             </div>
           </div>
+          <label style="margin-top:20px">Fondo de tu perfil público (vertical)</label>
+          <div class="portada-editor">
+            <img class="fondo-prev" id="pf-fondo" src="" alt="" hidden />
+            <div>
+              <p class="sub" style="margin:4px 0 0">Aparece detrás de tu página pública (con un velo oscuro) y al compartirla por WhatsApp o redes.<br />Ideal una foto vertical (9:16).</p>
+              <button class="btn btn-ghost" id="pf-fondo-btn" style="margin-top:12px">Subir fondo</button>
+              <input type="file" id="pf-fondo-input" accept="image/*" hidden />
+            </div>
+          </div>
           <div class="fila">
             <div>
               <label>Nombre artístico</label>
@@ -527,7 +548,7 @@
           <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
             <button class="btn" id="pf-guardar">Guardar perfil</button>
             <button class="btn btn-ghost" id="pf-compartir">Compartir mi perfil</button>
-            <a class="btn btn-ghost" id="pf-ver" href="#" target="_blank">Ver mi página ↗</a>
+            <a class="btn btn-ghost" id="pf-ver" href="#" target="_blank">Ver mi página</a>
           </div>
         </div>
       </section>
@@ -635,6 +656,8 @@
       $('pf-facebook').value = r.facebook || ''
       $('pf-x').value = r.x || ''
       $('pf-ver').href = `/a/${a.slug}`
+      const fp = $('pf-fondo')
+      if (a.fondo) { fp.src = a.fondo; fp.hidden = false } else { fp.hidden = true }
 
       // museos
       $('museos-contador').textContent =
@@ -822,6 +845,11 @@
         swatch('sin', '/museario/marco-sin.jpg', 'Lienzo flotante, sin marco', sinMarcoActual) +
         swatch('negro', '/museario/marco-negro.jpg', 'Con marco negro', !sinMarcoActual) +
         `</div>` +
+        `<label>Banca central</label>` +
+        `<div class="swatches" id="d-banca">` +
+        swatch('si', null, 'Con banca', est.banca !== false) +
+        swatch('no', null, 'Sin banca', est.banca === false) +
+        `</div>` +
         `<label>Textura del piso</label>` +
         `<div class="swatches" id="d-piso">` +
         swatch('', baseActual === 'clasica' ? '/museario/tex-madera.jpg' : '/museario/tex-concreto.jpg', 'La del estilo', ePiso === 'defecto') +
@@ -848,6 +876,11 @@
         const c = e.target.closest('.swatch')
         if (!c) return
         patchCol({ sinMarco: c.dataset.v === 'sin' })
+      })
+      cSala.querySelector('#d-banca').addEventListener('click', (e) => {
+        const c = e.target.closest('.swatch')
+        if (!c) return
+        patchCol({ banca: c.dataset.v === 'si' })
       })
       const subirTextura = (tipo) => pedirArchivo(async ([f]) => {
         if (!f) return
@@ -966,6 +999,14 @@
       filaPeligro.appendChild(bBorrar)
       cPeligro.appendChild(filaPeligro)
       cont.appendChild(cPeligro)
+
+      // botón flotante para ver el museo sin hacer scroll
+      const flotante = document.createElement('a')
+      flotante.className = 'ver-flotante'
+      flotante.href = `/a/${a.slug}/${col.slug}`
+      flotante.target = '_blank'
+      flotante.textContent = 'Ver museo'
+      cont.appendChild(flotante)
 
       // animación de entrada escalonada de las secciones
       ;[...cont.children].forEach((sec, i) => {
@@ -1126,6 +1167,17 @@
         const r = await subirBinario('/api/panel/artista/foto', f)
         avisar('Imagen actualizada')
         $('pf-foto-input').value = ''
+        cargar()
+      } catch (e) { avisar(e.message, true) }
+    })
+    $('pf-fondo-btn').addEventListener('click', () => $('pf-fondo-input').click())
+    $('pf-fondo-input').addEventListener('change', async () => {
+      const f = $('pf-fondo-input').files[0]
+      if (!f) return
+      try {
+        await subirBinario('/api/panel/artista/fondo', f)
+        avisar('Fondo actualizado')
+        $('pf-fondo-input').value = ''
         cargar()
       } catch (e) { avisar(e.message, true) }
     })

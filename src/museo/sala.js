@@ -510,6 +510,7 @@ export async function buildSalaPremium(config, renderer) {
     sinMarco = false,        // true: lienzo sin marco, flotando con canto y sombra
     texPiso = null,          // URL de textura de piso (del sistema o subida por el artista)
     texPared = null,         // URL de textura de pared
+    banca = true,            // false: sala sin bancas
   } = config
 
   // paleta según estilo (los valores "encendidos"; setDark usa los oscuros)
@@ -1137,7 +1138,7 @@ export async function buildSalaPremium(config, renderer) {
   // Las bancas se cargan SIN bloquear la sala: si el GLB tarda o se cuelga
   // (webviews de Instagram/Facebook en datos móviles), la sala aparece igual.
   // En minimal: una sola banca al centro (pieza de contraste).
-  gltfLoader.load(
+  if (banca) gltfLoader.load(
     '/models/metal_bench.glb',
     (gltf) => {
       const benchBase = gltf.scene
