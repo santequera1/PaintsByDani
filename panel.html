@@ -131,8 +131,7 @@
     .mcard-card {
       position: relative;
       height: 100%;
-      border-radius: 42px;
-      background: linear-gradient(135deg, #efe9db 0%, #c9c0ad 100%);
+      background: linear-gradient(135deg, #1b1b1e 0%, #232326 100%);
       transform-style: preserve-3d;
       transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
       cursor: pointer;
@@ -141,61 +140,26 @@
     .mcard:hover .mcard-card {
       transform: rotate3d(1, 1, 0, 22deg);
     }
-    /* la portada del museo como fondo de la card */
+    /* la portada del museo como fondo de la card + velo para leer el texto */
     .mcard-fondo {
       position: absolute; inset: 0;
-      border-radius: 42px;
       background-size: cover; background-position: center;
-      background-color: #d9d2c2;
+      background-color: #1b1b1e;
     }
-    /* capa de vidrio esmerilado */
-    .mcard-glass {
-      transform-style: preserve-3d;
-      position: absolute; inset: 8px;
-      border-radius: 46px;
-      border-top-right-radius: 100%;
-      background: linear-gradient(0deg, rgba(250, 248, 242, 0.44) 0%, rgba(250, 248, 242, 0.85) 100%);
-      transform: translate3d(0, 0, 25px);
-      border-left: 1px solid rgba(255, 255, 255, 0.85);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.75);
-      transition: all 0.5s ease-in-out;
-      pointer-events: none;
+    .mcard-fondo::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(8, 8, 10, 0.62) 0%, rgba(8, 8, 10, 0.12) 45%, rgba(8, 8, 10, 0.6) 100%);
     }
-    /* círculos concéntricos (esquina superior derecha) */
-    .mcard-logo { position: absolute; right: 0; top: 0; transform-style: preserve-3d; pointer-events: none; z-index: 2; }
-    .mcard-circle {
-      display: block; position: absolute; aspect-ratio: 1; border-radius: 50%;
-      top: 0; right: 0;
-      background: rgba(255, 255, 255, 0.28);
-      backdrop-filter: blur(5px);
-      -webkit-backdrop-filter: blur(5px);
-      transition: all 0.5s ease-in-out;
-    }
-    .mcard-circle:nth-child(1) { width: 152px; transform: translate3d(0,0,20px); top: 8px; right: 8px; }
-    .mcard-circle:nth-child(2) { width: 124px; transform: translate3d(0,0,40px); top: 10px; right: 10px; transition-delay: .05s; }
-    .mcard-circle:nth-child(3) { width: 96px; transform: translate3d(0,0,60px); top: 17px; right: 17px; transition-delay: .1s; }
-    .mcard-circle:nth-child(4) { width: 68px; transform: translate3d(0,0,80px); top: 23px; right: 23px; transition-delay: .15s; }
-    .mcard-circle:nth-child(5) {
-      width: 44px; transform: translate3d(0,0,100px); top: 29px; right: 29px;
-      display: grid; place-content: center; transition-delay: .2s;
-      background: #16130f;
-      font-family: 'DM Serif Display', serif; font-size: 1.15rem; color: #ece8df;
-    }
-    .mcard:hover .mcard-circle:nth-child(2) { transform: translate3d(0,0,60px); }
-    .mcard:hover .mcard-circle:nth-child(3) { transform: translate3d(0,0,80px); }
-    .mcard:hover .mcard-circle:nth-child(4) { transform: translate3d(0,0,100px); }
-    .mcard:hover .mcard-circle:nth-child(5) { transform: translate3d(0,0,120px); }
     /* contenido */
     .mcard-content {
-      padding: 88px 3.4rem 0 1.7rem;
+      padding: 1.5rem 1.7rem 0;
       transform: translate3d(0, 0, 26px);
       position: relative; z-index: 3;
     }
-    .mcard-title { display: block; color: #201c16; font-family: 'DM Serif Display', serif; font-size: 1.55rem; line-height: 1.1; text-shadow: 0 1px 8px rgba(255,255,255,0.65); }
-    .mcard-text { display: block; margin-top: 0.55rem; color: rgba(46, 40, 32, 0.85); font-size: 0.8rem; font-weight: 400; text-shadow: 0 1px 6px rgba(255,255,255,0.6); }
+    .mcard-title { display: block; color: #f4f1ea; font-family: 'DM Serif Display', serif; font-size: 1.55rem; line-height: 1.1; text-shadow: 0 2px 10px rgba(0,0,0,0.55); }
+    .mcard-text { display: block; margin-top: 0.55rem; color: rgba(244, 241, 234, 0.88); font-size: 0.8rem; font-weight: 400; text-shadow: 0 1px 8px rgba(0,0,0,0.55); }
     .mcard-text .badge { margin-left: 2px; }
-    .mcard-text .badge.si { color: #2c6e33; border-color: rgba(44,110,51,0.45); }
-    .mcard-text .badge.no { color: #8a6420; border-color: rgba(138,100,32,0.45); }
     /* barra inferior */
     .mcard-bottom {
       padding: 10px 12px;
@@ -218,13 +182,12 @@
     .mcard-cta {
       background: none; border: 0; cursor: pointer;
       font-family: inherit; font-weight: 600; font-size: 0.72rem;
-      letter-spacing: 0.08em; text-transform: uppercase; color: #201c16;
-      padding: 8px 10px; text-shadow: 0 1px 6px rgba(255,255,255,0.65);
+      letter-spacing: 0.08em; text-transform: uppercase; color: #f4f1ea;
+      padding: 8px 10px; text-shadow: 0 1px 8px rgba(0,0,0,0.6);
     }
     .mcard-cta:hover { text-decoration: underline; }
     .museo-nuevo {
       border: 1px dashed rgba(255,255,255,0.25); background: transparent;
-      border-radius: 42px;
       display: flex; align-items: center; justify-content: center;
       min-height: 285px; cursor: pointer; color: var(--tinta-2);
       font-family: inherit; font-size: 0.8rem; gap: 8px;
@@ -588,12 +551,6 @@
       el.innerHTML =
         `<div class="mcard-card">` +
         `<div class="mcard-fondo"${fondo}></div>` +
-        `<div class="mcard-glass"></div>` +
-        `<div class="mcard-logo">` +
-        `<span class="mcard-circle"></span><span class="mcard-circle"></span>` +
-        `<span class="mcard-circle"></span><span class="mcard-circle"></span>` +
-        `<span class="mcard-circle">M</span>` +
-        `</div>` +
         `<div class="mcard-content">` +
         `<span class="mcard-title">${esc(col.nombre)}</span>` +
         `<span class="mcard-text">${esc(col.subtitulo || '')}${col.subtitulo ? ' · ' : ''}${col.obras.length} obra${col.obras.length === 1 ? '' : 's'} ` +
