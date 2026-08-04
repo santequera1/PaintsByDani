@@ -14,13 +14,15 @@
   <style>
     * { box-sizing: border-box; }
     :root {
-      --fondo: #0c0c0e;
-      --panel: #141416;
+      --fondo: #0b0b0d;
+      --panel: #151517;
       --panel-2: #0e0e10;
       --borde: rgba(255,255,255,0.1);
       --tinta: #ece8df;
       --tinta-2: #8d8579;
       --tinta-3: #6d675d;
+      --acento: #c9a35c;
+      --radio: 22px;
     }
     body {
       margin: 0;
@@ -30,34 +32,54 @@
       font-weight: 300;
       min-height: 100vh;
     }
-    h1, h2, h3 { font-family: 'DM Serif Display', serif; font-weight: 400; }
-
-    /* ---------- layout dashboard ---------- */
-    .shell { display: flex; min-height: 100vh; }
-    aside {
-      width: 232px; flex-shrink: 0;
-      border-right: 1px solid var(--borde);
-      display: flex; flex-direction: column;
-      padding: 22px 16px 18px;
-      position: sticky; top: 0; height: 100vh;
+    /* fondo vivo: cuadrícula tenue + brillo cálido, como la landing */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image:
+        radial-gradient(ellipse 70% 45% at 18% -8%, rgba(201, 163, 92, 0.07), transparent 55%),
+        radial-gradient(ellipse 50% 40% at 95% 108%, rgba(236, 232, 223, 0.045), transparent 50%),
+        linear-gradient(rgba(236, 232, 223, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(236, 232, 223, 0.03) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 46px 46px, 46px 46px;
+      mask-image: radial-gradient(ellipse 95% 90% at 50% 30%, black 50%, transparent);
     }
-    aside .logo { padding: 2px 8px 24px; }
-    aside .logo img { width: 150px; display: block; }
-    .nav { display: flex; flex-direction: column; gap: 4px; }
+    body > * { position: relative; z-index: 1; }
+    h1, h2, h3 { font-family: 'DM Serif Display', serif; font-weight: 400; }
+    h1 em, h2 em { font-style: italic; color: var(--acento); }
+
+    /* ---------- layout dashboard: sidebar flotante ---------- */
+    .shell { display: flex; min-height: 100vh; gap: 4px; }
+    aside {
+      width: 236px; flex-shrink: 0;
+      display: flex; flex-direction: column;
+      margin: 14px 0 14px 14px;
+      padding: 24px 16px 16px;
+      background: rgba(21, 21, 23, 0.78);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--borde);
+      border-radius: 26px;
+      position: sticky; top: 14px; height: calc(100vh - 28px);
+    }
+    aside .logo { padding: 2px 10px 26px; }
+    aside .logo img { width: 148px; display: block; }
+    .nav { display: flex; flex-direction: column; gap: 5px; }
     .nav button {
       display: flex; align-items: center; gap: 11px;
       background: none; border: 0; color: var(--tinta-2);
       font-family: inherit; font-size: 0.84rem; font-weight: 400;
-      padding: 11px 12px; cursor: pointer; text-align: left;
-      border-left: 2px solid transparent;
+      padding: 12px 14px; cursor: pointer; text-align: left;
+      border-radius: 14px;
+      transition: background .2s ease, color .2s ease;
     }
-    .nav button:hover { color: var(--tinta); background: rgba(255,255,255,0.04); }
-    .nav button.activo { color: var(--tinta); border-left-color: var(--tinta); background: rgba(255,255,255,0.05); }
+    .nav button:hover { color: var(--tinta); background: rgba(255,255,255,0.05); }
+    .nav button.activo { color: #16130f; background: var(--tinta); font-weight: 500; }
     .nav svg { flex-shrink: 0; opacity: 0.8; }
     aside .abajo { margin-top: auto; }
     .chip {
       display: flex; align-items: center; gap: 10px;
-      padding: 10px 8px; border-top: 1px solid var(--borde);
+      padding: 12px 8px 2px; border-top: 1px solid var(--borde);
       font-size: 0.76rem; color: var(--tinta-2);
     }
     .chip img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; background: #1b1b1e; }
@@ -68,7 +90,7 @@
 
     @media (max-width: 760px) {
       .shell { flex-direction: column; }
-      aside { width: 100%; height: auto; position: static; flex-direction: row; align-items: center; gap: 8px; padding: 12px 14px; border-right: 0; border-bottom: 1px solid var(--borde); }
+      aside { width: auto; height: auto; position: static; flex-direction: row; align-items: center; gap: 8px; padding: 12px 14px; margin: 10px; border-radius: 18px; }
       aside .logo { padding: 0 8px 0 0; }
       aside .logo img { width: 108px; }
       .nav { flex-direction: row; }
@@ -81,35 +103,47 @@
     }
 
     /* ---------- componentes ---------- */
-    h1 { font-size: 1.8rem; margin: 0 0 4px; }
+    h1 { font-size: 2.1rem; margin: 0 0 4px; }
     .sub { color: var(--tinta-2); font-size: 0.84rem; margin: 0 0 26px; line-height: 1.55; }
-    .card { background: var(--panel); border: 1px solid var(--borde); padding: 22px 20px; margin-bottom: 20px; }
+    .card {
+      background: linear-gradient(180deg, #17171a 0%, #121214 100%);
+      border: 1px solid var(--borde);
+      border-radius: var(--radio);
+      padding: 26px 24px;
+      margin-bottom: 22px;
+      transition: border-color .25s ease;
+    }
+    .card:hover { border-color: rgba(255,255,255,0.18); }
     label { display: block; font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--tinta-2); margin: 14px 0 6px; font-weight: 400; }
     input[type="text"], input[type="password"], textarea, select {
       width: 100%; background: var(--panel-2);
       border: 1px solid rgba(255,255,255,0.14); color: var(--tinta);
-      padding: 10px 11px; font-size: 0.86rem; font-family: inherit; font-weight: 300;
+      border-radius: 12px;
+      padding: 11px 13px; font-size: 0.86rem; font-family: inherit; font-weight: 300;
+      transition: border-color .2s ease;
     }
     textarea { min-height: 88px; resize: vertical; }
-    input:focus, textarea:focus, select:focus { outline: 1px solid rgba(236,232,223,0.45); }
+    input:focus, textarea:focus, select:focus { outline: none; border-color: rgba(236,232,223,0.55); }
     .btn {
       display: inline-flex; align-items: center; justify-content: center; gap: 8px;
       background: var(--tinta); color: #16130f;
-      border: 0; padding: 11px 20px;
+      border: 0; padding: 12px 24px; border-radius: 999px;
       font-size: 0.74rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
       font-family: inherit; cursor: pointer; text-decoration: none;
-      transition: background .2s ease; margin-top: 16px;
+      transition: background .2s ease, transform .2s ease; margin-top: 16px;
     }
-    .btn:hover { background: #fff; }
+    .btn:hover { background: #fff; transform: translateY(-1px); }
     .btn-ghost { background: transparent; color: var(--tinta); border: 1px solid rgba(255,255,255,0.3); }
     .btn-ghost:hover { background: rgba(255,255,255,0.09); }
     .btn-mini {
       background: transparent; color: var(--tinta-2); border: 1px solid rgba(255,255,255,0.2);
-      padding: 7px 13px; font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase;
+      border-radius: 999px;
+      padding: 8px 15px; font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase;
       font-family: inherit; cursor: pointer; margin: 0;
       display: inline-flex; align-items: center; gap: 6px;
+      transition: background .2s ease, color .2s ease, transform .2s ease;
     }
-    .btn-mini:hover { color: var(--tinta); background: rgba(255,255,255,0.07); }
+    .btn-mini:hover { color: var(--tinta); background: rgba(255,255,255,0.07); transform: translateY(-1px); }
     .btn-peligro:hover { color: #e6a79b; border-color: rgba(230,167,155,0.5); background: rgba(230,167,155,0.06); }
     .fila { display: flex; gap: 14px; flex-wrap: wrap; }
     .fila > div { flex: 1; min-width: 200px; }
@@ -188,9 +222,11 @@
     .mcard-cta:hover { text-decoration: underline; }
     .museo-nuevo {
       border: 1px dashed rgba(255,255,255,0.25); background: transparent;
+      border-radius: var(--radio);
       display: flex; align-items: center; justify-content: center;
       min-height: 285px; cursor: pointer; color: var(--tinta-2);
       font-family: inherit; font-size: 0.8rem; gap: 8px;
+      transition: color .2s ease, border-color .2s ease;
     }
     .museo-nuevo:hover { color: var(--tinta); border-color: rgba(255,255,255,0.45); }
 
@@ -199,8 +235,10 @@
     .estilo {
       flex: 1; min-width: 200px; background: var(--panel-2);
       border: 1px solid rgba(255,255,255,0.14); cursor: pointer;
-      padding: 0 0 12px; transition: border-color .2s ease; position: relative;
+      border-radius: 16px; overflow: hidden;
+      padding: 0 0 12px; transition: border-color .2s ease, transform .2s ease; position: relative;
     }
+    .estilo:hover { transform: translateY(-2px); }
     .estilo:hover { border-color: rgba(255,255,255,0.35); }
     .estilo.activo { border-color: var(--tinta); }
     .estilo.activo::after {
@@ -217,6 +255,7 @@
     .swatch {
       width: 138px; background: var(--panel-2);
       border: 1px solid rgba(255,255,255,0.14); cursor: pointer;
+      border-radius: 14px; overflow: hidden;
       padding: 0 0 9px; text-align: center; position: relative;
       transition: border-color .2s ease, transform .2s ease;
     }
@@ -254,7 +293,19 @@
 
     /* ---------- obras ---------- */
     .obras { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; margin-top: 18px; }
-    .obra { background: var(--panel-2); border: 1px solid rgba(255,255,255,0.09); padding: 10px; }
+    .obra { background: var(--panel-2); border: 1px solid rgba(255,255,255,0.09); border-radius: 14px; padding: 10px; }
+    .obra img { border-radius: 8px; }
+
+    /* banner del museo en el detalle */
+    .banner {
+      position: relative; border-radius: var(--radio); overflow: hidden;
+      background: #141416 center/cover; margin-bottom: 22px;
+      border: 1px solid var(--borde);
+    }
+    .banner-velo { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(8,8,10,0.9) 20%, rgba(8,8,10,0.45)); }
+    .banner-in { position: relative; padding: 40px 30px 34px; }
+    .banner h1 { margin: 0 0 6px; }
+    .banner .sub { margin: 0; }
     .obra .img-wrap { position: relative; }
     .obra img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; background: #1b1b1e; }
     .obra input[type="text"] { margin-top: 7px; padding: 7px 8px; font-size: 0.74rem; }
@@ -287,7 +338,8 @@
     }
     .modal {
       background: var(--panel); border: 1px solid rgba(255,255,255,0.18);
-      padding: 26px 24px; width: min(420px, 94vw); text-align: center; position: relative;
+      border-radius: var(--radio);
+      padding: 28px 26px; width: min(420px, 94vw); text-align: center; position: relative;
     }
     .modal h3 { font-size: 1.3rem; margin: 0 0 16px; }
     .modal .cerrar { position: absolute; top: 10px; right: 12px; background: none; border: 0; color: var(--tinta-2); font-size: 1.1rem; cursor: pointer; }
@@ -373,7 +425,7 @@
     <main>
       <!-- vista: museos -->
       <section id="vista-museos">
-        <h1>Mis museos</h1>
+        <h1>Mis <em>museos</em></h1>
         <p class="sub" id="museos-contador"></p>
         <div class="museos" id="museos-grid"></div>
 
@@ -412,7 +464,7 @@
 
       <!-- vista: perfil -->
       <section id="vista-perfil" hidden>
-        <h1>Mi perfil</h1>
+        <h1>Mi <em>perfil</em></h1>
         <p class="sub">Estos datos aparecen en tus museos, galerías y catálogos.</p>
         <div class="card">
           <label>Foto o logo</label>
@@ -636,10 +688,13 @@
       cont.appendChild(volver)
 
       const head = document.createElement('div')
+      head.className = 'banner'
+      if (col.portadaUrl) head.style.backgroundImage = `url('${col.portadaUrl}')`
       head.innerHTML =
+        `<div class="banner-velo"></div><div class="banner-in">` +
         `<h1>${esc(col.nombre)}</h1>` +
         `<p class="sub">${esc(col.subtitulo || '')} · ${col.obras.length} obra${col.obras.length === 1 ? '' : 's'} · ` +
-        `<span class="badge ${col.publicada ? 'si' : 'no'}">${col.publicada ? 'publicado' : 'oculto'}</span></p>`
+        `<span class="badge ${col.publicada ? 'si' : 'no'}">${col.publicada ? 'publicado' : 'oculto'}</span></p></div>`
       cont.appendChild(head)
 
       // --- datos + portada ---

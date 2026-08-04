@@ -46,8 +46,6 @@
     .obra-flotante {
       position: absolute;
       width: var(--w, 130px);
-      padding: 7px 7px 9px;
-      background: #f4f1ea;
       box-shadow: 0 14px 34px rgba(0, 0, 0, 0.55);
       cursor: grab;
       user-select: none;
@@ -173,10 +171,131 @@
     }
     .demo:hover .play span { background: rgba(12, 12, 14, 0.95); }
 
+    /* ---------- secciones ---------- */
+    .seccion {
+      position: relative; z-index: 2;
+      max-width: 1060px;
+      margin: 0 auto;
+      padding: 70px 20px 10px;
+      text-align: center;
+    }
+    .seccion h2 {
+      font-family: 'DM Serif Display', serif;
+      font-weight: 400;
+      font-size: clamp(1.7rem, 4vw, 2.5rem);
+      margin: 0 0 10px;
+    }
+    .seccion h2 em { font-style: italic; }
+    .seccion-sub { color: #a59d8f; font-size: 0.9rem; margin: 0 0 36px; }
+
+    /* galerías populares */
+    .populares {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(205px, 1fr));
+      gap: 18px;
+      text-align: left;
+    }
+    .popular {
+      display: block;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: #141416;
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.3s ease, border-color 0.3s ease;
+    }
+    .popular:hover { transform: translateY(-5px); border-color: rgba(255, 255, 255, 0.3); }
+    .popular img { width: 100%; aspect-ratio: 16/10; object-fit: cover; display: block; }
+    .popular .p-info { padding: 15px 17px 17px; }
+    .popular .p-nombre { font-family: 'DM Serif Display', serif; font-size: 1.2rem; display: block; }
+    .popular .p-artista { color: #8d8579; font-size: 0.74rem; display: block; margin: 3px 0 10px; }
+    .popular .p-cta { color: #d9b878; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500; }
+
+    /* mockup mini-galería */
+    .mockup {
+      border-radius: 20px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      box-shadow: 0 30px 70px rgba(0, 0, 0, 0.55);
+      text-align: left;
+      margin-bottom: 30px;
+    }
+    .mock-bar {
+      display: flex; align-items: center; gap: 14px;
+      background: #1b1b1e;
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .mock-bar .puntos { display: flex; gap: 6px; }
+    .mock-bar .puntos i { width: 10px; height: 10px; border-radius: 50%; display: block; }
+    .mock-bar .puntos i:nth-child(1) { background: #e0635c; }
+    .mock-bar .puntos i:nth-child(2) { background: #e0b04f; }
+    .mock-bar .puntos i:nth-child(3) { background: #67b269; }
+    .mock-bar .url {
+      flex: 1; max-width: 340px;
+      background: #0e0e10; border-radius: 8px;
+      color: #8d8579; font-size: 0.72rem;
+      padding: 7px 13px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .mock-cuerpo {
+      position: relative;
+      background: linear-gradient(180deg, #efece5 0%, #e5e1d7 78%, #cfc9bb 78%, #d8d3c6 100%);
+      padding: 46px 20px 60px;
+      min-height: 320px;
+    }
+    .mock-pared {
+      display: flex; justify-content: center; align-items: center;
+      gap: clamp(14px, 4vw, 40px);
+      flex-wrap: wrap;
+    }
+    .mock-obra {
+      background: none; border: 0; padding: 0; cursor: pointer;
+      width: clamp(90px, 16vw, 150px);
+      transition: transform 0.3s ease;
+    }
+    .mock-obra:hover { transform: scale(1.06) translateY(-4px); }
+    .mock-obra img { width: 100%; display: block; box-shadow: 0 12px 28px rgba(40, 35, 25, 0.4); }
+    .mock-obra .m-placa {
+      margin: 10px auto 0; width: 84%;
+      background: #16130f; color: #ece8df;
+      font-size: 0.52rem; letter-spacing: 0.04em;
+      padding: 4px 6px; text-align: center;
+      border-radius: 2px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .mock-pista { text-align: center; color: #8a8478; font-size: 0.72rem; margin-top: 34px; }
+    /* visor dentro del mockup */
+    .mock-visor {
+      position: absolute; inset: 0; z-index: 3;
+      background: rgba(14, 13, 11, 0.93);
+      backdrop-filter: blur(6px);
+      display: flex; align-items: center; justify-content: center; gap: clamp(12px, 3vw, 34px);
+      padding: 26px;
+      animation: velar 0.25s ease both;
+    }
+    @keyframes velar { from { opacity: 0; } }
+    .mock-visor img { max-height: 260px; max-width: 46%; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6); }
+    .mock-visor .v-info { max-width: 250px; text-align: left; }
+    .mock-visor .v-titulo { font-family: 'DM Serif Display', serif; font-size: 1.25rem; display: block; }
+    .mock-visor .v-medium { color: #a59d8f; font-size: 0.76rem; margin: 8px 0 4px; display: block; }
+    .mock-visor .v-precio { color: #d9756a; font-size: 0.82rem; font-weight: 500; display: block; margin-bottom: 16px; }
+    .mock-visor .v-nav { display: flex; gap: 8px; }
+    .mock-visor .v-nav button {
+      background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.25);
+      color: #ece8df; border-radius: 999px; padding: 8px 16px;
+      font-family: inherit; font-size: 0.72rem; cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    .mock-visor .v-nav button:hover { background: rgba(255, 255, 255, 0.2); }
+    .mock-visor .v-cerrar { position: absolute; top: 12px; right: 16px; background: none; border: 0; color: #a59d8f; font-size: 1.2rem; cursor: pointer; }
+    .mock-visor .v-cerrar:hover { color: #fff; }
+
     footer {
       position: relative; z-index: 2;
       text-align: center;
-      padding: 26px 16px 28px;
+      padding: 40px 16px 30px;
       font-size: 0.72rem;
       letter-spacing: 0.06em;
       color: #6d675d;
@@ -228,6 +347,46 @@
     </a>
   </div>
 
+  <!-- galerías populares -->
+  <section class="seccion">
+    <h2>Galerías <em>populares</em></h2>
+    <p class="seccion-sub">Museos reales que ya viven en Museario. Entra y recórrelos.</p>
+    <div class="populares">
+      <a class="popular" href="/a/catalina/rumiaciones">
+        <img src="/cat-posts/thumb/Me%20siento%20conectada%20a%20este%20parque,%202026.webp" alt="Rumiaciones" loading="lazy" />
+        <span class="p-info"><span class="p-nombre">Rumiaciones</span><span class="p-artista">Catalina Olivero · 2026</span><span class="p-cta">Recorrer →</span></span>
+      </a>
+      <a class="popular" href="/a/catalina/conexiones">
+        <img src="/conexiones-posts/thumb/Oc%C3%A9ano,%202022.webp" alt="Conexiones" loading="lazy" />
+        <span class="p-info"><span class="p-nombre">Conexiones</span><span class="p-artista">Catalina Olivero · 2022 – Presente</span><span class="p-cta">Recorrer →</span></span>
+      </a>
+      <a class="popular" href="/a/catalina/alma">
+        <img src="/alma-posts/thumb/Energia,%202024.webp" alt="Alma" loading="lazy" />
+        <span class="p-info"><span class="p-nombre">Alma</span><span class="p-artista">Catalina Olivero · 2022 – 2025</span><span class="p-cta">Recorrer →</span></span>
+      </a>
+      <a class="popular" href="/index.html">
+        <img src="/posts/thumb/Muerte%20en%20rojo.webp" alt="Danní" loading="lazy" />
+        <span class="p-info"><span class="p-nombre">Museo Danní</span><span class="p-artista">Danní · Colección permanente</span><span class="p-cta">Recorrer →</span></span>
+      </a>
+    </div>
+  </section>
+
+  <!-- mockup: mini-galería de prueba -->
+  <section class="seccion">
+    <h2>Pruébalo <em>aquí mismo</em></h2>
+    <p class="seccion-sub">Una mini-galería de verdad: toca cualquier obra, como lo harán tus visitantes.</p>
+    <div class="mockup">
+      <div class="mock-bar">
+        <span class="puntos"><i></i><i></i><i></i></span>
+        <span class="url">museario.art/a/tu-nombre/tu-coleccion</span>
+      </div>
+      <div class="mock-cuerpo" id="mock-cuerpo">
+        <div class="mock-pared" id="mock-pared"></div>
+        <p class="mock-pista">↑ Haz clic en una obra para verla de cerca</p>
+      </div>
+    </div>
+  </section>
+
   <footer>
     Ya viven aquí:
     <a href="https://museo.wailus.co/catalina.html" target="_blank" rel="noopener">Catalina Olivero</a>
@@ -249,6 +408,16 @@
       { b: 'conexiones-posts', f: 'Vainilla y Chocolate, 2025', x: '70%', y: '14%', r: -4, w: 128, m: true },
       { b: 'posts', f: 'Little Dan', x: '73%', y: '86%', r: -6, w: 110, m: true },
       { b: 'alma-posts', f: 'Angustia, 2024', x: '22%', y: '84%', r: 5, w: 112, m: true },
+      { b: 'cat-posts', f: 'Te deseo lo mejor, 2026', x: '13%', y: '26%', r: 6, w: 122, m: true },
+      { b: 'conexiones-posts', f: 'Maníaco, 2022', x: '79%', y: '24%', r: 5, w: 108, m: true },
+      { b: 'alma-posts', f: 'Limerencia, 2022', x: '35%', y: '5%', r: -5, w: 118, m: true },
+      { b: 'posts', f: 'Me', x: '58%', y: '7%', r: 6, w: 100, m: true },
+      { b: 'cat-posts', f: 'Llegaste bien 2026', x: '1%', y: '56%', r: -4, w: 104, m: true },
+      { b: 'conexiones-posts', f: "C'est la vie, 2023", x: '92%', y: '56%', r: 6, w: 104, m: true },
+      { b: 'alma-posts', f: 'Catarsis, 2024', x: '36%', y: '88%', r: -5, w: 124, m: true },
+      { b: 'posts', f: 'Retrato', x: '55%', y: '86%', r: 5, w: 100, m: true },
+      { b: 'cat-posts', f: 'El sabor de tu sudor, 2026', x: '12%', y: '90%', r: 4, w: 108, m: true },
+      { b: 'conexiones-posts', f: 'Yes-No, 2022', x: '90%', y: '86%', r: -7, w: 96, m: true },
     ]
     const cont = document.getElementById('obras')
     OBRAS.forEach((o, i) => {
@@ -285,6 +454,49 @@
       }
       el.addEventListener('pointerup', soltar)
       el.addEventListener('pointercancel', soltar)
+    })
+
+    // ---- mockup: mini-galería interactiva ----
+    const MINI = [
+      { b: 'conexiones-posts', f: 'Océano, 2022', t: 'Océano, 2022', m: 'Óleo sobre lienzo · 60 × 90 cm', p: '1.000.000 COP' },
+      { b: 'cat-posts', f: 'Me siento conectada a este parque, 2026', t: 'Me siento conectada a este parque, 2026', m: 'Acrílico sobre lienzo sin imprimar · 60 × 94 cm', p: '500.000 COP' },
+      { b: 'alma-posts', f: 'Energia, 2024', t: 'Energía, 2024', m: 'Colección Alma', p: '2.000.000 COP' },
+      { b: 'posts', f: 'My lady', t: 'My lady', m: 'Danní', p: null },
+    ]
+    const pared = document.getElementById('mock-pared')
+    const cuerpo = document.getElementById('mock-cuerpo')
+    let visor = null
+    function abrirVisor(i) {
+      cerrarVisor()
+      const o = MINI[i]
+      visor = document.createElement('div')
+      visor.className = 'mock-visor'
+      visor.innerHTML =
+        `<button class="v-cerrar" title="Cerrar">✕</button>` +
+        `<img src="/${o.b}/full/${encodeURI(o.f)}.webp" alt="" />` +
+        `<span class="v-info">` +
+        `<span class="v-titulo">${o.t}</span>` +
+        `<span class="v-medium">${o.m}</span>` +
+        (o.p ? `<span class="v-precio">${o.p}</span>` : '<span class="v-precio"></span>') +
+        `<span class="v-nav">` +
+        `<button data-n="-1">← Anterior</button>` +
+        `<button data-n="1">Siguiente →</button>` +
+        `</span></span>`
+      cuerpo.appendChild(visor)
+      visor.querySelector('.v-cerrar').onclick = cerrarVisor
+      visor.querySelectorAll('[data-n]').forEach((b) =>
+        b.addEventListener('click', () => abrirVisor((i + Number(b.dataset.n) + MINI.length) % MINI.length)))
+      visor.addEventListener('click', (e) => { if (e.target === visor) cerrarVisor() })
+    }
+    function cerrarVisor() { if (visor) { visor.remove(); visor = null } }
+    MINI.forEach((o, i) => {
+      const b = document.createElement('button')
+      b.className = 'mock-obra'
+      b.innerHTML =
+        `<img src="/${o.b}/thumb/${encodeURI(o.f)}.webp" alt="${o.t}" loading="lazy" />` +
+        `<span class="m-placa">${o.t}</span>`
+      b.onclick = () => abrirVisor(i)
+      pared.appendChild(b)
     })
 
     // ---- captura de correo ----

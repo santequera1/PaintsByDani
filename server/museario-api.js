@@ -564,9 +564,11 @@ async function rutasPanel(req, res, resto, url) {
     await sharp(cuerpo, { failOn: 'none' }).rotate()
       .resize(1200, 630, { fit: 'cover' })
       .jpeg({ quality: 84 }).toFile(join(dir, 'portada.jpg'))
-    const ruta = `media/${artista.slug}/${col.slug}/portada.jpg`
+    // la versión va en la ruta guardada: sin ella el navegador sigue
+    // mostrando la portada anterior (cache de 30 días en /media/)
+    const ruta = `media/${artista.slug}/${col.slug}/portada.jpg?v=${Date.now()}`
     db.prepare('UPDATE colecciones SET portada=? WHERE id=?').run(ruta, col.id)
-    return privado(res, 200, { ok: true, portadaUrl: `/${ruta}?v=${Date.now()}` })
+    return privado(res, 200, { ok: true, portadaUrl: `/${ruta}` })
   }
 
   // POST /api/panel/colecciones/:slug/textura?tipo=piso|pared — textura propia
