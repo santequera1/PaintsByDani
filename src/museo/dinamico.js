@@ -178,17 +178,14 @@ async function main() {
       })
   }
 
-  // Botón de idioma (solo colecciones bilingües)
-  const langBtn = document.getElementById('lang-btn')
-  if (langBtn && est.bilingue) {
-    langBtn.hidden = false
-    langBtn.textContent = EN ? 'Versión en español' : 'English version'
-    langBtn.addEventListener('click', () => {
-      try { localStorage.setItem('museo-lang', EN ? 'es' : 'en') } catch {}
-      const u = new URL(location.href)
-      u.searchParams.set('lang', EN ? 'es' : 'en')
-      location.href = u.toString()
-    })
+  // Volver al perfil público del artista
+  const volverPerfil = document.getElementById('volver-perfil')
+  if (volverPerfil) {
+    volverPerfil.href = CTX.pretty ? `/a/${CTX.artista}` : `/perfil.html?a=${CTX.artista}`
+    volverPerfil.textContent = EN
+      ? `← Back to ${artista.nombre}'s profile`
+      : `← Volver al perfil de ${artista.nombre}`
+    volverPerfil.hidden = false
   }
 
   if (EN) {
