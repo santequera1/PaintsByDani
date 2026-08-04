@@ -206,6 +206,15 @@ export function createEngine(canvas) {
   let animToken = 0
 
   // --- Zoom to painting ---
+  // diferencia angular por el camino corto: sin vueltas completas cuando
+  // el yaw acumulado del mouse quedó fuera de [-PI, PI]
+  function deltaAngulo(desde, hasta) {
+    let d = (hasta - desde) % (Math.PI * 2)
+    if (d > Math.PI) d -= Math.PI * 2
+    if (d < -Math.PI) d += Math.PI * 2
+    return d
+  }
+
   function zoomToPainting(mesh) {
     if (zoomAnimating) return
     const token = ++animToken
@@ -249,7 +258,7 @@ export function createEngine(canvas) {
       const e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
 
       camera.position.lerpVectors(startPos, targetPos, e)
-      yaw = startYaw + (targetYawVal - startYaw) * e
+      yaw = startYaw + deltaAngulo(startYaw, targetYawVal) * e
       pitch = startPitch + (targetPitchVal - startPitch) * e
       targetYaw = yaw
       targetPitch = pitch
@@ -287,7 +296,7 @@ export function createEngine(canvas) {
       const e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
 
       camera.position.lerpVectors(startPos, savedCamPos, e)
-      yaw = startYaw + (savedYaw - startYaw) * e
+      yaw = startYaw + deltaAngulo(startYaw, savedYaw) * e
       pitch = startPitch + (savedPitch - startPitch) * e
       targetYaw = yaw
       targetPitch = pitch
@@ -336,7 +345,7 @@ export function createEngine(canvas) {
       const e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
 
       camera.position.lerpVectors(startPos, targetPos, e)
-      yaw = startYaw + (targetYawVal - startYaw) * e
+      yaw = startYaw + deltaAngulo(startYaw, targetYawVal) * e
       pitch = startPitch + (targetPitchVal - startPitch) * e
       targetYaw = yaw
       targetPitch = pitch

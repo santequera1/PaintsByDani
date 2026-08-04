@@ -192,6 +192,19 @@ function usuarioActual(req) {
   return qSesion.get(token) || null
 }
 
+// Cuentas que al entrar se enlazan solas a su perfil de artista existente
+const VINCULOS_AUTO = {
+  'catalinamaria100@gmail.com': 'catalina',
+}
+function vincularAuto(usuarioId, email) {
+  const slug = VINCULOS_AUTO[(email || '').toLowerCase()]
+  if (!slug) return
+  const u = db.prepare('SELECT artista_id FROM usuarios WHERE id = ?').get(usuarioId)
+  if (!u || u.artista_id) return
+  const a = qArtista.get(slug)
+  if (a) db.prepare('UPDATE usuarios SET artista_id = ? WHERE id = ?').run(a.id, usuarioId)
+}
+
 function crearSesion(usuarioId) {
   const token = randomBytes(32).toString('hex')
   insSesion.run(token, usuarioId)
@@ -253,6 +266,7 @@ async function rutasAuth(req, res, resto, url) {
     // El id_token llega directo de Google por TLS: el payload es confiable.
     const info = JSON.parse(Buffer.from(tok.id_token.split('.')[1], 'base64url').toString())
     const { id } = upsertUsuario.get(info.sub, info.email, info.name || null, info.picture || null)
+    vincularAuto(id, info.email)
     return redirigir(res, '/panel.html', [limpiarState, crearSesion(id)])
   }
 
@@ -276,6 +290,7 @@ async function rutasAuth(req, res, resto, url) {
     const { lastInsertRowid: id } = db.prepare(
       'INSERT INTO usuarios (email, nombre, password_hash) VALUES (?, ?, ?)'
     ).run(email, nombre, hashClave(clave))
+    vincularAuto(id, email)
     return privado(res, 200, { ok: true }, [crearSesion(id)])
   }
 
@@ -290,6 +305,7 @@ async function rutasAuth(req, res, resto, url) {
     if (!u || !verificarClave(b.password || '', u.password_hash)) {
       return privado(res, 401, { error: 'Correo o contraseña incorrectos' })
     }
+    vincularAuto(u.id, u.email)
     return privado(res, 200, { ok: true }, [crearSesion(u.id)])
   }
 
