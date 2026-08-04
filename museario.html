@@ -32,6 +32,18 @@
     /* los hijos del flex NUNCA se encogen: con height fija el footer
        quedaba recortado por su overflow:hidden */
     body > * { flex-shrink: 0; }
+    .login-flotante {
+      position: absolute; top: 18px; right: 18px; z-index: 6;
+      color: #cfc8b8; text-decoration: none;
+      font-size: 0.74rem; letter-spacing: 0.06em;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 999px;
+      padding: 9px 18px;
+      background: rgba(11, 11, 13, 0.55);
+      backdrop-filter: blur(6px);
+      transition: color .2s ease, background .2s ease;
+    }
+    .login-flotante:hover { color: #ece8df; background: rgba(255, 255, 255, 0.1); }
     /* fondo: cuadrícula + brillos cálidos */
     .fondo {
       position: fixed; inset: 0; pointer-events: none; z-index: 0;
@@ -44,6 +56,17 @@
       mask-image: radial-gradient(ellipse 90% 85% at 50% 40%, black 55%, transparent);
     }
 
+    /* el contenedor de las obras recorta lo que sobresale: cero scroll lateral */
+    #obras {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100vh;
+      overflow-x: clip;
+      overflow-y: visible;
+      pointer-events: none;
+      z-index: 1;
+    }
     /* obras flotantes arrastrables */
     .obra-flotante {
       position: absolute;
@@ -52,6 +75,7 @@
       cursor: grab;
       user-select: none;
       touch-action: none;
+      pointer-events: auto;
       z-index: 1;
       transform: translate(var(--x, 0), var(--y, 0)) rotate(var(--r, 0deg)) scale(var(--s, 1));
       animation: var(--anim, flotar) var(--dur, 7s) ease-in-out infinite;
@@ -345,6 +369,7 @@
 <body>
   <div class="fondo"></div>
 
+  <a class="login-flotante" href="/cuenta.html">Iniciar sesión</a>
   <div id="obras"></div>
 
   <div class="hero">

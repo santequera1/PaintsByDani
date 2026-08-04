@@ -15,7 +15,44 @@
   <style>
     /* identidad Museario en los museos dinámicos */
     body.museo-3d { font-family: 'Poppins', 'Helvetica Neue', Helvetica, sans-serif; }
-    body.museo-3d #overlay-brand h1 { font-family: 'DM Serif Display', serif; font-weight: 400; }
+    body.museo-3d #overlay-brand h1 { font-family: 'DM Serif Display', serif; font-weight: 400; font-size: clamp(2.4rem, 6vw, 3.8rem); }
+    /* portada del museo como fondo de la pantalla previa */
+    body.museo-3d #overlay { background-position: center; background-size: cover; }
+    #velo-portada {
+      position: absolute; inset: 0; pointer-events: none;
+      background: linear-gradient(180deg, rgba(8, 8, 10, 0.86) 0%, rgba(8, 8, 10, 0.62) 45%, rgba(8, 8, 10, 0.9) 100%);
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+    }
+    body.museo-3d #overlay-brand, body.museo-3d #overlay-cta { position: relative; }
+    body.museo-3d #overlay-brand .subtitle { color: #d9b878; letter-spacing: 0.22em; }
+    body.museo-3d #play-btn {
+      background: #ece8df; color: #16130f;
+      border: 0; border-radius: 999px;
+      font-weight: 600; letter-spacing: 0.1em;
+      transition: background .2s ease, transform .2s ease;
+    }
+    body.museo-3d #play-btn:hover { background: #fff; transform: translateY(-2px); }
+    body.museo-3d #tour-btn {
+      background: rgba(12, 12, 14, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 999px;
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+    #perfil-chip {
+      display: inline-flex; align-items: center; gap: 9px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      border-radius: 999px;
+      padding: 7px 17px 7px 8px;
+      color: #ece8df; text-decoration: none;
+      font-size: 0.76rem;
+      margin-top: 10px;
+      transition: background .2s ease;
+    }
+    #perfil-chip img { width: 27px; height: 27px; border-radius: 50%; object-fit: cover; background: #1d1d20; }
+    #perfil-chip:hover { background: rgba(255, 255, 255, 0.17); }
   </style>
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Museo Virtual 3D" />
@@ -30,6 +67,7 @@
 
     <!-- Welcome Overlay -->
     <div id="overlay">
+      <div id="velo-portada" hidden></div>
       <div id="overlay-brand">
         <img src="/museario/logo-blanco.svg" id="artist-photo" class="artist-logo" alt="Museario" />
         <h1></h1>
@@ -41,7 +79,10 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21"/></svg>
           Recorrido automático
         </button>
-        <a id="volver-perfil" class="overlay-link" href="#" hidden>← Volver al perfil</a>
+        <a id="perfil-chip" href="#" hidden>
+          <img id="perfil-chip-img" src="/museario/favicon.png" alt="" />
+          <span id="perfil-chip-nombre">Perfil del artista</span>
+        </a>
         <a id="gallery-link" href="#">Ver galería en lienzo &rarr;</a>
         <span id="overlay-links"></span>
         <p class="controls-hint">

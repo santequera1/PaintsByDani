@@ -178,14 +178,23 @@ async function main() {
       })
   }
 
-  // Volver al perfil público del artista
-  const volverPerfil = document.getElementById('volver-perfil')
-  if (volverPerfil) {
-    volverPerfil.href = CTX.pretty ? `/a/${CTX.artista}` : `/perfil.html?a=${CTX.artista}`
-    volverPerfil.textContent = EN
-      ? `← Back to ${artista.nombre}'s profile`
-      : `← Volver al perfil de ${artista.nombre}`
-    volverPerfil.hidden = false
+  // Portada del museo como fondo de la pantalla previa
+  if (coleccion.portadaUrl) {
+    overlay.style.backgroundImage = `url('${coleccion.portadaUrl}')`
+    const velo = document.getElementById('velo-portada')
+    if (velo) velo.hidden = false
+  }
+
+  // Chip con el perfil público del artista
+  const chip = document.getElementById('perfil-chip')
+  if (chip) {
+    chip.href = CTX.pretty ? `/a/${CTX.artista}` : `/perfil.html?a=${CTX.artista}`
+    const chipImg = document.getElementById('perfil-chip-img')
+    const propio = artista.profileImage || artista.logoBlanco
+    if (propio && chipImg) chipImg.src = propio
+    const chipNombre = document.getElementById('perfil-chip-nombre')
+    if (chipNombre) chipNombre.textContent = EN ? `${artista.nombre}'s profile` : `Perfil de ${artista.nombre}`
+    chip.hidden = false
   }
 
   if (EN) {
