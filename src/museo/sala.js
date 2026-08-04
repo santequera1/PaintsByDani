@@ -19,7 +19,7 @@ let rectInit = false
 // Móvil: textura mediana (820px) en las paredes. Cargar 18 obras a 1600px
 // satura la memoria gráfica de muchos Android (Chrome mata el WebGL y la
 // página queda en blanco). El panel/modal sigue mostrando la grande.
-const LOW_TEX = 'ontouchstart' in window || navigator.maxTouchPoints > 0
+const LOW_TEX = window.matchMedia('(hover: none), (pointer: coarse)').matches
 
 const DEFAULT_FONT = 'Helvetica, Arial, sans-serif'
 

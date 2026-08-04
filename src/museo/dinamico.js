@@ -102,7 +102,7 @@ function stopFootsteps() {
   }
 }
 
-const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0
+const isMobile = window.matchMedia('(hover: none), (pointer: coarse)').matches
 
 main().catch((e) => {
   console.error(e)

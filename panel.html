@@ -1292,17 +1292,20 @@
         `</table></div></div>`
 
       if (d.visitas) {
-        const filas = Object.entries(d.visitas)
-          .filter(([k]) => k.startsWith('m-') || k.startsWith('g-'))
-          .sort((a, b) => b[1] - a[1])
-        const totalV = Object.values(d.visitas).reduce((x, y) => x + y, 0)
+        const filas = Object.entries(d.visitas).sort((a, b) => b[1] - a[1])
+        const totalV = filas.reduce((x, [, v]) => x + v, 0)
+        const etiqueta = (k) => {
+          if (k.startsWith('m-')) return `${k.slice(2)} · museo 3D (plataforma)`
+          if (k.startsWith('g-')) return `${k.slice(2)} · galería (plataforma)`
+          return k
+        }
         html += `<div class="card"><h2>Visitas</h2>` +
-          `<p class="sub" style="margin-bottom:12px">Total histórico de todas las páginas: <strong style="color:var(--tinta)">${totalV.toLocaleString('es-CO')}</strong></p>` +
-          (filas.length
-            ? `<div class="tabla-scroll"><table class="tabla"><tr><th>Museo / galería (dinámicos)</th><th>Visitas</th></tr>` +
-              filas.map(([k, v]) => `<tr><td>${esc(k)}</td><td>${v.toLocaleString('es-CO')}</td></tr>`).join('') + `</table></div>`
-            : '<p class="sub">Aún sin visitas en las páginas dinámicas.</p>') +
-          `</div>`
+          `<p class="sub" style="margin-bottom:12px">Total histórico: <strong style="color:var(--tinta)">${totalV.toLocaleString('es-CO')}</strong> en ${filas.length} páginas (incluye las clásicas de museo.wailus.co)</p>` +
+          `<div class="tabla-scroll"><table class="tabla"><tr><th>Página</th><th>Visitas</th></tr>` +
+          filas.map(([k, v]) => `<tr><td>${esc(etiqueta(k))}</td><td>${v.toLocaleString('es-CO')}</td></tr>`).join('') +
+          `</table></div></div>`
+      } else {
+        html += `<div class="card"><h2>Visitas</h2><p class="sub">El contador de visitas no respondió — revisa el servicio museo-stats.</p></div>`
       }
 
       if (d.interesados.length) {

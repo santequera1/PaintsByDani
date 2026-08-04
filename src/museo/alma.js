@@ -95,7 +95,7 @@ function stopFootsteps() {
 // --- Estado ---
 let zoomIndex = -1
 let museumEntered = false
-const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0
+const isMobile = window.matchMedia('(hover: none), (pointer: coarse)').matches
 
 // ============================================================
 // Sala (minimal)

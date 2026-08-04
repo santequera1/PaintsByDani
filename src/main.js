@@ -123,7 +123,7 @@ function stopFootsteps() {
 let zoomIndex = -1
 let museumEntered = false
 let currentSala = 'sala1'
-const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0
+const isMobile = window.matchMedia('(hover: none), (pointer: coarse)').matches
 
 // ============================================================
 // Salas

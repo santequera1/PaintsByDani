@@ -5,7 +5,8 @@ export function createEngine(canvas) {
   // --- Renderer ---
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: 'high-performance' })
   // en táctil, limitar el pixel ratio: menos carga de GPU en teléfonos flojos
-  const touchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0
+  // móvil/tablet real: puntero grueso o sin hover (un portátil táctil tiene mouse)
+  const touchDevice = window.matchMedia('(hover: none), (pointer: coarse)').matches
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, touchDevice ? 1.75 : 2))
   renderer.outputColorSpace = THREE.SRGBColorSpace
   renderer.toneMapping = THREE.ACESFilmicToneMapping

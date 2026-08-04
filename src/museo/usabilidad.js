@@ -143,7 +143,7 @@ export function initPanelZoom(img) {
 }
 
 export function initGyroLook(btn) {
-  const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0
+  const isTouch = window.matchMedia('(hover: none), (pointer: coarse)').matches
   if (!btn || !isTouch || !('DeviceOrientationEvent' in window)) return
   btn.hidden = false
 
