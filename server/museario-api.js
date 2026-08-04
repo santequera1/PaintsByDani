@@ -628,6 +628,9 @@ async function rutasPanel(req, res, resto, url) {
     const ruta = `/media/${artista.slug}/${col.slug}/textura-${tipo}.webp?v=${Date.now()}`
     const estilo = parse(col.estilo) || {}
     estilo.texturas = { ...(estilo.texturas || {}), [tipo]: ruta }
+    // la subida queda registrada aparte: aunque el artista vuelva a una
+    // textura del sistema, la suya sigue disponible en el panel
+    estilo.texturasSubidas = { ...(estilo.texturasSubidas || {}), [tipo]: ruta }
     db.prepare('UPDATE colecciones SET estilo=? WHERE id=?').run(JSON.stringify(estilo), col.id)
     return privado(res, 200, { ok: true, url: ruta })
   }

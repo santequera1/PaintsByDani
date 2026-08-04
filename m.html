@@ -53,6 +53,7 @@
     }
     #perfil-chip img { width: 27px; height: 27px; border-radius: 50%; object-fit: cover; background: #1d1d20; }
     #perfil-chip:hover { background: rgba(255, 255, 255, 0.17); }
+    body.museo-3d #overlay-cta a { text-decoration: none; }
   </style>
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Museo Virtual 3D" />
@@ -79,12 +80,12 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21"/></svg>
           Recorrido automático
         </button>
+        <a id="gallery-link" href="#">Ver galería en lienzo &rarr;</a>
+        <span id="overlay-links"></span>
         <a id="perfil-chip" href="#" hidden>
           <img id="perfil-chip-img" src="/museario/favicon.png" alt="" />
           <span id="perfil-chip-nombre">Perfil del artista</span>
         </a>
-        <a id="gallery-link" href="#">Ver galería en lienzo &rarr;</a>
-        <span id="overlay-links"></span>
         <p class="controls-hint">
           <span class="desktop-only">WASD / Flechas mover &middot; Mouse mirar &middot; Click interactuar</span>
           <span class="mobile-only">Usa el joystick para moverte &middot; Toca para interactuar</span>

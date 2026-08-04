@@ -163,6 +163,7 @@
       padding: 8px 15px; font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase;
       font-family: inherit; cursor: pointer; margin: 0;
       display: inline-flex; align-items: center; gap: 6px;
+      text-decoration: none;
       transition: background .2s ease, color .2s ease, transform .2s ease;
     }
     .btn-mini:hover { color: var(--tinta); background: rgba(255,255,255,0.07); transform: translateY(-1px); }
@@ -862,6 +863,7 @@
         `<span>${txt}</span></div>`
       const swatchSubir = `<button class="swatch subir" data-v="subir" type="button">+ Subir la mía</button>`
 
+      const subidas = est.texturasSubidas || {}
       const ePiso = estadoTex(tex.piso)
       const ePared = estadoTex(tex.pared)
       const cSala = document.createElement('div')
@@ -891,14 +893,14 @@
         `<div class="swatches" id="d-piso">` +
         swatch('', baseActual === 'clasica' ? '/museario/tex-madera.jpg' : '/museario/tex-concreto.jpg', 'La del estilo', ePiso === 'defecto') +
         swatch('concreto', '/museario/tex-concreto.jpg', 'Concreto pulido', ePiso === 'sistema') +
-        (ePiso === 'propia' ? swatch('propia', tex.piso, 'Mi textura', true) : '') +
+        (subidas.piso || ePiso === 'propia' ? swatch('propia', subidas.piso || tex.piso, 'Mi textura', ePiso === 'propia') : '') +
         swatchSubir +
         `</div>` +
         `<label>Textura de la pared</label>` +
         `<div class="swatches" id="d-pared">` +
         swatch('', baseActual === 'clasica' ? '/museario/tex-lisa.jpg' : '/museario/tex-yeso.jpg', 'La del estilo', ePared === 'defecto') +
         swatch('yeso', '/museario/tex-yeso.jpg', 'Yeso pintado', ePared === 'sistema') +
-        (ePared === 'propia' ? swatch('propia', tex.pared, 'Mi textura', true) : '') +
+        (subidas.pared || ePared === 'propia' ? swatch('propia', subidas.pared || tex.pared, 'Mi textura', ePared === 'propia') : '') +
         swatchSubir +
         `</div>` +
         `<p class="sub" style="margin:16px 0 0">Los cambios se aplican al instante: abre el Museo 3D para verlos. Las texturas subidas se repiten por la superficie — funcionan mejor las fotos de material tomadas de frente.</p>`
@@ -927,12 +929,16 @@
           await cargar()
         } catch (e) { avisar(e.message, true) }
       })
-      const clicTextura = (tipo, actual) => (e) => {
+      const clicTextura = (tipo) => (e) => {
         const c = e.target.closest('.swatch')
         if (!c) return
         const v = c.dataset.v
         if (v === 'subir') return subirTextura(tipo)
-        if (v === 'propia') return // ya aplicada
+        if (v === 'propia') {
+          const guardada = subidas[tipo] || tex[tipo]
+          if (guardada) patchCol({ texturas: { [tipo]: guardada } })
+          return
+        }
         const sistema = tipo === 'piso' ? 'concreto' : 'yeso'
         patchCol({ texturas: { [tipo]: v === sistema ? sistema : null } })
       }
