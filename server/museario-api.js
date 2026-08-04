@@ -192,6 +192,9 @@ function usuarioActual(req) {
   return qSesion.get(token) || null
 }
 
+// Superadmin: acceso a la vista de administración de la plataforma
+const ADMIN_EMAILS = new Set(['stivenantequera@gmail.com'])
+
 // Cuentas que al entrar se enlazan solas a su perfil de artista existente
 const VINCULOS_AUTO = {
   'catalinamaria100@gmail.com': 'catalina',
@@ -422,6 +425,7 @@ async function rutasPanel(req, res, resto, url) {
     }
     return privado(res, 200, {
       usuario: { email: u.email, nombre: u.nombre, foto: u.foto },
+      esAdmin: ADMIN_EMAILS.has(u.email),
       limiteMuseos: 5,
       artista: artista && {
         slug: artista.slug, nombre: artista.nombre, handle: artista.handle,
@@ -477,6 +481,44 @@ async function rutasPanel(req, res, resto, url) {
     ).run(slug, nombre, handle, instagram, website, substack, bio, redes)
     db.prepare('UPDATE usuarios SET artista_id=? WHERE id=?').run(id, u.id)
     return privado(res, 200, { ok: true, slug })
+  }
+
+  // GET /api/panel/admin — vista de superadmin: todo lo registrado
+  if (resto[1] === 'admin' && req.method === 'GET') {
+    if (!ADMIN_EMAILS.has(u.email)) return privado(res, 403, { error: 'Solo para administradores' })
+    const usuarios = db.prepare(
+      `SELECT u.id, u.email, u.nombre, u.creado_en, u.google_sub IS NOT NULL AS google, a.slug AS artista_slug, a.nombre AS artista_nombre
+       FROM usuarios u LEFT JOIN artistas a ON a.id = u.artista_id ORDER BY u.creado_en DESC`
+    ).all()
+    const artistas = db.prepare(
+      `SELECT a.slug, a.nombre, a.creado_en,
+              COUNT(DISTINCT c.id) AS museos,
+              COUNT(o.id) AS obras,
+              SUM(CASE WHEN c.publicada = 1 THEN 1 ELSE 0 END) IS NOT NULL AS x
+       FROM artistas a
+       LEFT JOIN colecciones c ON c.artista_id = a.id
+       LEFT JOIN obras o ON o.coleccion_id = c.id
+       GROUP BY a.id ORDER BY a.id`
+    ).all().map((a) => ({ ...a, x: undefined }))
+    const interesados = db.prepare('SELECT email, creado_en FROM interesados ORDER BY creado_en DESC').all()
+    const totales = {
+      usuarios: usuarios.length,
+      artistas: artistas.length,
+      museos: db.prepare('SELECT COUNT(*) n FROM colecciones').get().n,
+      obras: db.prepare('SELECT COUNT(*) n FROM obras').get().n,
+      interesados: interesados.length,
+      sesionesActivas: db.prepare("SELECT COUNT(DISTINCT usuario_id) n FROM sesiones WHERE expira_en > datetime('now')").get().n,
+    }
+    // visitas del contador (servicio aparte); si no responde, seguimos sin ellas
+    let visitas = null
+    try {
+      const r = await fetch('http://127.0.0.1:3999/api/visitas')
+      if (r.ok) {
+        const d = await r.json()
+        visitas = d.paginas || null
+      }
+    } catch {}
+    return privado(res, 200, { usuarios, artistas, interesados, totales, visitas })
   }
 
   // Todo lo demás requiere perfil de artista

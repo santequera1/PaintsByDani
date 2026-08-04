@@ -407,6 +407,24 @@
       transition: transform .2s ease, background .2s ease;
     }
     .ver-flotante:hover { background: #fff; transform: translateY(-2px); }
+    .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 22px; }
+    .tile {
+      background: linear-gradient(180deg, #17171a, #121214);
+      border: 1px solid var(--borde); border-radius: 16px;
+      padding: 16px 16px 14px; text-align: center;
+    }
+    .tile b { display: block; font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 1.9rem; color: var(--tinta); }
+    .tile span { font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--tinta-2); }
+    .tabla { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+    .tabla th {
+      text-align: left; font-weight: 400; font-size: 0.64rem;
+      letter-spacing: 0.1em; text-transform: uppercase; color: var(--tinta-2);
+      padding: 8px 10px; border-bottom: 1px solid var(--borde);
+    }
+    .tabla td { padding: 9px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); color: var(--tinta); }
+    .tabla td small { color: var(--tinta-2); }
+    .tabla a { color: #d9b878; text-decoration: none; }
+    .tabla-scroll { overflow-x: auto; }
     .aviso {
       position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
       background: var(--tinta); color: #16130f;
@@ -461,6 +479,10 @@
           Mis museos
         </button>
         <div class="nav-museos" id="nav-museos"></div>
+        <button data-v="admin" id="nav-admin" hidden>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 4v5c0 4.5-3 8-7 9-4-1-7-4.5-7-9V7z"/><path d="M9.5 12l2 2 3.5-3.5"/></svg>
+          Admin
+        </button>
         <button data-v="perfil">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>
           Mi perfil
@@ -513,6 +535,13 @@
 
       <!-- vista: detalle de museo -->
       <section id="vista-detalle" hidden></section>
+
+      <!-- vista: admin -->
+      <section id="vista-admin" hidden>
+        <h1>Admin <em>Museario</em></h1>
+        <p class="sub">Todo lo que pasa en la plataforma.</p>
+        <div id="admin-contenido"><p class="sub">Cargando…</p></div>
+      </section>
 
       <!-- vista: perfil -->
       <section id="vista-perfil" hidden>
@@ -658,6 +687,8 @@
       estado = await r.json().catch(() => null)
       if (!estado || !estado.usuario) { $('v-sesion').hidden = false; return }
 
+      $('nav-admin').hidden = !estado.esAdmin
+
       if (!estado.artista) {
         $('v-dash').hidden = true
         $('v-nuevo').hidden = false
@@ -744,6 +775,8 @@
       $('vista-museos').hidden = v !== 'museos'
       $('vista-detalle').hidden = v !== 'detalle'
       $('vista-perfil').hidden = v !== 'perfil'
+      $('vista-admin').hidden = v !== 'admin'
+      if (v === 'admin') cargarAdmin()
       document.querySelectorAll('.nav button').forEach((b) =>
         b.classList.toggle('activo', b.dataset.v === (v === 'detalle' ? 'museos' : v)))
     }
@@ -1218,6 +1251,68 @@
       inPrice.addEventListener('change', autoguardar)
       inVendido.addEventListener('change', autoguardar)
       return el
+    }
+
+    // ---------- vista de administración ----------
+    async function cargarAdmin() {
+      const cont = $('admin-contenido')
+      let d
+      try {
+        d = await api('/api/panel/admin')
+      } catch (e) {
+        cont.innerHTML = `<p class="sub">${esc(e.message)}</p>`
+        return
+      }
+      const fecha = (f) => (f || '').slice(0, 16).replace('T', ' ')
+      const t = d.totales
+      let html =
+        `<div class="tiles">` +
+        `<div class="tile"><b>${t.usuarios}</b><span>usuarios</span></div>` +
+        `<div class="tile"><b>${t.artistas}</b><span>artistas</span></div>` +
+        `<div class="tile"><b>${t.museos}</b><span>museos</span></div>` +
+        `<div class="tile"><b>${t.obras}</b><span>obras</span></div>` +
+        `<div class="tile"><b>${t.sesionesActivas}</b><span>sesiones activas</span></div>` +
+        `<div class="tile"><b>${t.interesados}</b><span>correos interesados</span></div>` +
+        `</div>`
+
+      html += `<div class="card"><h2>Usuarios registrados</h2><div class="tabla-scroll"><table class="tabla">` +
+        `<tr><th>Correo</th><th>Nombre</th><th>Método</th><th>Artista</th><th>Registro</th></tr>` +
+        d.usuarios.map((x) =>
+          `<tr><td>${esc(x.email)}</td><td>${esc(x.nombre || '—')}</td>` +
+          `<td><small>${x.google ? 'Google' : 'Correo'}</small></td>` +
+          `<td>${x.artista_slug ? `<a href="/a/${esc(x.artista_slug)}" target="_blank">${esc(x.artista_nombre)}</a>` : '<small>—</small>'}</td>` +
+          `<td><small>${fecha(x.creado_en)}</small></td></tr>`).join('') +
+        `</table></div></div>`
+
+      html += `<div class="card"><h2>Artistas y sus museos</h2><div class="tabla-scroll"><table class="tabla">` +
+        `<tr><th>Artista</th><th>Museos</th><th>Obras</th><th>Perfil</th></tr>` +
+        d.artistas.map((a) =>
+          `<tr><td>${esc(a.nombre)}</td><td>${a.museos}</td><td>${a.obras}</td>` +
+          `<td><a href="/a/${esc(a.slug)}" target="_blank">/a/${esc(a.slug)}</a></td></tr>`).join('') +
+        `</table></div></div>`
+
+      if (d.visitas) {
+        const filas = Object.entries(d.visitas)
+          .filter(([k]) => k.startsWith('m-') || k.startsWith('g-'))
+          .sort((a, b) => b[1] - a[1])
+        const totalV = Object.values(d.visitas).reduce((x, y) => x + y, 0)
+        html += `<div class="card"><h2>Visitas</h2>` +
+          `<p class="sub" style="margin-bottom:12px">Total histórico de todas las páginas: <strong style="color:var(--tinta)">${totalV.toLocaleString('es-CO')}</strong></p>` +
+          (filas.length
+            ? `<div class="tabla-scroll"><table class="tabla"><tr><th>Museo / galería (dinámicos)</th><th>Visitas</th></tr>` +
+              filas.map(([k, v]) => `<tr><td>${esc(k)}</td><td>${v.toLocaleString('es-CO')}</td></tr>`).join('') + `</table></div>`
+            : '<p class="sub">Aún sin visitas en las páginas dinámicas.</p>') +
+          `</div>`
+      }
+
+      if (d.interesados.length) {
+        html += `<div class="card"><h2>Correos interesados (landing)</h2><div class="tabla-scroll"><table class="tabla">` +
+          `<tr><th>Correo</th><th>Fecha</th></tr>` +
+          d.interesados.map((i) => `<tr><td>${esc(i.email)}</td><td><small>${fecha(i.creado_en)}</small></td></tr>`).join('') +
+          `</table></div></div>`
+      }
+
+      cont.innerHTML = html
     }
 
     // ---------- confirmación propia (nada de confirm() del sistema) ----------
